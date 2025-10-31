@@ -28,18 +28,27 @@ app.use(limiter);
 // базовый healthcheck (для докера/оркестратора)
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
+// подключаем роуты
+app.use('/api/products', require('./modules/products/product.routes'));
+app.use('/api/categories', require('./modules/categories/category.routes'));
+
 // 404
 app.use((req, res) => res.status(404).json({ message: 'Not found' }));
 
 // errors
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(err.status || 500).json({ message: err.message || 'Server error' });
+  res
+    .status(err.status || 500)
+    .json({ message: err.message || 'Server error' });
 });
 
-mongoose.connect(mongoUri).then(() => {
-  app.listen(port, () => console.log(`API listening on ${port}`));
-}).catch((e) => {
-  console.error('Mongo connect error', e);
-  process.exit(1);
-});
+mongoose
+  .connect(mongoUri)
+  .then(() => {
+    app.listen(port, () => console.log(`API listening on ${port}`));
+  })
+  .catch((e) => {
+    console.error('Mongo connect error', e);
+    process.exit(1);
+  });
