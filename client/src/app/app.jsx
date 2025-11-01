@@ -1,4 +1,5 @@
 import { Routes, Route, Link } from 'react-router-dom';
+import { RequireAuth, RequireRole } from '../features/auth';
 import {
   CatalogPage,
   ProductPage,
@@ -31,7 +32,16 @@ export const App = () => {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/admin/products" element={<AdminProductsPage />} />
+            <Route
+              path="/admin/products"
+              element={
+                <RequireAuth>
+                  <RequireRole role="admin">
+                    <AdminProductsPage />
+                  </RequireRole>
+                </RequireAuth>
+              }
+            />
           </Routes>
         </main>
       </div>

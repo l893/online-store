@@ -32,6 +32,11 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/api/products', require('./modules/products/product.routes'));
 app.use('/api/categories', require('./modules/categories/category.routes'));
 
+// подключаем роуты и rate-limit
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
+app.use('/api/auth', authLimiter);
+app.use('/api/auth', require('./modules/auth/auth.routes'));
+
 // 404
 app.use((req, res) => res.status(404).json({ message: 'Not found' }));
 
