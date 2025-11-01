@@ -1,10 +1,12 @@
 import { Routes, Route, Link } from 'react-router-dom';
-import CatalogPage from '../pages';
-import ProductPage from '../pages';
-import CartPage from '../pages';
-import LoginPage from '../pages';
-import RegisterPage from '../pages';
-import AdminProductsPage from '../pages';
+import {
+  CatalogPage,
+  ProductPage,
+  CartPage,
+  LoginPage,
+  RegisterPage,
+  AdminProductsPage,
+} from '../pages';
 
 export const App = () => {
   return (
