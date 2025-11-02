@@ -1,10 +1,10 @@
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Input } from '../shared/ui';
-import { useLoginMutation } from '../features/auth';
+import { Button, Input } from '../../shared/ui';
+import { useLoginMutation } from '../../features/auth';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { parseApiError } from '../shared/lib/parse-api-error';
+import { parseApiError } from '../../shared/lib/parse-api-error';
 
 const schema = yup.object({
   email: yup.string().required('Введите email').email('Некорректный email'),

@@ -1,11 +1,11 @@
-import { useListProductsQuery } from '../entities/products';
-import { useQueryParams } from '../shared/hooks';
+import { useListProductsQuery } from '../../entities/products';
+import { useQueryParams } from '../../shared/hooks';
 import {
   SearchBar,
   SortControls,
   CategorySidebar,
   ProductGrid,
-} from '../widgets';
+} from '../../widgets';
 
 export const CatalogPage = () => {
   const [params, setParams] = useQueryParams();

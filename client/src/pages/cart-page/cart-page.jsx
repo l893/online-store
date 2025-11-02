@@ -1,13 +1,13 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { changeQty, removeItem, clear, setAll } from '../features/cart';
-import { useCartTotals } from '../shared/hooks';
-import { CartItem, CartSummary } from '../widgets';
+import { changeQty, removeItem, clear, setAll } from '../../features/cart';
+import { useCartTotals } from '../../shared/hooks';
+import { CartItem, CartSummary } from '../../widgets';
 import { useEffect, useCallback } from 'react';
-import { useGetCartQuery, useReplaceCartMutation } from '../features/cart';
+import { useGetCartQuery, useReplaceCartMutation } from '../../features/cart';
 import {
   useCreateOrderMutation,
   useConfirmCheckoutMutation,
-} from '../features/orders';
+} from '../../features/orders';
 import { useNavigate } from 'react-router-dom';
 
 export const CartPage = () => {
