@@ -40,6 +40,8 @@ app.use('/api/auth', require('./modules/auth/auth.routes'));
 app.use('/api/cart', require('./modules/cart/cart.routes'));
 app.use('/api/orders', require('./modules/orders/order.routes'));
 
+app.use('/api/admin/products', require('./modules/products/admin.routes'));
+
 // 404
 app.use((req, res) => res.status(404).json({ message: 'Not found' }));
 
