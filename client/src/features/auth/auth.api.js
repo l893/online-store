@@ -1,23 +1,56 @@
 import { api } from '../../shared/lib/api';
 import { setCredentials, logout as logoutAction } from './auth.slice';
+import { setAll } from '../cart/cart.slice';
 
 export const authApi = api.injectEndpoints({
   endpoints: (build) => ({
     register: build.mutation({
       query: (body) => ({ url: '/auth/register', method: 'POST', body }),
-      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+      async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
           dispatch(setCredentials(data));
+          // объединить локальную гостевую корзину с сервером
+          const items = getState().cart.items;
+
+          if (items?.length) {
+            const res = await dispatch(
+              api.endpoints.replaceCart.initiate(items),
+            ).unwrap();
+
+            dispatch(setAll(res.items || []));
+          } else {
+            // извлечь серверную корзину в локальную
+            const res = await dispatch(
+              api.endpoints.getCart.initiate(),
+            ).unwrap();
+
+            dispatch(setAll(res.items || []));
+          }
         } catch {}
       },
     }),
     login: build.mutation({
       query: (body) => ({ url: '/auth/login', method: 'POST', body }),
-      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+      async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
           dispatch(setCredentials(data));
+          const items = getState().cart.items;
+
+          if (items?.length) {
+            const res = await dispatch(
+              api.endpoints.replaceCart.initiate(items),
+            ).unwrap();
+
+            dispatch(setAll(res.items || []));
+          } else {
+            const res = await dispatch(
+              api.endpoints.getCart.initiate(),
+            ).unwrap();
+
+            dispatch(setAll(res.items || []));
+          }
         } catch {}
       },
     }),
@@ -37,6 +70,7 @@ export const authApi = api.injectEndpoints({
           await queryFulfilled;
         } finally {
           dispatch(logoutAction());
+          dispatch(setAll([])); // очистим локальную корзину
         }
       },
     }),

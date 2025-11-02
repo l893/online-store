@@ -23,8 +23,11 @@ const slice = createSlice({
     clear: (state) => {
       state.items = [];
     },
+    setAll: (state, { payload }) => {
+      state.items = payload || [];
+    },
   },
 });
 
-export const { addItem, changeQty, removeItem, clear } = slice.actions;
+export const { addItem, changeQty, removeItem, clear, setAll } = slice.actions;
 export default slice.reducer;
