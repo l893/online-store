@@ -1,4 +1,10 @@
-export * from './auth.slice';
+// реэкспорт слайса
+export { default as authReducer } from './auth.slice';
+export * from './auth.slice'; // setCredentials, logout
+
+// RTK Query
 export * from './auth.api';
-export * from './require-auth';
-export * from './require-role';
+
+// гардёры
+export { RequireAuth } from './require-auth';
+export { RequireRole } from './require-role';

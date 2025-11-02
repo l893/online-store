@@ -1,2 +1,3 @@
-export * from './cart.slice';
-export * from './cart.api';
+export { default as cartReducer } from './cart.slice';
+export * from './cart.slice'; // addItem, changeQty, removeItem, clear, setAll
+export * from './cart.api'; // useGetCartQuery, useReplaceCartMutation
