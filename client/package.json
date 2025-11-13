@@ -11,6 +11,7 @@
     "format": "prettier --write ./src"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.1",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "@reduxjs/toolkit": "^2.9.2",
