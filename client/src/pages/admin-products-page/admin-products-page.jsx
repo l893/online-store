@@ -1,3 +1,4 @@
+import { useListCategoriesQuery } from '../../entities/categories';
 import { useState, useMemo } from 'react';
 import {
   useAdminCreateProductMutation,
@@ -6,7 +7,7 @@ import {
   useAdminDeleteProductMutation,
 } from '../../features/admin';
 import { ProductForm } from '../../features/admin';
-import { Button, Input } from '../../shared/ui';
+import { Button, ConfirmDialog, Input } from '../../shared/ui';
 import { parseApiError } from '../../shared/lib';
 
 export const AdminProductsPage = () => {
@@ -17,6 +18,8 @@ export const AdminProductsPage = () => {
     page,
     limit: 10,
   });
+  const { data: categoriesRes } = useListCategoriesQuery();
+  const categories = categoriesRes?.items || categoriesRes || []; // на случай разной структуры
 
   const [createProduct, { isLoading: creating, error: createError }] =
     useAdminCreateProductMutation();
@@ -26,6 +29,7 @@ export const AdminProductsPage = () => {
     useAdminDeleteProductMutation();
 
   const [editing, setEditing] = useState(null); // текущий редактируемый товар
+  const [confirmId, setConfirmId] = useState(null);
 
   const items = data?.items || [];
   const pages = data?.pages || 1;
@@ -56,9 +60,10 @@ export const AdminProductsPage = () => {
     refetch();
   }
 
-  async function handleDelete(id) {
-    if (!confirm('Удалить товар?')) return;
-    await deleteProduct(id).unwrap();
+  async function confirmDelete() {
+    if (!confirmId) return;
+    await deleteProduct(confirmId).unwrap();
+    setConfirmId(null);
     refetch();
   }
 
@@ -71,6 +76,7 @@ export const AdminProductsPage = () => {
           </h2>
           <ProductForm
             initial={initial}
+            categories={categories}
             onSubmit={editing ? handleUpdate : handleCreate}
             submitText={editing ? 'Сохранить' : 'Добавить'}
           />
@@ -121,7 +127,7 @@ export const AdminProductsPage = () => {
                   <td className="p-3 space-x-2 text-center">
                     <Button onClick={() => setEditing(p)}>Ред.</Button>
                     <Button
-                      onClick={() => handleDelete(p._id)}
+                      onClick={() => setConfirmId(p._id)}
                       className="bg-red-100 hover:bg-red-200 border-red-300"
                     >
                       Удалить
@@ -159,6 +165,16 @@ export const AdminProductsPage = () => {
             </Button>
           </div>
         )}
+
+        <ConfirmDialog
+          open={!!confirmId}
+          title="Удалить товар?"
+          description="Действие нельзя отменить."
+          onCancel={() => setConfirmId(null)}
+          onConfirm={confirmDelete}
+          confirmText="Удалить"
+        />
+
         {(creating || updating || deleting) && (
           <div className="text-sm text-gray-500">Выполняется…</div>
         )}
