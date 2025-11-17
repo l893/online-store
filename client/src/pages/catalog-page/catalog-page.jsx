@@ -52,7 +52,7 @@ export const CatalogPage = () => {
         <ProductGrid items={data?.items} />
 
         {data?.pages > 1 && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <button
               className="px-3 py-1 border rounded"
               disabled={page <= 1}
