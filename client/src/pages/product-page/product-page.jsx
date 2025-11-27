@@ -1,9 +1,12 @@
 import { useParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { useGetProductQuery } from '../../entities/products';
+import { addItem } from '../../features/cart';
 import { Button, Loader } from '../../shared/ui';
 
 export const ProductPage = () => {
   const { slug } = useParams();
+  const dispatch = useDispatch();
 
   const {
     data: product,
@@ -39,6 +42,17 @@ export const ProductPage = () => {
     return <div className="p-4">Товар не найден</div>;
   }
 
+  const handleAddToCart = () => {
+    dispatch(
+      addItem({
+        productId: product._id,
+        title: product.title,
+        price: product.price,
+        image: product.images?.[0],
+      }),
+    );
+  };
+
   return (
     <section className="mt-6">
       <div className="border rounded-xl bg-gray-50 p-6 flex flex-col gap-6 md:flex-row md:items-start md:gap-10">
@@ -71,7 +85,7 @@ export const ProductPage = () => {
         </div>
 
         <div className="flex md:flex-col items-end justify-between gap-4">
-          <Button>Купить</Button>
+          <Button onClick={handleAddToCart}>Купить</Button>
         </div>
       </div>
     </section>
