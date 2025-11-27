@@ -1,5 +1,6 @@
 import { useListProductsQuery } from '../../entities/products';
 import { useQueryParams } from '../../shared/hooks';
+import { Loader } from '../../shared/ui';
 import {
   SearchBar,
   SortControls,
@@ -47,7 +48,9 @@ export const CatalogPage = () => {
         </div>
 
         {(isLoading || isFetching) && (
-          <div className="text-sm text-gray-500">Загрузка…</div>
+          <div className="flex justify-center py-6">
+            <Loader label="Загружаем товары…" />
+          </div>
         )}
         <ProductGrid items={data?.items} />
 
