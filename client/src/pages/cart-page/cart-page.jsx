@@ -1,8 +1,9 @@
+import { useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { changeQty, removeItem, clear, setAll } from '../../features/cart';
 import { useCartTotals } from '../../shared/hooks';
+import { Loader } from '../../shared/ui';
 import { CartItem, CartSummary } from '../../widgets';
-import { useEffect, useCallback } from 'react';
 import { useGetCartQuery, useReplaceCartMutation } from '../../features/cart';
 import {
   useCreateOrderMutation,
@@ -17,16 +18,24 @@ export const CartPage = () => {
   const nav = useNavigate();
 
   // если авторизован — подтянем серверную корзину
-  const { data: serverCart } = useGetCartQuery(undefined, { skip: !user });
+  const { data: serverCart, isLoading: loadingServerCart } = useGetCartQuery(
+    undefined,
+    { skip: !user },
+  );
+
   useEffect(() => {
     if (user && serverCart?.items) {
       dispatch(setAll(serverCart.items));
     }
   }, [user, serverCart, dispatch]);
 
-  const [replaceCart] = useReplaceCartMutation();
-  const [createOrder] = useCreateOrderMutation();
-  const [confirmCheckout] = useConfirmCheckoutMutation();
+  const [replaceCart, { isLoading: replacingCart }] = useReplaceCartMutation();
+  const [createOrder, { isLoading: creatingOrder }] = useCreateOrderMutation();
+  const [confirmCheckout, { isLoading: confirmingCheckout }] =
+    useConfirmCheckoutMutation();
+
+  const isCheckoutLoading =
+    replacingCart || creatingOrder || confirmingCheckout;
 
   const { totalQty, totalSum } = useCartTotals(items);
 
@@ -75,6 +84,9 @@ export const CartPage = () => {
       </div>
 
       <div className="col-span-12 lg:col-span-8 space-y-4">
+        {loadingServerCart && user && (
+          <Loader label="Синхронизируем корзину…" />
+        )}
         {items.length === 0 ? (
           <div className="text-gray-500">Корзина пуста</div>
         ) : (
@@ -95,6 +107,11 @@ export const CartPage = () => {
           totalSum={totalSum}
           onCheckout={onCheckout}
         />
+        {isCheckoutLoading && (
+          <div className="mt-3">
+            <Loader label="Оформляем заказ…" />
+          </div>
+        )}
       </div>
     </div>
   );

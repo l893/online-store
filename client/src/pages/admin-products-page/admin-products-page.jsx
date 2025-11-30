@@ -7,7 +7,7 @@ import {
   useAdminDeleteProductMutation,
 } from '../../features/admin';
 import { ProductForm } from '../../features/admin';
-import { Button, ConfirmDialog, Input } from '../../shared/ui';
+import { Button, ConfirmDialog, Input, Loader } from '../../shared/ui';
 import { parseApiError } from '../../shared/lib';
 
 export const AdminProductsPage = () => {
@@ -176,7 +176,9 @@ export const AdminProductsPage = () => {
         />
 
         {(creating || updating || deleting) && (
-          <div className="text-sm text-gray-500">Выполняется…</div>
+          <div className="mt-3">
+            <Loader label="Выполняется операция…" />
+          </div>
         )}
       </div>
     </div>
