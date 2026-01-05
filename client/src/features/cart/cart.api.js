@@ -9,7 +9,19 @@ export const cartApi = api.injectEndpoints({
       // полная замена items на сервере
       query: (items) => ({ url: '/cart', method: 'PUT', body: { items } }),
     }),
+    // Новый запрос для удаления товара из корзины
+    removeItemFromCart: build.mutation({
+      query: (productId) => ({
+        url: `/cart/item/${productId}`,
+        method: 'DELETE',
+      }),
+    }),
   }),
+  overrideExisting: false,
 });
 
-export const { useGetCartQuery, useReplaceCartMutation } = cartApi;
+export const {
+  useGetCartQuery,
+  useReplaceCartMutation,
+  useRemoveItemFromCartMutation,
+} = cartApi;

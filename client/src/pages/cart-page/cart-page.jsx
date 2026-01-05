@@ -1,10 +1,14 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { changeQty, removeItem, clear, setAll } from '../../features/cart';
 import { useCartTotals } from '../../shared/hooks';
 import { Loader } from '../../shared/ui';
 import { CartItem, CartSummary } from '../../widgets';
-import { useGetCartQuery, useReplaceCartMutation } from '../../features/cart';
+import {
+  useGetCartQuery,
+  useReplaceCartMutation,
+  useRemoveItemFromCartMutation,
+} from '../../features/cart';
 import {
   useCreateOrderMutation,
   useConfirmCheckoutMutation,
@@ -16,6 +20,7 @@ export const CartPage = () => {
   const items = useSelector((s) => s.cart.items);
   const dispatch = useDispatch();
   const nav = useNavigate();
+  const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
 
   // если авторизован — подтянем серверную корзину
   const { data: serverCart, isLoading: loadingServerCart } = useGetCartQuery(
@@ -23,34 +28,63 @@ export const CartPage = () => {
     { skip: !user },
   );
 
-  useEffect(() => {
-    if (user && serverCart?.items) {
-      dispatch(setAll(serverCart.items));
-    }
-  }, [user, serverCart, dispatch]);
-
+  // хук для замены корзины на сервере
   const [replaceCart, { isLoading: replacingCart }] = useReplaceCartMutation();
   const [createOrder, { isLoading: creatingOrder }] = useCreateOrderMutation();
   const [confirmCheckout, { isLoading: confirmingCheckout }] =
     useConfirmCheckoutMutation();
+  const [removeItemFromCart] = useRemoveItemFromCartMutation(); // Хук для удаления
 
   const isCheckoutLoading =
     replacingCart || creatingOrder || confirmingCheckout;
 
   const { totalQty, totalSum } = useCartTotals(items);
 
+  // начальная синхронизация: выбираем, что считать "истиной"
+  useEffect(() => {
+    if (!user || !serverCart || isInitialSyncDone) return;
+
+    const serverItems = Array.isArray(serverCart.items) ? serverCart.items : [];
+    const hasServerItems = serverItems.length > 0;
+    const hasLocalItems = items.length > 0;
+
+    // Случай 1: гость добавлял товары, затем залогинился,
+    // а на сервере корзина пустая → пушим локальные товары на сервер
+    if (hasLocalItems && !hasServerItems) {
+      replaceCart(items).catch(() => {});
+      return;
+    } else if (!hasLocalItems && hasServerItems) {
+      // Случай 2: локально пусто, а на сервере есть корзина → подтягиваем её в Redux
+      dispatch(setAll(serverItems));
+    }
+
+    setIsInitialSyncDone(true);
+  }, [user, serverCart, items, dispatch, replaceCart, isInitialSyncDone]);
+
   const onChangeQty = useCallback(
     (productId, qty) => {
       dispatch(changeQty({ productId, qty }));
+
+      if (user) {
+        const nextItems = items.map((it) =>
+          it.productId === productId ? { ...it, qty } : it,
+        );
+        replaceCart(nextItems).catch(() => {});
+      }
     },
-    [dispatch],
+    [dispatch, user, items, replaceCart],
   );
 
   const onRemove = useCallback(
     (productId) => {
-      dispatch(removeItem(productId));
+      dispatch(removeItem(productId)); // Убираем товар из локальной корзины
+
+      if (user) {
+        // Если авторизован, отправляем запрос на сервер
+        removeItemFromCart(productId).catch(() => {});
+      }
     },
-    [dispatch],
+    [dispatch, user, removeItemFromCart],
   );
 
   const onCheckout = useCallback(async () => {

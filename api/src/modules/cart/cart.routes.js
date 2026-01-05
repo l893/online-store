@@ -53,4 +53,34 @@ router.put('/', async (req, res, next) => {
   }
 });
 
+// Удаление товара из корзины
+router.delete('/item/:productId', async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+
+    // Найдём корзину пользователя
+    const cart = await Cart.findOne({ userId: req.user.id });
+
+    if (!cart) {
+      return res.status(404).json({ message: 'Корзина не найдена' });
+    }
+
+    // Удаляем товар из массива
+    cart.items = cart.items.filter(
+      (item) => String(item.productId) !== String(productId)
+    );
+
+    cart.markModified('items');
+    cart.updatedAt = new Date();
+
+    // Обновляем корзину в базе
+    await cart.save();
+
+    // Возвращаем обновлённую корзину
+    res.json(cart);
+  } catch (e) {
+    next(e);
+  }
+});
+
 module.exports = router;
