@@ -1,4 +1,5 @@
 import { Routes, Route, Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { RequireAuth, RequireRole } from '../features/auth';
 import {
   CatalogPage,
@@ -10,6 +11,8 @@ import {
 } from '../pages';
 
 export const App = () => {
+  const user = useSelector((state) => state.auth.user);
+
   return (
     <>
       <div className="max-w-6xl mx-auto">
@@ -17,10 +20,22 @@ export const App = () => {
           <Link to="/" className="text-xl font-semibold">
             Shop
           </Link>
-          <nav className="flex gap-4">
+
+          <nav className="flex gap-4 items-center">
             <Link to="/cart">Cart</Link>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
+            {!user && <Link to="/login">Login</Link>}
+            {!user && <Link to="/register">Register</Link>}
+            {user && (
+              <>
+                <span className="text-gray-700 font-medium">{user.name}</span>
+                <button
+                  onClick={() => dispatch(logout())}
+                  className="text-red-600 hover:underline"
+                >
+                  Logout
+                </button>
+              </>
+            )}
             <Link to="/admin/products">Admin</Link>
           </nav>
         </header>
