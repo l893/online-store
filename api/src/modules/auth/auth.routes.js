@@ -169,13 +169,14 @@ router.post('/logout', async (req, res, next) => {
     if (cookie) {
       try {
         const payload = verifyRefresh(cookie);
-        await RefreshToken.updateOne(
-          { jti: payload.jti, userId: payload.sub, revokedAt: null },
-          { $set: { revokedAt: new Date() } }
-        );
-      } catch {}
+
+        // Удаляем все токены текущего пользователя
+        await RefreshToken.deleteMany({ userId: payload.sub });
+      } catch (err) {
+        console.error('Logout cleanup error:', err.message);
+      }
     }
-    res.clearCookie(COOKIE_NAME, { path: '/api/auth/refresh' });
+    res.clearCookie(COOKIE_NAME, { path: '/api/auth' }); // чтобы cookie отправлялась и на /auth/logout
     res.json({ ok: true });
   } catch (e) {
     next(e);
