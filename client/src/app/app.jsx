@@ -1,6 +1,7 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RequireAuth, RequireRole, useLogoutMutation } from '../features/auth';
+import { ScrollToTop } from '../shared/lib';
 import {
   CatalogPage,
   ProductPage,
@@ -16,6 +17,7 @@ export const App = () => {
 
   return (
     <>
+      <ScrollToTop />
       <div className="max-w-6xl mx-auto">
         <header className="flex justify-between items-center p-4 border rounded-xl bg-gray-50 mt-6">
           <Link to="/" className="text-xl font-semibold">
