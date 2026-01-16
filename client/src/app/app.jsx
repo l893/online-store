@@ -1,6 +1,6 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { RequireAuth, RequireRole } from '../features/auth';
+import { RequireAuth, RequireRole, useLogoutMutation } from '../features/auth';
 import {
   CatalogPage,
   ProductPage,
@@ -12,6 +12,7 @@ import {
 
 export const App = () => {
   const user = useSelector((state) => state.auth.user);
+  const [logout] = useLogoutMutation();
 
   return (
     <>
@@ -29,7 +30,10 @@ export const App = () => {
               <>
                 <span className="text-gray-700 font-medium">{user.name}</span>
                 <button
-                  onClick={() => dispatch(logout())}
+                  onClick={async () => {
+                    await logout();
+                    window.location.href = '/';
+                  }}
                   className="text-red-600 hover:underline"
                 >
                   Logout
