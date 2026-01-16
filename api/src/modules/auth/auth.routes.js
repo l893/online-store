@@ -15,7 +15,7 @@ function setRefreshCookie(res, token) {
     httpOnly: true,
     secure: isProd,
     sameSite: 'strict',
-    path: '/api/auth/refresh', // кука будет слаться только сюда
+    path: '/api/auth', // теперь кука доступна и для /logout
     maxAge: 30 * 24 * 60 * 60 * 1000,
   });
 }
