@@ -43,7 +43,7 @@ export const App = () => {
                 </button>
               </>
             )}
-            <Link to="/admin/products">Admin</Link>
+            {user?.role === 'admin' && <Link to="/admin/products">Admin</Link>}
           </nav>
         </header>
 
