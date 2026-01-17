@@ -1,6 +1,7 @@
 import { api } from '../../shared/lib/api';
 import { setCredentials, logout as logoutAction } from './auth.slice';
 import { setAll } from '../cart/cart.slice';
+import { normalizeUser } from './normalize-user';
 
 export const authApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -9,7 +10,8 @@ export const authApi = api.injectEndpoints({
       async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          dispatch(setCredentials(data));
+          const user = normalizeUser(data.user);
+          dispatch(setCredentials({ ...data, user }));
 
           localStorage.setItem('accessToken', data.accessToken);
           localStorage.setItem('refreshToken', data.refreshToken);
@@ -39,7 +41,8 @@ export const authApi = api.injectEndpoints({
       async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          dispatch(setCredentials(data));
+          const user = normalizeUser(data.user);
+          dispatch(setCredentials({ ...data, user }));
 
           localStorage.setItem('accessToken', data.accessToken);
           localStorage.setItem('refreshToken', data.refreshToken);
@@ -67,7 +70,8 @@ export const authApi = api.injectEndpoints({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          dispatch(setCredentials(data));
+          const user = normalizeUser(data.user);
+          dispatch(setCredentials({ ...data, user }));
         } catch {}
       },
     }),
