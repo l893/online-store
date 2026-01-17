@@ -9,6 +9,7 @@ import {
   LoginPage,
   RegisterPage,
   AdminProductsPage,
+  NotFoundPage,
 } from '../pages';
 
 export const App = () => {
@@ -63,6 +64,7 @@ export const App = () => {
                 </RequireAuth>
               }
             />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>
       </div>
