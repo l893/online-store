@@ -52,7 +52,8 @@ export const CatalogPage = () => {
             <Loader label="Загружаем товары…" />
           </div>
         )}
-        <ProductGrid items={data?.items} />
+
+        {!isLoading && !isFetching && <ProductGrid items={data?.items} />}
 
         {data?.pages > 1 && (
           <div className="flex gap-2 items-center">
