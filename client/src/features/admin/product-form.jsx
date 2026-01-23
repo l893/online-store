@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, Fragment, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -10,7 +10,6 @@ import {
   ListboxOptions,
   Transition,
 } from '@headlessui/react';
-import { Fragment, useState } from 'react';
 
 const schema = yup.object({
   title: yup.string().required('Введите название'),
@@ -108,6 +107,8 @@ function slugifyRu(str = '') {
     .replace(/-+/g, '-');
 }
 
+const SUCCESSFUL_ADD_ITEM_CONFIRMATION_MILLISECONDS = 5000;
+
 export const ProductForm = ({
   initial,
   onSubmit,
@@ -125,6 +126,8 @@ export const ProductForm = ({
     resolver: yupResolver(schema),
     defaultValues: initial || {},
   });
+
+  const [success, setSuccess] = useState(false);
 
   const title = watch('title');
   const [catOpt, setCatOpt] = useState(() => {
@@ -157,8 +160,22 @@ export const ProductForm = ({
     });
   }, [catOpt, setValue]);
 
+  const handleFormSubmit = async (data) => {
+    try {
+      await onSubmit(data);
+      setSuccess(true);
+      setTimeout(
+        () => setSuccess(false),
+        SUCCESSFUL_ADD_ITEM_CONFIRMATION_MILLISECONDS,
+      );
+    } catch (e) {
+      // Не обрабатываем здесь — ошибки уже идут из onSubmit или формы
+    }
+  };
+
   return (
-    <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+    // <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-3" onSubmit={handleSubmit(handleFormSubmit)}>
       <div>
         <Input placeholder="Название" {...register('title')} />
         {errors.title && (
@@ -252,6 +269,12 @@ export const ProductForm = ({
       <Button disabled={isSubmitting} className="w-full">
         {submitText}
       </Button>
+
+      {success && (
+        <div className="text-green-600 bg-green-50 border border-green-200 p-2 text-sm rounded text-center">
+          Товар сохранён ✅
+        </div>
+      )}
     </form>
   );
 };
