@@ -11,6 +11,7 @@ import {
   AdminProductsPage,
   NotFoundPage,
 } from '../pages';
+import '../styles/custom.scss';
 
 export const App = () => {
   const user = useSelector((state) => state.auth.user);
@@ -26,24 +27,53 @@ export const App = () => {
           </Link>
 
           <nav className="flex gap-4 items-center">
-            <Link to="/cart">Cart</Link>
-            {!user && <Link to="/login">Login</Link>}
-            {!user && <Link to="/register">Register</Link>}
+            {/* <Link to="/cart" className="icon-cart" /> */}
+            <Link
+              to="/cart"
+              className="icon-cart flex justify-center items-center"
+            >
+              Cart
+            </Link>
+            {!user && (
+              <Link
+                to="/login"
+                className="icon-login flex justify-center items-center"
+              >
+                Login
+              </Link>
+            )}
+            {!user && (
+              <Link
+                to="/register"
+                className="icon-account-reg flex justify-center items-center"
+              >
+                Register
+              </Link>
+            )}
             {user && (
               <>
-                <span className="text-gray-700 font-medium">{user.name}</span>
+                <span className="text-gray-700 font-medium icon-person-fill flex justify-center items-center">
+                  {user.name}
+                </span>
                 <button
                   onClick={async () => {
                     await logout();
                     window.location.href = '/';
                   }}
-                  className="text-red-600 hover:underline"
+                  className="text-red-600 hover:underline icon-logout flex justify-center items-center"
                 >
                   Logout
                 </button>
               </>
             )}
-            {user?.role === 'admin' && <Link to="/admin/products">Admin</Link>}
+            {user?.role === 'admin' && (
+              <Link
+                to="/admin/products"
+                className="icon-person-fill-gear flex justify-center items-center"
+              >
+                Admin
+              </Link>
+            )}
           </nav>
         </header>
 

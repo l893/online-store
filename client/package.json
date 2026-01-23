@@ -11,15 +11,16 @@
     "format": "prettier --write ./src"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.2.1",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
+    "@hookform/resolvers": "^5.2.1",
     "@reduxjs/toolkit": "^2.9.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.65.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.4",
+    "sass-embedded": "^1.97.3",
     "yup": "^1.7.1"
   },
   "devDependencies": {

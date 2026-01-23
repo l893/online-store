@@ -1,0 +1,12 @@
+@use 'sass:math';
+
+@mixin textFontStyles(
+  $fontSize,
+  $lineHeightWithoutPX,
+  $fontSizeWithoutPX,
+  $color
+) {
+  font-size: $fontSize;
+  line-height: math.div($lineHeightWithoutPX, $fontSizeWithoutPX) * 100%;
+  color: $color;
+}
