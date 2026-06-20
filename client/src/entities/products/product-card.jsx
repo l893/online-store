@@ -8,8 +8,13 @@ export const ProductCard = ({ p }) => {
 
   return (
     <div className="border rounded-xl p-4 bg-white flex gap-4 items-start">
-      <div className="w-28 h-28 bg-amber-50 rounded-lg border flex items-center justify-center">
-        Фото
+      <div className="w-28 h-28 bg-amber-50 rounded-lg border overflow-hidden flex items-center justify-center">
+        <img
+          src={p.images?.[0] || 'https://placehold.co/300x300?text=No+Image'}
+          alt={p.title}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
       </div>
       <div className="flex-1">
         <Link to={`/product/${p.slug}`} className="font-semibold">

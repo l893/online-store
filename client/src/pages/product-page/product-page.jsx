@@ -56,8 +56,16 @@ export const ProductPage = () => {
   return (
     <section className="mt-6">
       <div className="border rounded-xl bg-gray-50 p-6 flex flex-col gap-6 md:flex-row md:items-start md:gap-10">
-        <div className="w-full md:w-56 h-56 bg-amber-50 rounded-lg border flex items-center justify-center">
-          Фото
+        <div className="w-full md:w-56 h-56 bg-amber-50 rounded-lg border overflow-hidden flex items-center justify-center">
+          <img
+            src={
+              product.images?.[0] ||
+              'https://placehold.co/600x600?text=No+Image'
+            }
+            alt={product.title}
+            className="w-full h-full object-contain"
+            loading="eager"
+          />
         </div>
 
         <div className="flex-1 flex flex-col gap-4">
