@@ -1,15 +1,15 @@
-import { useEffect, Fragment, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Input } from '../../shared/ui';
 import {
-  Listbox,
-  ListboxButton,
-  ListboxOption,
-  ListboxOptions,
-  Transition,
-} from '@headlessui/react';
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  MenuItem,
+  Select,
+} from '@mui/material';
+import { Button, Input } from '../../shared/ui';
 
 const schema = yup.object({
   title: yup.string().required('Введите название'),
@@ -130,35 +130,31 @@ export const ProductForm = ({
   const [success, setSuccess] = useState(false);
 
   const title = watch('title');
-  const [catOpt, setCatOpt] = useState(() => {
-    if (!initial?.categoryId) return null;
-    const found = categories.find((c) => c._id === initial.categoryId);
-    return found || null;
-  });
+  const [selectedCategoryId, setSelectedCategoryId] = useState(
+    () => initial?.categoryId || '',
+  );
 
   useEffect(() => {
     reset(initial || {});
-    if (initial?.categoryId) {
-      const found =
-        categories.find((c) => c._id === initial.categoryId) || null;
-      setCatOpt(found);
-    } else {
-      setCatOpt(null);
-    }
-  }, [initial, categories, reset]);
+    setSelectedCategoryId(initial?.categoryId || '');
+  }, [initial, reset]);
 
   const onGenerateSlug = () => {
     const s = slugifyRu(title || '');
     if (s) setValue('slug', s, { shouldValidate: true, shouldDirty: true });
   };
 
-  // когда пользователь выбирает категорию в Listbox — кладём categoryId в форму
+  const handleCategoryChange = (event) => {
+    setSelectedCategoryId(event.target.value);
+  };
+
+  // когда пользователь выбирает категорию — кладём categoryId в форму
   useEffect(() => {
-    setValue('categoryId', catOpt?._id || '', {
+    setValue('categoryId', selectedCategoryId, {
       shouldValidate: true,
       shouldDirty: true,
     });
-  }, [catOpt, setValue]);
+  }, [selectedCategoryId, setValue]);
 
   const handleFormSubmit = async (data) => {
     try {
@@ -168,13 +164,12 @@ export const ProductForm = ({
         () => setSuccess(false),
         SUCCESSFUL_ADD_ITEM_CONFIRMATION_MILLISECONDS,
       );
-    } catch (e) {
+    } catch {
       // Не обрабатываем здесь — ошибки уже идут из onSubmit или формы
     }
   };
 
   return (
-    // <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
     <form className="space-y-3" onSubmit={handleSubmit(handleFormSubmit)}>
       <div>
         <Input placeholder="Название" {...register('title')} />
@@ -202,45 +197,30 @@ export const ProductForm = ({
         )}
       </div>
 
-      {/* Категория — Headless UI Listbox */}
+      {/* Категория */}
       <div>
-        <label className="block text-sm text-gray-600 mb-1">Категория</label>
-        <Listbox value={catOpt} onChange={setCatOpt}>
-          <div className="relative">
-            <ListboxButton className="w-full rounded-xl border px-3 py-2 text-left">
-              {catOpt ? catOpt.name : 'Не выбрано'}
-            </ListboxButton>
-            <Transition
-              as={Fragment}
-              leave="transition ease-in duration-100"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl border bg-white shadow">
-                <ListboxOption
-                  value={null}
-                  className="cursor-pointer px-3 py-2 hover:bg-gray-50"
-                >
-                  Не выбрано
-                </ListboxOption>
-                {categories.map((cat) => (
-                  <ListboxOption
-                    key={cat._id}
-                    value={cat}
-                    className="cursor-pointer px-3 py-2 hover:bg-gray-50"
-                  >
-                    {cat.name}
-                  </ListboxOption>
-                ))}
-              </ListboxOptions>
-            </Transition>
-          </div>
-        </Listbox>
-        {errors.categoryId && (
-          <div className="text-sm text-red-600">
-            {errors.categoryId.message}
-          </div>
-        )}
+        <FormControl fullWidth size="small" error={Boolean(errors.categoryId)}>
+          <InputLabel id="product-category-label">Категория</InputLabel>
+          <Select
+            labelId="product-category-label"
+            id="product-category"
+            value={selectedCategoryId}
+            label="Категория"
+            onChange={handleCategoryChange}
+          >
+            <MenuItem value="">
+              <em>Не выбрано</em>
+            </MenuItem>
+            {categories.map((category) => (
+              <MenuItem key={category._id} value={category._id}>
+                {category.name}
+              </MenuItem>
+            ))}
+          </Select>
+          {errors.categoryId && (
+            <FormHelperText>{errors.categoryId.message}</FormHelperText>
+          )}
+        </FormControl>
       </div>
 
       <div>
