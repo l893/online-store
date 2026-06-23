@@ -12,32 +12,35 @@ import {
   NotFoundPage,
 } from '../pages';
 import '../styles/custom.scss';
+import styles from './app.module.scss';
 
 export const App = () => {
   const user = useSelector((state) => state.auth.user);
   const [logout] = useLogoutMutation();
 
+  const handleLogoutButtonClick = async () => {
+    await logout();
+    window.location.href = '/';
+  };
+
   return (
     <>
       <ScrollToTop />
-      <div className="max-w-6xl mx-auto">
-        <header className="flex justify-between items-center p-4 border rounded-xl bg-gray-50 mt-6">
-          <Link to="/" className="text-xl font-semibold">
+      <div className={styles.appShell}>
+        <header className={styles.header}>
+          <Link to="/" className={styles.brandLink}>
             Shop
           </Link>
 
-          <nav className="flex gap-4 items-center">
+          <nav className={styles.navigation}>
             {/* <Link to="/cart" className="icon-cart" /> */}
-            <Link
-              to="/cart"
-              className="icon-cart flex justify-center items-center"
-            >
+            <Link to="/cart" className={`icon-cart ${styles.navigationLink}`}>
               Cart
             </Link>
             {!user && (
               <Link
                 to="/login"
-                className="icon-login flex justify-center items-center"
+                className={`icon-login ${styles.navigationLink}`}
               >
                 Login
               </Link>
@@ -45,22 +48,20 @@ export const App = () => {
             {!user && (
               <Link
                 to="/register"
-                className="icon-account-reg flex justify-center items-center"
+                className={`icon-account-reg ${styles.navigationLink}`}
               >
                 Register
               </Link>
             )}
             {user && (
               <>
-                <span className="text-gray-700 font-medium icon-person-fill flex justify-center items-center">
+                <span className={`icon-person-fill ${styles.userName}`}>
                   {user.name}
                 </span>
                 <button
-                  onClick={async () => {
-                    await logout();
-                    window.location.href = '/';
-                  }}
-                  className="text-red-600 hover:underline icon-logout flex justify-center items-center"
+                  type="button"
+                  onClick={handleLogoutButtonClick}
+                  className={`icon-logout ${styles.logoutButton}`}
                 >
                   Logout
                 </button>
@@ -69,7 +70,7 @@ export const App = () => {
             {user?.role === 'admin' && (
               <Link
                 to="/admin/products"
-                className="icon-person-fill-gear flex justify-center items-center"
+                className={`icon-person-fill-gear ${styles.navigationLink}`}
               >
                 Admin
               </Link>
@@ -77,7 +78,7 @@ export const App = () => {
           </nav>
         </header>
 
-        <main className="py-6">
+        <main className={styles.mainContent}>
           <Routes>
             <Route path="/" element={<CatalogPage />} />
             <Route path="/product/:slug" element={<ProductPage />} />
