@@ -7,6 +7,7 @@ import {
   CategorySidebar,
   ProductGrid,
 } from '../../widgets';
+import styles from './catalog-page.module.scss';
 
 export const CatalogPage = () => {
   const [params, setParams] = useQueryParams();
@@ -24,31 +25,35 @@ export const CatalogPage = () => {
   });
 
   return (
-    <div className="grid grid-cols-12 gap-6">
-      <div className="col-span-12">
+    <div className={styles.catalogLayout}>
+      <div className={styles.searchSection}>
         <SearchBar
           value={search}
-          onChange={(v) => setParams({ search: v, page: 1 })}
+          onChange={(searchValue) =>
+            setParams({ search: searchValue, page: 1 })
+          }
         />
       </div>
 
-      <div className="col-span-12 md:col-span-3">
+      <div className={styles.sidebarSection}>
         <CategorySidebar
           active={category}
-          onChange={(v) => setParams({ category: v, page: 1 })}
+          onChange={(categoryId) =>
+            setParams({ category: categoryId, page: 1 })
+          }
         />
       </div>
 
-      <div className="col-span-12 md:col-span-9 space-y-4">
-        <div className="border rounded-xl p-3 bg-gray-50">
+      <div className={styles.contentSection}>
+        <div className={styles.sortPanel}>
           <SortControls
             value={sort}
-            onChange={(v) => setParams({ sort: v, page: 1 })}
+            onChange={(sortValue) => setParams({ sort: sortValue, page: 1 })}
           />
         </div>
 
         {(isLoading || isFetching) && (
-          <div className="flex justify-center py-6">
+          <div className={styles.loaderWrapper}>
             <Loader label="Загружаем товары…" />
           </div>
         )}
@@ -56,19 +61,19 @@ export const CatalogPage = () => {
         {!isLoading && !isFetching && <ProductGrid items={data?.items} />}
 
         {data?.pages > 1 && (
-          <div className="flex gap-2 items-center">
+          <div className={styles.pagination}>
             <button
-              className="px-3 py-1 border rounded"
+              className={styles.paginationButton}
               disabled={page <= 1}
               onClick={() => setParams({ page: page - 1 })}
             >
               Назад
             </button>
-            <span className="text-sm text-gray-600">
+            <span className={styles.paginationText}>
               Стр. {page} из {data.pages}
             </span>
             <button
-              className="px-3 py-1 border rounded"
+              className={styles.paginationButton}
               disabled={page >= data.pages}
               onClick={() => setParams({ page: page + 1 })}
             >
