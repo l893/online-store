@@ -6,13 +6,19 @@ export const Input = ({
   variant = 'outlined',
   fullWidth = true,
   inputProps,
+  slotProps,
   ...props
 }) => {
-  const mergedInputProps = {
+  const htmlInputProps = {
     ...inputProps,
-    className: inputProps?.className
-      ? `${inputProps.className} ${className}`
-      : className,
+    ...slotProps?.htmlInput,
+    className: [
+      inputProps?.className,
+      slotProps?.htmlInput?.className,
+      className,
+    ]
+      .filter(Boolean)
+      .join(' '),
   };
 
   return (
@@ -21,7 +27,10 @@ export const Input = ({
       size={size}
       variant={variant}
       fullWidth={fullWidth}
-      inputProps={mergedInputProps}
+      slotProps={{
+        ...slotProps,
+        htmlInput: htmlInputProps,
+      }}
       {...props}
     />
   );
