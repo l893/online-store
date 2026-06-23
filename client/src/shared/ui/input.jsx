@@ -1,7 +1,27 @@
-export const Input = ({ className = '', ...props }) => {
+import { TextField } from '@mui/material';
+
+export const Input = ({
+  className = '',
+  size = 'small',
+  variant = 'outlined',
+  fullWidth = true,
+  inputProps,
+  ...props
+}) => {
+  const mergedInputProps = {
+    ...inputProps,
+    className: inputProps?.className
+      ? `${inputProps.className} ${className}`
+      : className,
+  };
+
   return (
-    <input
-      className={`w-full rounded-xl border px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-amber-300 ${className}`}
+    <TextField
+      className={className}
+      size={size}
+      variant={variant}
+      fullWidth={fullWidth}
+      inputProps={mergedInputProps}
       {...props}
     />
   );

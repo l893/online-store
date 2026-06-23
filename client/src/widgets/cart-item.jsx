@@ -2,9 +2,10 @@ import { Button } from '../shared/ui/button';
 import { Input } from '../shared/ui/input';
 
 export const CartItem = ({ item, onChangeQty, onRemove }) => {
-  const onInput = (e) => {
-    const v = Math.max(1, parseInt(e.target.value || '1', 10));
-    onChangeQty(item.productId, v);
+  const handleQuantityInputChange = (event) => {
+    const nextQuantity = Math.max(1, parseInt(event.target.value || '1', 10));
+
+    onChangeQty(item.productId, nextQuantity);
   };
 
   return (
@@ -24,8 +25,9 @@ export const CartItem = ({ item, onChangeQty, onRemove }) => {
         </Button>
         <Input
           className="w-16 text-center"
+          fullWidth={false}
           value={item.qty}
-          onChange={onInput}
+          onChange={handleQuantityInputChange}
         />
         <Button onClick={() => onChangeQty(item.productId, item.qty + 1)}>
           +
