@@ -1,0 +1,42 @@
+.sidebar {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background-color: #f9fafb;
+}
+
+.title {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.loader {
+  margin-top: 0.25rem;
+}
+
+.categoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.categoryButton {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #111827;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.categoryButton:hover {
+  color: #92400e;
+}
+
+.activeCategoryButton {
+  font-weight: 600;
+}

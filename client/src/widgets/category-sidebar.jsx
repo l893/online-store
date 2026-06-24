@@ -1,28 +1,36 @@
 import { useListCategoriesQuery } from '../entities/categories';
 import { Loader } from '../shared/ui';
+import styles from './category-sidebar.module.scss';
 
 export const CategorySidebar = ({ active, onChange }) => {
   const { data, isLoading } = useListCategoriesQuery();
+
   return (
-    <aside className="border rounded-xl p-4 bg-gray-50">
-      <div className="font-medium mb-2">Категории</div>
-      {isLoading && <Loader className="mt-1" label="Загружаем категории…" />}
-      <ul className="space-y-2">
+    <aside className={styles.sidebar}>
+      <div className={styles.title}>Категории</div>
+      {isLoading && (
+        <Loader className={styles.loader} label="Загружаем категории…" />
+      )}
+      <ul className={styles.categoryList}>
         <li>
           <button
-            className={`text-left ${!active ? 'font-semibold' : ''}`}
+            className={`${styles.categoryButton} ${
+              !active ? styles.activeCategoryButton : ''
+            }`}
             onClick={() => onChange('')}
           >
             Все
           </button>
         </li>
-        {data?.map((c) => (
-          <li key={c._id}>
+        {data?.map((category) => (
+          <li key={category._id}>
             <button
-              className={`text-left ${active === c._id ? 'font-semibold' : ''}`}
-              onClick={() => onChange(c._id)}
+              className={`${styles.categoryButton} ${
+                active === category._id ? styles.activeCategoryButton : ''
+              }`}
+              onClick={() => onChange(category._id)}
             >
-              {c.name}
+              {category.name}
             </button>
           </li>
         ))}
