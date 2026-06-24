@@ -1,21 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Input } from '../shared/ui';
 import { useDebouncedValue } from '../shared/hooks';
+import styles from './search-bar.module.scss';
 
 export const SearchBar = ({ value, onChange }) => {
   const [local, setLocal] = useState(value || '');
+  const onChangeRef = useRef(onChange);
   const debounced = useDebouncedValue(local, 500);
 
   useEffect(() => {
-    onChange?.(debounced);
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    onChangeRef.current?.(debounced);
   }, [debounced]);
 
   return (
-    <div className="mt-4">
+    <div className={styles.searchBar}>
       <Input
         placeholder="Поиск по названию…"
         value={local}
-        onChange={(e) => setLocal(e.target.value)}
+        onChange={(event) => setLocal(event.target.value)}
       />
     </div>
   );
