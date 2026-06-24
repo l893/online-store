@@ -3,6 +3,10 @@ import { useDispatch } from 'react-redux';
 import { useGetProductQuery } from '../../entities/products';
 import { addItem } from '../../features/cart';
 import { Button, Loader } from '../../shared/ui';
+import styles from './product-page.module.scss';
+
+const PRODUCT_IMAGE_PLACEHOLDER_URL =
+  'https://placehold.co/600x600?text=No+Image';
 
 export const ProductPage = () => {
   const { slug } = useParams();
@@ -18,12 +22,12 @@ export const ProductPage = () => {
   });
 
   if (!slug) {
-    return <div className="p-4">Товар не найден</div>;
+    return <div className={styles.pageMessage}>Товар не найден</div>;
   }
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-10">
+      <div className={styles.loaderWrapper}>
         <Loader />
       </div>
     );
@@ -31,7 +35,7 @@ export const ProductPage = () => {
 
   if (isError) {
     return (
-      <div className="p-4 text-sm text-red-600">
+      <div className={styles.errorMessage}>
         Ошибка при загрузке товара:{' '}
         {error?.data?.message || 'неизвестная ошибка'}
       </div>
@@ -39,10 +43,12 @@ export const ProductPage = () => {
   }
 
   if (!product) {
-    return <div className="p-4">Товар не найден</div>;
+    return <div className={styles.pageMessage}>Товар не найден</div>;
   }
 
-  const handleAddToCart = () => {
+  const productImageUrl = product.images?.[0] || PRODUCT_IMAGE_PLACEHOLDER_URL;
+
+  const handleAddToCartButtonClick = () => {
     dispatch(
       addItem({
         productId: product._id,
@@ -53,47 +59,49 @@ export const ProductPage = () => {
     );
   };
 
+  const handleProductImageError = (event) => {
+    event.currentTarget.src = PRODUCT_IMAGE_PLACEHOLDER_URL;
+  };
+
   return (
-    <section className="mt-6">
-      <div className="border rounded-xl bg-gray-50 p-6 flex flex-col gap-6 md:flex-row md:items-start md:gap-10">
-        <div className="w-full md:w-56 h-56 bg-amber-50 rounded-lg border overflow-hidden flex items-center justify-center">
+    <section className={styles.productPage}>
+      <div className={styles.productDetailsCard}>
+        <div className={styles.imageWrapper}>
           <img
-            src={
-              product.images?.[0] ||
-              'https://placehold.co/600x600?text=No+Image'
-            }
+            src={productImageUrl}
             alt={product.title}
-            className="w-full h-full object-contain"
+            className={styles.productImage}
             loading="eager"
+            onError={handleProductImageError}
           />
         </div>
 
-        <div className="flex-1 flex flex-col gap-4">
+        <div className={styles.content}>
           <div>
-            <h1 className="text-xl font-semibold">{product.title}</h1>
-            <p className="mt-1 text-xs text-gray-500">
-              id товара: {product._id}
-            </p>
+            <h1 className={styles.title}>{product.title}</h1>
+            <p className={styles.productId}>id товара: {product._id}</p>
           </div>
 
-          <div className="space-y-1 text-sm">
+          <div className={styles.productMeta}>
             <div>
-              <span className="font-medium">Количество:</span>{' '}
+              <span className={styles.metaLabel}>Количество:</span>{' '}
               {typeof product.stock === 'number' ? product.stock : '—'}
             </div>
             <div>
-              <span className="font-medium">Стоимость:</span>{' '}
+              <span className={styles.metaLabel}>Стоимость:</span>{' '}
               {product.price?.toLocaleString('ru-RU')} ₽
             </div>
           </div>
 
           {product.description && (
-            <p className="text-sm text-gray-700">{product.description}</p>
+            <p className={styles.description}>{product.description}</p>
           )}
         </div>
 
-        <div className="flex md:flex-col items-end justify-between gap-4">
-          <Button onClick={handleAddToCart}>Купить</Button>
+        <div className={styles.actions}>
+          <Button type="button" onClick={handleAddToCartButtonClick}>
+            Купить
+          </Button>
         </div>
       </div>
     </section>
