@@ -14,10 +14,11 @@ import {
   useConfirmCheckoutMutation,
 } from '../../features/orders';
 import { useNavigate } from 'react-router-dom';
+import styles from './cart-page.module.scss';
 
 export const CartPage = () => {
-  const user = useSelector((s) => s.auth.user);
-  const items = useSelector((s) => s.cart.items);
+  const user = useSelector((state) => state.auth.user);
+  const items = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
   const nav = useNavigate();
   const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
@@ -66,8 +67,8 @@ export const CartPage = () => {
       dispatch(changeQty({ productId, qty }));
 
       if (user) {
-        const nextItems = items.map((it) =>
-          it.productId === productId ? { ...it, qty } : it,
+        const nextItems = items.map((item) =>
+          item.productId === productId ? { ...item, qty } : item,
         );
         replaceCart(nextItems).catch(() => {});
       }
@@ -105,29 +106,29 @@ export const CartPage = () => {
 
       alert(`Оплата подтверждена (мок). Заказ: ${orderId}`);
       dispatch(clear());
-    } catch (e) {
-      console.error('Checkout error:', e);
+    } catch (checkoutError) {
+      console.error('Checkout error:', checkoutError);
       alert('Не удалось оформить заказ');
     }
   }, [user, nav, replaceCart, items, createOrder, confirmCheckout, dispatch]);
 
   return (
-    <div className="grid grid-cols-12 gap-6">
-      <div className="col-span-12">
-        <h1 className="text-2xl font-semibold mb-2">Корзина</h1>
+    <div className={styles.cartLayout}>
+      <div className={styles.headerSection}>
+        <h1 className={styles.title}>Корзина</h1>
       </div>
 
-      <div className="col-span-12 lg:col-span-8 space-y-4">
+      <div className={styles.itemsSection}>
         {loadingServerCart && user && (
           <Loader label="Синхронизируем корзину…" />
         )}
         {items.length === 0 ? (
-          <div className="text-gray-500">Корзина пуста</div>
+          <div className={styles.emptyMessage}>Корзина пуста</div>
         ) : (
-          items.map((it) => (
+          items.map((item) => (
             <CartItem
-              key={it.productId}
-              item={it}
+              key={item.productId}
+              item={item}
               onChangeQty={onChangeQty}
               onRemove={onRemove}
             />
@@ -135,14 +136,14 @@ export const CartPage = () => {
         )}
       </div>
 
-      <div className="col-span-12 lg:col-span-4">
+      <div className={styles.summarySection}>
         <CartSummary
           totalQty={totalQty}
           totalSum={totalSum}
           onCheckout={onCheckout}
         />
         {isCheckoutLoading && (
-          <div className="mt-3">
+          <div className={styles.checkoutLoader}>
             <Loader label="Оформляем заказ…" />
           </div>
         )}
