@@ -1,18 +1,24 @@
 import { Button } from '../shared/ui';
+import styles from './sort-controls.module.scss';
 
 export const SortControls = ({ value = 'price_asc', onChange }) => {
+  const isPriceAscendingActive = value === 'price_asc';
+  const isPriceDescendingActive = value === 'price_desc';
+
   return (
-    <div className="flex gap-2 items-center">
-      <span className="text-sm text-gray-600">Сортировать:</span>
+    <div className={styles.sortControls}>
+      <span className={styles.label}>Сортировать:</span>
       <Button
+        type="button"
+        variant={isPriceAscendingActive ? 'contained' : 'outlined'}
         onClick={() => onChange('price_asc')}
-        className={value === 'price_asc' ? 'bg-amber-200' : ''}
       >
         По цене ↑
       </Button>
       <Button
+        type="button"
+        variant={isPriceDescendingActive ? 'contained' : 'outlined'}
         onClick={() => onChange('price_desc')}
-        className={value === 'price_desc' ? 'bg-amber-200' : ''}
       >
         По цене ↓
       </Button>
