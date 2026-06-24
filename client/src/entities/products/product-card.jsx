@@ -2,41 +2,51 @@ import { Button } from '../../shared/ui';
 import { useDispatch } from 'react-redux';
 import { addItem } from '../../features/cart';
 import { Link } from 'react-router-dom';
+import styles from './product-card.module.scss';
 
-export const ProductCard = ({ p }) => {
+const PRODUCT_IMAGE_PLACEHOLDER_URL =
+  'https://placehold.co/300x300?text=No+Image';
+
+export const ProductCard = ({ p: product }) => {
   const dispatch = useDispatch();
 
+  const productImageUrl = product.images?.[0] || PRODUCT_IMAGE_PLACEHOLDER_URL;
+
+  const handleAddToCartButtonClick = () => {
+    dispatch(
+      addItem({
+        productId: product._id,
+        title: product.title,
+        price: product.price,
+        image: product.images?.[0],
+      }),
+    );
+  };
+
   return (
-    <div className="border rounded-xl p-4 bg-white flex gap-4 items-start">
-      <div className="w-28 h-28 bg-amber-50 rounded-lg border overflow-hidden flex items-center justify-center">
+    <div className={styles.productCard}>
+      <div className={styles.imageWrapper}>
         <img
-          src={p.images?.[0] || 'https://placehold.co/300x300?text=No+Image'}
-          alt={p.title}
-          className="w-full h-full object-cover"
+          src={productImageUrl}
+          alt={product.title}
+          className={styles.image}
           loading="lazy"
         />
       </div>
-      <div className="flex-1">
-        <Link to={`/product/${p.slug}`} className="font-semibold">
-          {p.title}
+
+      <div className={styles.content}>
+        <Link to={`/product/${product.slug}`} className={styles.titleLink}>
+          {product.title}
         </Link>
-        <div className="text-sm text-gray-500">id: {p._id}</div>
-        <div className="mt-1 font-medium">{p.price} ₽</div>
+        <div className={styles.productId}>id: {product._id}</div>
+        <div className={styles.price}>{product.price} ₽</div>
       </div>
-      <Button
-        onClick={() =>
-          dispatch(
-            addItem({
-              productId: p._id,
-              title: p.title,
-              price: p.price,
-              image: p.images?.[0],
-            }),
-          )
-        }
-      >
-        В корзину
-      </Button>
+
+      <div className={styles.actions}>
+        <Button type="button" onClick={handleAddToCartButtonClick}>
+          В корзину
+        </Button>
+      </div>
     </div>
   );
 };

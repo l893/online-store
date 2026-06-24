@@ -1,10 +1,11 @@
 import { ProductCard } from '../entities/products';
+import styles from './product-grid.module.scss';
 
 export const ProductGrid = ({ items }) => {
   return (
-    <div className="space-y-4">
-      {items?.map((p) => (
-        <ProductCard key={p._id} p={p} />
+    <div className={styles.productGrid}>
+      {items?.map((product) => (
+        <ProductCard key={product._id} p={product} />
       ))}
     </div>
   );
