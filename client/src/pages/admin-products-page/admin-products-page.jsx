@@ -104,6 +104,12 @@ export const AdminProductsPage = () => {
           </Button>
         </div>
 
+        {(creating || updating || deleting) && (
+          <div className={styles.operationLoader}>
+            <Loader label="Выполняется операция…" />
+          </div>
+        )}
+
         <div className={styles.tableWrapper}>
           <table className={styles.productsTable}>
             <thead className={styles.tableHeader}>
@@ -194,12 +200,6 @@ export const AdminProductsPage = () => {
           onConfirm={confirmDelete}
           confirmText="Удалить"
         />
-
-        {(creating || updating || deleting) && (
-          <div className={styles.operationLoader}>
-            <Loader label="Выполняется операция…" />
-          </div>
-        )}
       </div>
     </div>
   );
