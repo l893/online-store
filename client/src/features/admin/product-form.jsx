@@ -10,6 +10,7 @@ import {
   Select,
 } from '@mui/material';
 import { Button, Input } from '../../shared/ui';
+import styles from './product-form.module.scss';
 
 const schema = yup.object({
   title: yup.string().required('Введите название'),
@@ -26,7 +27,7 @@ const schema = yup.object({
 });
 
 // Простая транслитерация ru->lat + очистка символов
-function slugifyRu(str = '') {
+function slugifyRu(value = '') {
   const map = {
     а: 'a',
     б: 'b',
@@ -95,9 +96,9 @@ function slugifyRu(str = '') {
     Ю: 'yu',
     Я: 'ya',
   };
-  const replaced = str
+  const replaced = value
     .split('')
-    .map((ch) => map[ch] ?? ch)
+    .map((character) => map[character] ?? character)
     .join('');
   return replaced
     .toLowerCase()
@@ -139,9 +140,15 @@ export const ProductForm = ({
     setSelectedCategoryId(initial?.categoryId || '');
   }, [initial, reset]);
 
-  const onGenerateSlug = () => {
-    const s = slugifyRu(title || '');
-    if (s) setValue('slug', s, { shouldValidate: true, shouldDirty: true });
+  const handleGenerateSlugButtonClick = () => {
+    const generatedSlug = slugifyRu(title || '');
+
+    if (generatedSlug) {
+      setValue('slug', generatedSlug, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
   };
 
   const handleCategoryChange = (event) => {
@@ -170,35 +177,42 @@ export const ProductForm = ({
   };
 
   return (
-    <form className="space-y-3" onSubmit={handleSubmit(handleFormSubmit)}>
-      <div>
+    <form
+      className={styles.productForm}
+      onSubmit={handleSubmit(handleFormSubmit)}
+    >
+      <div className={styles.field}>
         <Input placeholder="Название" {...register('title')} />
         {errors.title && (
-          <div className="text-sm text-red-600">{errors.title.message}</div>
+          <div className={styles.fieldError}>{errors.title.message}</div>
         )}
       </div>
 
-      <div className="flex gap-2">
-        <div className="flex-1">
+      <div className={styles.slugRow}>
+        <div className={styles.slugField}>
           <Input placeholder="Slug (для URL)" {...register('slug')} />
           {errors.slug && (
-            <div className="text-sm text-red-600">{errors.slug.message}</div>
+            <div className={styles.fieldError}>{errors.slug.message}</div>
           )}
         </div>
-        <Button type="button" onClick={onGenerateSlug} className="shrink-0">
+        <Button
+          type="button"
+          onClick={handleGenerateSlugButtonClick}
+          className={styles.generateSlugButton}
+        >
           Сгенерировать
         </Button>
       </div>
 
-      <div>
+      <div className={styles.field}>
         <Input placeholder="Цена" {...register('price')} />
         {errors.price && (
-          <div className="text-sm text-red-600">{errors.price.message}</div>
+          <div className={styles.fieldError}>{errors.price.message}</div>
         )}
       </div>
 
       {/* Категория */}
-      <div>
+      <div className={styles.field}>
         <FormControl fullWidth size="small" error={Boolean(errors.categoryId)}>
           <InputLabel id="product-category-label">Категория</InputLabel>
           <Select
@@ -223,37 +237,33 @@ export const ProductForm = ({
         </FormControl>
       </div>
 
-      <div>
+      <div className={styles.field}>
         <Input placeholder="Остаток" {...register('stock')} />
         {errors.stock && (
-          <div className="text-sm text-red-600">{errors.stock.message}</div>
+          <div className={styles.fieldError}>{errors.stock.message}</div>
         )}
       </div>
 
-      <div>
+      <div className={styles.field}>
         <Input placeholder="Картинка (URL)" {...register('image')} />
         {errors.image && (
-          <div className="text-sm text-red-600">{errors.image.message}</div>
+          <div className={styles.fieldError}>{errors.image.message}</div>
         )}
       </div>
 
-      <div>
+      <div className={styles.field}>
         <Input placeholder="Описание" {...register('description')} />
         {errors.description && (
-          <div className="text-sm text-red-600">
-            {errors.description.message}
-          </div>
+          <div className={styles.fieldError}>{errors.description.message}</div>
         )}
       </div>
 
-      <Button disabled={isSubmitting} className="w-full">
+      <Button disabled={isSubmitting} className={styles.submitButton}>
         {submitText}
       </Button>
 
       {success && (
-        <div className="text-green-600 bg-green-50 border border-green-200 p-2 text-sm rounded text-center">
-          Товар сохранён ✅
-        </div>
+        <div className={styles.successMessage}>Товар сохранён ✅</div>
       )}
     </form>
   );
