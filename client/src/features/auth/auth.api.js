@@ -33,7 +33,9 @@ export const authApi = api.injectEndpoints({
 
             dispatch(setAll(res.items || []));
           }
-        } catch {}
+        } catch {
+          // Ошибка доступна через RTK Query mutation state.
+        }
       },
     }),
     login: build.mutation({
@@ -62,7 +64,9 @@ export const authApi = api.injectEndpoints({
 
             dispatch(setAll(res.items || []));
           }
-        } catch {}
+        } catch {
+          // Ошибка доступна через RTK Query mutation state.
+        }
       },
     }),
     refresh: build.mutation({
@@ -72,7 +76,9 @@ export const authApi = api.injectEndpoints({
           const { data } = await queryFulfilled;
           const user = normalizeUser(data.user);
           dispatch(setCredentials({ ...data, user }));
-        } catch {}
+        } catch {
+          // Ошибка refresh не требует локального UI-обработчика.
+        }
       },
     }),
     logout: build.mutation({
