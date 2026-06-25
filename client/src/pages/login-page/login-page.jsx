@@ -5,6 +5,7 @@ import { Button, Input } from '../../shared/ui';
 import { useLoginMutation } from '../../features/auth';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { parseApiError } from '../../shared/lib/parse-api-error';
+import styles from '../auth-form.module.scss';
 
 const schema = yup.object({
   email: yup.string().required('Введите email').email('Некорректный email'),
@@ -27,17 +28,19 @@ export const LoginPage = () => {
     try {
       await login(data).unwrap();
       nav(from, { replace: true });
-    } catch {}
+    } catch {
+      // Ошибка отображается ниже через RTK Query mutation state.
+    }
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 border rounded-xl bg-white">
-      <h1 className="text-xl font-semibold mb-4">Вход</h1>
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+    <div className={styles.authCard}>
+      <h1 className={styles.title}>Вход</h1>
+      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
         <div>
           <Input placeholder="Email" {...register('email')} />
           {errors.email && (
-            <div className="text-sm text-red-600">{errors.email.message}</div>
+            <div className={styles.fieldError}>{errors.email.message}</div>
           )}
         </div>
         <div>
@@ -47,21 +50,19 @@ export const LoginPage = () => {
             {...register('password')}
           />
           {errors.password && (
-            <div className="text-sm text-red-600">
-              {errors.password.message}
-            </div>
+            <div className={styles.fieldError}>{errors.password.message}</div>
           )}
         </div>
         {error && (
-          <div className="text-sm text-red-600">{parseApiError(error)}</div>
+          <div className={styles.formError}>{parseApiError(error)}</div>
         )}
-        <Button disabled={isLoading} className="w-full">
+        <Button disabled={isLoading} className={styles.submitButton}>
           {isLoading ? 'Входим…' : 'Войти'}
         </Button>
       </form>
-      <div className="text-sm mt-3">
+      <div className={styles.footerText}>
         Нет аккаунта?{' '}
-        <Link className="underline" to="/register">
+        <Link className={styles.footerLink} to="/register">
           Регистрация
         </Link>
       </div>

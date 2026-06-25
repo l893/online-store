@@ -5,6 +5,7 @@ import { Button, Input } from '../../shared/ui';
 import { useRegisterMutation } from '../../features/auth';
 import { useNavigate, Link } from 'react-router-dom';
 import { parseApiError } from '../../shared/lib/parse-api-error';
+import styles from '../auth-form.module.scss';
 
 const schema = yup.object({
   email: yup.string().required('Введите email').email('Некорректный email'),
@@ -27,27 +28,31 @@ export const RegisterPage = () => {
   } = useForm({ resolver: yupResolver(schema) });
 
   const onSubmit = async (data) => {
-    const { passcheck, ...payload } = data; // passcheck не отправляем
+    const payload = { ...data };
+    delete payload.passcheck;
+
     try {
       await registerUser(payload).unwrap();
       nav('/', { replace: true });
-    } catch {}
+    } catch {
+      // Ошибка отображается ниже через RTK Query mutation state.
+    }
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 border rounded-xl bg-white">
-      <h1 className="text-xl font-semibold mb-4">Регистрация</h1>
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+    <div className={styles.authCard}>
+      <h1 className={styles.title}>Регистрация</h1>
+      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
         <div>
           <Input placeholder="Email" {...register('email')} />
           {errors.email && (
-            <div className="text-sm text-red-600">{errors.email.message}</div>
+            <div className={styles.fieldError}>{errors.email.message}</div>
           )}
         </div>
         <div>
           <Input placeholder="Имя (необязательно)" {...register('name')} />
           {errors.name && (
-            <div className="text-sm text-red-600">{errors.name.message}</div>
+            <div className={styles.fieldError}>{errors.name.message}</div>
           )}
         </div>
         <div>
@@ -57,9 +62,7 @@ export const RegisterPage = () => {
             {...register('password')}
           />
           {errors.password && (
-            <div className="text-sm text-red-600">
-              {errors.password.message}
-            </div>
+            <div className={styles.fieldError}>{errors.password.message}</div>
           )}
         </div>
         <div>
@@ -69,21 +72,19 @@ export const RegisterPage = () => {
             {...register('passcheck')}
           />
           {errors.passcheck && (
-            <div className="text-sm text-red-600">
-              {errors.passcheck.message}
-            </div>
+            <div className={styles.fieldError}>{errors.passcheck.message}</div>
           )}
         </div>
         {error && (
-          <div className="text-sm text-red-600">{parseApiError(error)}</div>
+          <div className={styles.formError}>{parseApiError(error)}</div>
         )}
-        <Button disabled={isLoading} className="w-full">
+        <Button disabled={isLoading} className={styles.submitButton}>
           {isLoading ? 'Регистрируем…' : 'Зарегистрироваться'}
         </Button>
       </form>
-      <div className="text-sm mt-3">
+      <div className={styles.footerText}>
         Уже есть аккаунт?{' '}
-        <Link className="underline" to="/login">
+        <Link className={styles.footerLink} to="/login">
           Войти
         </Link>
       </div>
