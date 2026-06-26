@@ -68,6 +68,11 @@ export const AdminProductsPage = () => {
     refetch();
   }
 
+  function handleDeleteButtonClick(event, productId) {
+    event.currentTarget.blur();
+    setConfirmId(productId);
+  }
+
   return (
     <div className={styles.adminProductsLayout}>
       <div className={styles.formSection}>
@@ -147,7 +152,9 @@ export const AdminProductsPage = () => {
                       <Button
                         type="button"
                         color="error"
-                        onClick={() => setConfirmId(product._id)}
+                        onClick={(event) =>
+                          handleDeleteButtonClick(event, product._id)
+                        }
                       >
                         Удалить
                       </Button>
