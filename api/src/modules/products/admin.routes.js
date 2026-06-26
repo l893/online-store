@@ -63,7 +63,7 @@ router.post('/', async (req, res, next) => {
       description,
       price,
       images,
-      categoryId,
+      ...(categoryId ? { categoryId } : {}),
       stock,
     });
     res.status(201).json(created);
@@ -75,7 +75,17 @@ router.post('/', async (req, res, next) => {
 // PATCH /api/admin/products/:id
 router.patch('/:id', async (req, res, next) => {
   try {
-    const patch = req.body || {};
+    const patch = { ...(req.body || {}) };
+    const hasCategoryId = Object.prototype.hasOwnProperty.call(
+      patch,
+      'categoryId',
+    );
+    const shouldUnsetCategoryId = hasCategoryId && !patch.categoryId;
+
+    if (shouldUnsetCategoryId) {
+      delete patch.categoryId;
+    }
+
     if (patch.slug) {
       const dup = await Product.findOne({
         _id: { $ne: req.params.id },
@@ -85,8 +95,10 @@ router.patch('/:id', async (req, res, next) => {
     }
     const updated = await Product.findByIdAndUpdate(
       req.params.id,
-      { $set: patch },
-      { new: true }
+      shouldUnsetCategoryId
+        ? { $set: patch, $unset: { categoryId: 1 } }
+        : { $set: patch },
+      { new: true },
     );
     if (!updated) return res.status(404).json({ message: 'Product not found' });
     res.json(updated);
