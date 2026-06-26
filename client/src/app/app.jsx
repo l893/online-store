@@ -33,7 +33,6 @@ export const App = () => {
           </Link>
 
           <nav className={styles.navigation}>
-            {/* <Link to="/cart" className="icon-cart" /> */}
             <Link to="/cart" className={`icon-cart ${styles.navigationLink}`}>
               Cart
             </Link>
