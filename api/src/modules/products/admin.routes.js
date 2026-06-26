@@ -25,14 +25,25 @@ router.get('/', async (req, res, next) => {
     ]);
 
     // подтянем названия категорий для удобства таблицы
-    const catIds = [
-      ...new Set(items.map((i) => String(i.categoryId)).filter(Boolean)),
+    const categoryIds = [
+      ...new Set(
+        items
+          .map((product) => product.categoryId)
+          .filter(Boolean)
+          .map(String),
+      ),
     ];
-    const cats = await Category.find({ _id: { $in: catIds } }).lean();
-    const cmap = new Map(cats.map((c) => [String(c._id), c.name]));
-    const withCat = items.map((i) => ({
-      ...i,
-      categoryName: cmap.get(String(i.categoryId)) || '',
+    const categories = categoryIds.length
+      ? await Category.find({ _id: { $in: categoryIds } }).lean()
+      : [];
+    const categoryNameById = new Map(
+      categories.map((category) => [String(category._id), category.name]),
+    );
+    const withCat = items.map((product) => ({
+      ...product,
+      categoryName: product.categoryId
+        ? categoryNameById.get(String(product.categoryId)) || ''
+        : '',
     }));
 
     res.json({ items: withCat, total, page: pg, pages: Math.ceil(total / lm) });
