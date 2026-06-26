@@ -16,10 +16,26 @@ export const ConfirmDialog = ({
   cancelText = 'Отмена',
   confirmText = 'OK',
 }) => {
+  const blurActiveElement = () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
+
+  const handleCancel = () => {
+    blurActiveElement();
+    onCancel();
+  };
+
+  const handleConfirm = () => {
+    blurActiveElement();
+    onConfirm();
+  };
+
   return (
     <Dialog
       open={open}
-      onClose={onCancel}
+      onClose={handleCancel}
       fullWidth
       maxWidth="xs"
       aria-labelledby="confirm-dialog-title"
@@ -36,10 +52,10 @@ export const ConfirmDialog = ({
       )}
 
       <DialogActions>
-        <Button autoFocus onClick={onCancel} color="inherit">
+        <Button autoFocus onClick={handleCancel} color="inherit">
           {cancelText}
         </Button>
-        <Button onClick={onConfirm} color="error" variant="contained">
+        <Button onClick={handleConfirm} color="error" variant="contained">
           {confirmText}
         </Button>
       </DialogActions>
