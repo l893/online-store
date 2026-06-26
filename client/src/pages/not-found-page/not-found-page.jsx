@@ -1,8 +1,10 @@
+import styles from './not-found-page.module.scss';
+
 export const NotFoundPage = () => {
   return (
-    <div className="text-center py-20">
-      <h1 className="text-3xl font-bold mb-4">404 — Страница не найдена</h1>
-      <p className="text-gray-600">
+    <div className={styles.notFoundPage}>
+      <h1 className={styles.title}>404 — Страница не найдена</h1>
+      <p className={styles.message}>
         Такой страницы не существует. Проверьте адрес.
       </p>
     </div>
