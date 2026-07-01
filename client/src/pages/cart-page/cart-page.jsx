@@ -22,6 +22,7 @@ export const CartPage = () => {
   const dispatch = useDispatch();
   const nav = useNavigate();
   const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
+  const [isCheckoutSubmitting, setIsCheckoutSubmitting] = useState(false);
 
   // если авторизован — подтянем серверную корзину
   const { data: serverCart, isLoading: loadingServerCart } = useGetCartQuery(
@@ -30,14 +31,14 @@ export const CartPage = () => {
   );
 
   // хук для замены корзины на сервере
-  const [replaceCart, { isLoading: replacingCart }] = useReplaceCartMutation();
+  const [replaceCart] = useReplaceCartMutation();
   const [createOrder, { isLoading: creatingOrder }] = useCreateOrderMutation();
   const [confirmCheckout, { isLoading: confirmingCheckout }] =
     useConfirmCheckoutMutation();
   const [removeItemFromCart] = useRemoveItemFromCartMutation(); // Хук для удаления
 
   const isCheckoutLoading =
-    replacingCart || creatingOrder || confirmingCheckout;
+    isCheckoutSubmitting || creatingOrder || confirmingCheckout;
 
   const { totalQty, totalSum } = useCartTotals(items);
 
@@ -94,6 +95,9 @@ export const CartPage = () => {
       nav('/login', { state: { from: { pathname: '/cart' } } });
       return;
     }
+
+    setIsCheckoutSubmitting(true);
+
     try {
       // синхронизируем корзину на сервере (полная замена)
       await replaceCart(items).unwrap();
@@ -109,6 +113,8 @@ export const CartPage = () => {
     } catch (checkoutError) {
       console.error('Checkout error:', checkoutError);
       alert('Не удалось оформить заказ');
+    } finally {
+      setIsCheckoutSubmitting(false);
     }
   }, [user, nav, replaceCart, items, createOrder, confirmCheckout, dispatch]);
 
@@ -141,6 +147,7 @@ export const CartPage = () => {
           totalQty={totalQty}
           totalSum={totalSum}
           onCheckout={onCheckout}
+          isCheckoutLoading={isCheckoutLoading}
         />
         {isCheckoutLoading && (
           <div className={styles.checkoutLoader}>

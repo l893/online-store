@@ -1,7 +1,12 @@
 import { Button } from '../shared/ui/button';
 import styles from './cart-summary.module.scss';
 
-export const CartSummary = ({ totalQty, totalSum, onCheckout }) => {
+export const CartSummary = ({
+  totalQty,
+  totalSum,
+  onCheckout,
+  isCheckoutLoading = false,
+}) => {
   return (
     <aside className={styles.summary}>
       <div className={styles.title}>Итого</div>
@@ -11,9 +16,9 @@ export const CartSummary = ({ totalQty, totalSum, onCheckout }) => {
         type="button"
         className={styles.checkoutButton}
         onClick={onCheckout}
-        disabled={totalQty === 0}
+        disabled={totalQty === 0 || isCheckoutLoading}
       >
-        Оформить заказ
+        {isCheckoutLoading ? 'Оформляем…' : 'Оформить заказ'}
       </Button>
     </aside>
   );
