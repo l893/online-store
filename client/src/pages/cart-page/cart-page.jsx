@@ -2,7 +2,7 @@ import { useEffect, useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { changeQty, removeItem, clear, setAll } from '../../features/cart';
 import { useCartTotals } from '../../shared/hooks';
-import { Loader } from '../../shared/ui';
+import { AlertDialog, Loader } from '../../shared/ui';
 import { CartItem, CartSummary } from '../../widgets';
 import {
   useGetCartQuery,
@@ -23,6 +23,7 @@ export const CartPage = () => {
   const nav = useNavigate();
   const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
   const [isCheckoutSubmitting, setIsCheckoutSubmitting] = useState(false);
+  const [checkoutDialog, setCheckoutDialog] = useState(null);
 
   // если авторизован — подтянем серверную корзину
   const { data: serverCart, isLoading: loadingServerCart } = useGetCartQuery(
@@ -89,34 +90,58 @@ export const CartPage = () => {
     [dispatch, user, removeItemFromCart],
   );
 
-  const onCheckout = useCallback(async () => {
-    if (!user) {
-      alert('Для оформления заказа войдите в аккаунт');
+  const handleCheckoutDialogClose = () => {
+    const shouldRedirectToLogin = checkoutDialog?.shouldRedirectToLogin;
+
+    setCheckoutDialog(null);
+
+    if (shouldRedirectToLogin) {
       nav('/login', { state: { from: { pathname: '/cart' } } });
-      return;
     }
+  };
 
-    setIsCheckoutSubmitting(true);
+  const onCheckout = useCallback(
+    async (event) => {
+      event?.currentTarget?.blur();
 
-    try {
-      // синхронизируем корзину на сервере (полная замена)
-      await replaceCart(items).unwrap();
+      if (!user) {
+        setCheckoutDialog({
+          title: 'Войдите в аккаунт',
+          description: 'Для оформления заказа войдите в аккаунт',
+          shouldRedirectToLogin: true,
+        });
+        return;
+      }
 
-      // создаём заказ из серверной корзины
-      const { orderId } = await createOrder().unwrap();
+      setIsCheckoutSubmitting(true);
 
-      // подтверждаем оплату (мок)
-      await confirmCheckout({ orderId }).unwrap();
+      try {
+        // синхронизируем корзину на сервере (полная замена)
+        await replaceCart(items).unwrap();
 
-      alert(`Оплата подтверждена (мок). Заказ: ${orderId}`);
-      dispatch(clear());
-    } catch (checkoutError) {
-      console.error('Checkout error:', checkoutError);
-      alert('Не удалось оформить заказ');
-    } finally {
-      setIsCheckoutSubmitting(false);
-    }
-  }, [user, nav, replaceCart, items, createOrder, confirmCheckout, dispatch]);
+        // создаём заказ из серверной корзины
+        const { orderId } = await createOrder().unwrap();
+
+        // подтверждаем оплату (мок)
+        await confirmCheckout({ orderId }).unwrap();
+
+        setCheckoutDialog({
+          title: 'Оплата подтверждена',
+          description: `Заказ: ${orderId}`,
+        });
+
+        dispatch(clear());
+      } catch {
+        setCheckoutDialog({
+          title: 'Не удалось оформить заказ',
+          description: 'Попробуйте повторить позже.',
+        });
+      } finally {
+        setIsCheckoutSubmitting(false);
+      }
+    },
+    [user, replaceCart, items, createOrder, confirmCheckout, dispatch],
+  );
 
   return (
     <div className={styles.cartLayout}>
@@ -149,11 +174,19 @@ export const CartPage = () => {
           onCheckout={onCheckout}
           isCheckoutLoading={isCheckoutLoading}
         />
+
         {isCheckoutLoading && (
           <div className={styles.checkoutLoader}>
             <Loader label="Оформляем заказ…" />
           </div>
         )}
+
+        <AlertDialog
+          open={Boolean(checkoutDialog)}
+          title={checkoutDialog?.title}
+          description={checkoutDialog?.description}
+          onClose={handleCheckoutDialogClose}
+        />
       </div>
     </div>
   );
