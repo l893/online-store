@@ -3,6 +3,11 @@ import { setCredentials, logout as logoutAction } from './auth.slice';
 import { setAll } from '../cart/cart.slice';
 import { normalizeUser } from './normalize-user';
 
+const removeStoredAuthTokens = () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+};
+
 export const authApi = api.injectEndpoints({
   endpoints: (build) => ({
     register: build.mutation({
@@ -87,6 +92,7 @@ export const authApi = api.injectEndpoints({
         try {
           await queryFulfilled;
         } finally {
+          removeStoredAuthTokens();
           dispatch(logoutAction());
           dispatch(setAll([])); // очистим локальную корзину
         }
