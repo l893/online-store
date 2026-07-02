@@ -1,4 +1,4 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RequireAuth, RequireRole, useLogoutMutation } from '../features/auth';
 import { ScrollToTop } from '../shared/lib';
@@ -17,10 +17,11 @@ import styles from './app.module.scss';
 export const App = () => {
   const user = useSelector((state) => state.auth.user);
   const [logout] = useLogoutMutation();
+  const navigate = useNavigate();
 
   const handleLogoutButtonClick = async () => {
     await logout();
-    window.location.href = '/';
+    navigate('/', { replace: true });
   };
 
   return (

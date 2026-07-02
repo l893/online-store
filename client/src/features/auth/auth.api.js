@@ -95,6 +95,7 @@ export const authApi = api.injectEndpoints({
           removeStoredAuthTokens();
           dispatch(logoutAction());
           dispatch(setAll([])); // очистим локальную корзину
+          dispatch(api.util.resetApiState());
         }
       },
     }),
