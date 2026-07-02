@@ -1,7 +1,14 @@
+import { useEffect, useState } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { RequireAuth, RequireRole, useLogoutMutation } from '../features/auth';
+import {
+  RequireAuth,
+  RequireRole,
+  useLogoutMutation,
+  useRefreshMutation,
+} from '../features/auth';
 import { ScrollToTop } from '../shared/lib';
+import { Loader } from '../shared/ui';
 import {
   CatalogPage,
   ProductPage,
@@ -17,13 +24,57 @@ import styles from './app.module.scss';
 export const App = () => {
   const user = useSelector((state) => state.auth.user);
   const [logout] = useLogoutMutation();
+  const [refresh] = useRefreshMutation();
   const navigate = useNavigate();
+  const [isAuthBootstrapped, setIsAuthBootstrapped] = useState(false);
   const isAdmin = user?.roles?.includes('admin');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const bootstrapAuth = async () => {
+      const hasStoredAccessToken = Boolean(localStorage.getItem('accessToken'));
+
+      if (!hasStoredAccessToken) {
+        if (isMounted) {
+          setIsAuthBootstrapped(true);
+        }
+
+        return;
+      }
+
+      try {
+        await refresh().unwrap();
+      } catch {
+        // Невалидная refresh-сессия очищается в auth.api refresh flow.
+      } finally {
+        if (isMounted) {
+          setIsAuthBootstrapped(true);
+        }
+      }
+    };
+
+    bootstrapAuth();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [refresh]);
 
   const handleLogoutButtonClick = async () => {
     await logout();
     navigate('/', { replace: true });
   };
+
+  if (!isAuthBootstrapped) {
+    return (
+      <div className={styles.appShell}>
+        <main className={styles.mainContent}>
+          <Loader label="Восстанавливаем сессию…" />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <>

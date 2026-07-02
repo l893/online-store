@@ -3,6 +3,12 @@ import { setCredentials, logout as logoutAction } from './auth.slice';
 import { setAll } from '../cart/cart.slice';
 import { normalizeUser } from './normalize-user';
 
+const storeAccessToken = (accessToken) => {
+  if (accessToken) {
+    localStorage.setItem('accessToken', accessToken);
+  }
+};
+
 const removeStoredAuthTokens = () => {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
@@ -18,8 +24,7 @@ export const authApi = api.injectEndpoints({
           const user = normalizeUser(data.user);
           dispatch(setCredentials({ ...data, user }));
 
-          localStorage.setItem('accessToken', data.accessToken);
-          localStorage.setItem('refreshToken', data.refreshToken);
+          storeAccessToken(data.accessToken);
 
           // объединить локальную гостевую корзину с сервером
           const items = getState().cart.items;
@@ -51,8 +56,7 @@ export const authApi = api.injectEndpoints({
           const user = normalizeUser(data.user);
           dispatch(setCredentials({ ...data, user }));
 
-          localStorage.setItem('accessToken', data.accessToken);
-          localStorage.setItem('refreshToken', data.refreshToken);
+          storeAccessToken(data.accessToken);
 
           const items = getState().cart.items;
 
@@ -81,7 +85,9 @@ export const authApi = api.injectEndpoints({
           const { data } = await queryFulfilled;
           const user = normalizeUser(data.user);
           dispatch(setCredentials({ ...data, user }));
+          storeAccessToken(data.accessToken);
         } catch {
+          removeStoredAuthTokens();
           // Ошибка refresh не требует локального UI-обработчика.
         }
       },
