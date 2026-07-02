@@ -9,19 +9,19 @@ router.use(requireAuth, requireRole('admin'));
 router.get('/', async (req, res, next) => {
   try {
     const { search = '', page = 1, limit = 20 } = req.query;
-    const q = {};
-    if (search) q.$text = { $search: search };
+    const filter = {};
+    if (search) filter.$text = { $search: search };
 
-    const pg = Math.max(1, parseInt(page, 10) || 1);
-    const lm = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+    const currentPage = Math.max(1, parseInt(page, 10) || 1);
+    const pageLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
 
     const [items, total] = await Promise.all([
-      Product.find(q)
+      Product.find(filter)
         .sort({ createdAt: -1 })
-        .skip((pg - 1) * lm)
-        .limit(lm)
+        .skip((currentPage - 1) * pageLimit)
+        .limit(pageLimit)
         .lean(),
-      Product.countDocuments(q),
+      Product.countDocuments(filter),
     ]);
 
     // подтянем названия категорий для удобства таблицы
@@ -39,16 +39,21 @@ router.get('/', async (req, res, next) => {
     const categoryNameById = new Map(
       categories.map((category) => [String(category._id), category.name]),
     );
-    const withCat = items.map((product) => ({
+    const productsWithCategoryName = items.map((product) => ({
       ...product,
       categoryName: product.categoryId
         ? categoryNameById.get(String(product.categoryId)) || ''
         : '',
     }));
 
-    res.json({ items: withCat, total, page: pg, pages: Math.ceil(total / lm) });
-  } catch (e) {
-    next(e);
+    res.json({
+      items: productsWithCategoryName,
+      total,
+      page: currentPage,
+      pages: Math.ceil(total / pageLimit),
+    });
+  } catch (error) {
+    next(error);
   }
 });
 
@@ -78,8 +83,8 @@ router.post('/', async (req, res, next) => {
       stock,
     });
     res.status(201).json(created);
-  } catch (e) {
-    next(e);
+  } catch (error) {
+    next(error);
   }
 });
 
@@ -98,11 +103,12 @@ router.patch('/:id', async (req, res, next) => {
     }
 
     if (patch.slug) {
-      const dup = await Product.findOne({
+      const duplicateProduct = await Product.findOne({
         _id: { $ne: req.params.id },
         slug: patch.slug,
       });
-      if (dup) return res.status(409).json({ message: 'Slug already exists' });
+      if (duplicateProduct)
+        return res.status(409).json({ message: 'Slug already exists' });
     }
     const updated = await Product.findByIdAndUpdate(
       req.params.id,
@@ -113,19 +119,20 @@ router.patch('/:id', async (req, res, next) => {
     );
     if (!updated) return res.status(404).json({ message: 'Product not found' });
     res.json(updated);
-  } catch (e) {
-    next(e);
+  } catch (error) {
+    next(error);
   }
 });
 
 // DELETE /api/admin/products/:id
 router.delete('/:id', async (req, res, next) => {
   try {
-    const del = await Product.findByIdAndDelete(req.params.id);
-    if (!del) return res.status(404).json({ message: 'Product not found' });
+    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+    if (!deletedProduct)
+      return res.status(404).json({ message: 'Product not found' });
     res.json({ ok: true });
-  } catch (e) {
-    next(e);
+  } catch (error) {
+    next(error);
   }
 });
 

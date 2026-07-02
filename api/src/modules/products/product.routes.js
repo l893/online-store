@@ -10,37 +10,43 @@ router.get('/', async (req, res, next) => {
       page = 1,
       limit = 12,
     } = req.query;
-    const q = {};
-    if (search) q.$text = { $search: search };
-    if (category) q.categoryId = category;
+
+    const filter = {};
+    if (search) filter.$text = { $search: search };
+    if (category) filter.categoryId = category;
 
     const sortMap = { price_asc: { price: 1 }, price_desc: { price: -1 } };
-    const s = sortMap[sort] || {};
+    const sortOption = sortMap[sort] || {};
 
-    const pg = Math.max(1, parseInt(page, 10) || 1);
-    const lm = Math.min(100, Math.max(1, parseInt(limit, 10) || 12));
+    const currentPage = Math.max(1, parseInt(page, 10) || 1);
+    const pageLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 12));
 
     const [items, total] = await Promise.all([
-      Product.find(q)
-        .sort(s)
-        .skip((pg - 1) * lm)
-        .limit(lm),
-      Product.countDocuments(q),
+      Product.find(filter)
+        .sort(sortOption)
+        .skip((currentPage - 1) * pageLimit)
+        .limit(pageLimit),
+      Product.countDocuments(filter),
     ]);
 
-    res.json({ items, total, page: pg, pages: Math.ceil(total / lm) });
-  } catch (e) {
-    next(e);
+    res.json({
+      items,
+      total,
+      page: currentPage,
+      pages: Math.ceil(total / pageLimit),
+    });
+  } catch (error) {
+    next(error);
   }
 });
 
 router.get('/:slug', async (req, res, next) => {
   try {
-    const item = await Product.findOne({ slug: req.params.slug });
-    if (!item) return res.status(404).json({ message: 'Product not found' });
-    res.json(item);
-  } catch (e) {
-    next(e);
+    const product = await Product.findOne({ slug: req.params.slug });
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.json(product);
+  } catch (error) {
+    next(error);
   }
 });
 
