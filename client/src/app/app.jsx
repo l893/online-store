@@ -18,6 +18,7 @@ export const App = () => {
   const user = useSelector((state) => state.auth.user);
   const [logout] = useLogoutMutation();
   const navigate = useNavigate();
+  const isAdmin = user?.roles?.includes('admin');
 
   const handleLogoutButtonClick = async () => {
     await logout();
@@ -67,7 +68,7 @@ export const App = () => {
                 </button>
               </>
             )}
-            {user?.role === 'admin' && (
+            {isAdmin && (
               <Link
                 to="/admin/products"
                 className={`icon-person-fill-gear ${styles.navigationLink}`}
