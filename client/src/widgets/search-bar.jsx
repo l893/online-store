@@ -20,6 +20,7 @@ export const SearchBar = ({ value, onChange }) => {
     <div className={styles.searchBar}>
       <Input
         placeholder="Поиск по названию…"
+        autoComplete="off"
         value={local}
         onChange={(event) => setLocal(event.target.value)}
       />

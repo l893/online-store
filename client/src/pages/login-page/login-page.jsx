@@ -38,7 +38,11 @@ export const LoginPage = () => {
       <h1 className={styles.title}>Вход</h1>
       <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
         <div>
-          <Input placeholder="Email" {...register('email')} />
+          <Input
+            placeholder="Email"
+            autoComplete="email"
+            {...register('email')}
+          />
           {errors.email && (
             <div className={styles.fieldError}>{errors.email.message}</div>
           )}
@@ -47,6 +51,7 @@ export const LoginPage = () => {
           <Input
             type="password"
             placeholder="Пароль"
+            autoComplete="current-password"
             {...register('password')}
           />
           {errors.password && (

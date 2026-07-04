@@ -98,6 +98,7 @@ export const AdminProductsPage = () => {
         <div className={styles.toolbar}>
           <Input
             placeholder="Поиск по названию…"
+            autoComplete="off"
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);

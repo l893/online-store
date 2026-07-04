@@ -186,7 +186,11 @@ export const ProductForm = ({
       onSubmit={handleSubmit(handleFormSubmit)}
     >
       <div className={styles.field}>
-        <Input placeholder="Название" {...register('title')} />
+        <Input
+          placeholder="Название"
+          autoComplete="off"
+          {...register('title')}
+        />
         {errors.title && (
           <div className={styles.fieldError}>{errors.title.message}</div>
         )}
@@ -194,7 +198,11 @@ export const ProductForm = ({
 
       <div className={styles.slugRow}>
         <div className={styles.slugField}>
-          <Input placeholder="Slug (для URL)" {...register('slug')} />
+          <Input
+            placeholder="Slug (для URL)"
+            autoComplete="off"
+            {...register('slug')}
+          />
           {errors.slug && (
             <div className={styles.fieldError}>{errors.slug.message}</div>
           )}
@@ -209,7 +217,7 @@ export const ProductForm = ({
       </div>
 
       <div className={styles.field}>
-        <Input placeholder="Цена" {...register('price')} />
+        <Input placeholder="Цена" autoComplete="off" {...register('price')} />
         {errors.price && (
           <div className={styles.fieldError}>{errors.price.message}</div>
         )}
@@ -218,13 +226,22 @@ export const ProductForm = ({
       {/* Категория */}
       <div className={styles.field}>
         <FormControl fullWidth size="small" error={Boolean(errors.categoryId)}>
-          <InputLabel id="product-category-label">Категория</InputLabel>
+          <InputLabel
+            id="product-category-label"
+            htmlFor="product-category-input"
+          >
+            Категория
+          </InputLabel>
           <Select
             labelId="product-category-label"
-            id="product-category"
+            id="product-category-select"
             value={selectedCategoryId}
             label="Категория"
             onChange={handleCategoryChange}
+            inputProps={{
+              id: 'product-category-input',
+              'aria-label': 'Категория',
+            }}
           >
             <MenuItem value="">
               <em>Не выбрано</em>
@@ -242,21 +259,33 @@ export const ProductForm = ({
       </div>
 
       <div className={styles.field}>
-        <Input placeholder="Остаток" {...register('stock')} />
+        <Input
+          placeholder="Остаток"
+          autoComplete="off"
+          {...register('stock')}
+        />
         {errors.stock && (
           <div className={styles.fieldError}>{errors.stock.message}</div>
         )}
       </div>
 
       <div className={styles.field}>
-        <Input placeholder="Картинка (URL)" {...register('image')} />
+        <Input
+          placeholder="Картинка (URL)"
+          autoComplete="off"
+          {...register('image')}
+        />
         {errors.image && (
           <div className={styles.fieldError}>{errors.image.message}</div>
         )}
       </div>
 
       <div className={styles.field}>
-        <Input placeholder="Описание" {...register('description')} />
+        <Input
+          placeholder="Описание"
+          autoComplete="off"
+          {...register('description')}
+        />
         {errors.description && (
           <div className={styles.fieldError}>{errors.description.message}</div>
         )}

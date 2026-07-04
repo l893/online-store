@@ -44,13 +44,21 @@ export const RegisterPage = () => {
       <h1 className={styles.title}>Регистрация</h1>
       <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
         <div>
-          <Input placeholder="Email" {...register('email')} />
+          <Input
+            placeholder="Email"
+            autoComplete="email"
+            {...register('email')}
+          />
           {errors.email && (
             <div className={styles.fieldError}>{errors.email.message}</div>
           )}
         </div>
         <div>
-          <Input placeholder="Имя (необязательно)" {...register('name')} />
+          <Input
+            placeholder="Имя (необязательно)"
+            autoComplete="name"
+            {...register('name')}
+          />
           {errors.name && (
             <div className={styles.fieldError}>{errors.name.message}</div>
           )}
@@ -59,6 +67,7 @@ export const RegisterPage = () => {
           <Input
             type="password"
             placeholder="Пароль"
+            autoComplete="new-password"
             {...register('password')}
           />
           {errors.password && (
@@ -69,6 +78,7 @@ export const RegisterPage = () => {
           <Input
             type="password"
             placeholder="Повторите пароль"
+            autoComplete="new-password"
             {...register('passcheck')}
           />
           {errors.passcheck && (

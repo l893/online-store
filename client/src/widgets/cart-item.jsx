@@ -45,8 +45,15 @@ export const CartItem = ({ item, onChangeQty, onRemove }) => {
         <Input
           className={styles.quantityInput}
           fullWidth={false}
+          type="number"
           value={item.qty}
           onChange={handleQuantityInputChange}
+          slotProps={{
+            htmlInput: {
+              'aria-label': `Количество товара ${item.title}`,
+              min: 1,
+            },
+          }}
         />
         <Button
           type="button"
@@ -59,7 +66,8 @@ export const CartItem = ({ item, onChangeQty, onRemove }) => {
       <div className={styles.price}>{item.price * item.qty} ₽</div>
 
       <button
-        aria-label="Remove"
+        type="button"
+        aria-label={`Удалить товар ${item.title} из корзины`}
         className={styles.removeButton}
         onClick={() => onRemove(item.productId)}
       >
