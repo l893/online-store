@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   FormControl,
@@ -10,26 +9,9 @@ import {
   Select,
 } from '@mui/material';
 import { Button, Input } from '../../shared/ui';
+import { productFormSchema } from './config/product-form-schema';
 import { slugifyRu } from './lib/slugify-ru';
 import styles from './product-form.module.scss';
-
-const schema = yup.object({
-  title: yup.string().required('Введите название'),
-  slug: yup.string().required('Введите slug'),
-  price: yup
-    .number()
-    .typeError('Введите число')
-    .required('Введите цену')
-    .min(0, 'Цена не может быть отрицательной'),
-  categoryId: yup.string().nullable(),
-  stock: yup
-    .number()
-    .typeError('Введите число')
-    .min(0, 'Остаток не может быть отрицательным')
-    .default(0),
-  image: yup.string().url('Нужен URL').nullable().optional(),
-  description: yup.string().nullable(),
-});
 
 const SUCCESSFUL_ADD_ITEM_CONFIRMATION_MILLISECONDS = 5000;
 
@@ -47,7 +29,7 @@ export const ProductForm = ({
     watch,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(productFormSchema),
     defaultValues: initial || {},
   });
 
