@@ -5,8 +5,8 @@ import {
   useAdminListProductsQuery,
   useAdminUpdateProductMutation,
   useAdminDeleteProductMutation,
-} from '../../features/admin';
-import { ProductForm } from '../../features/admin';
+} from '../../features/admin-products';
+import { ProductForm } from '../../features/admin-products';
 import { Button, ConfirmDialog, Input, Loader } from '../../shared/ui';
 import { parseApiError } from '../../shared/lib';
 import styles from './admin-products-page.module.scss';
