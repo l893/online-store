@@ -34,15 +34,37 @@ export const ProductForm = ({
 
   const [success, setSuccess] = useState(false);
 
-  const title = watch('title');
   const [selectedCategoryId, setSelectedCategoryId] = useState(
     () => initial?.categoryId || '',
   );
+
+  const title = watch('title');
+
+  const handleFormSubmit = async (data) => {
+    try {
+      await onSubmit(data);
+      setSuccess(true);
+      setTimeout(
+        () => setSuccess(false),
+        SUCCESSFUL_ADD_ITEM_CONFIRMATION_MILLISECONDS,
+      );
+    } catch {
+      // Не обрабатываем здесь — ошибки уже идут из onSubmit или формы
+    }
+  };
 
   useEffect(() => {
     reset(initial || {});
     setSelectedCategoryId(initial?.categoryId || '');
   }, [initial, reset]);
+
+  // когда пользователь выбирает категорию — кладём categoryId в форму
+  useEffect(() => {
+    setValue('categoryId', selectedCategoryId, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }, [selectedCategoryId, setValue]);
 
   const handleGenerateSlugButtonClick = () => {
     const generatedSlug = slugifyRu(title || '');
@@ -57,27 +79,6 @@ export const ProductForm = ({
 
   const handleCategoryChange = (event) => {
     setSelectedCategoryId(event.target.value);
-  };
-
-  // когда пользователь выбирает категорию — кладём categoryId в форму
-  useEffect(() => {
-    setValue('categoryId', selectedCategoryId, {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-  }, [selectedCategoryId, setValue]);
-
-  const handleFormSubmit = async (data) => {
-    try {
-      await onSubmit(data);
-      setSuccess(true);
-      setTimeout(
-        () => setSuccess(false),
-        SUCCESSFUL_ADD_ITEM_CONFIRMATION_MILLISECONDS,
-      );
-    } catch {
-      // Не обрабатываем здесь — ошибки уже идут из onSubmit или формы
-    }
   };
 
   return (
