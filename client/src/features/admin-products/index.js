@@ -1,2 +1,2 @@
-export * from './products.api';
-export * from './product-form';
+export * from './api/products.api';
+export * from './ui/product-form';
