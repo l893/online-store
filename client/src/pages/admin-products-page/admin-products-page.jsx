@@ -1,5 +1,5 @@
-import { useListCategoriesQuery } from '../../entities/categories';
 import { useState, useMemo } from 'react';
+import { useListCategoriesQuery } from '../../entities/categories';
 import {
   useAdminCreateProductMutation,
   useAdminListProductsQuery,
@@ -14,13 +14,14 @@ import styles from './admin-products-page.module.scss';
 export const AdminProductsPage = () => {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [editing, setEditing] = useState(null);
+  const [confirmId, setConfirmId] = useState(null);
   const { data, isFetching, refetch } = useAdminListProductsQuery({
     search,
     page,
     limit: 10,
   });
-  const { data: categoriesRes } = useListCategoriesQuery();
-  const categories = categoriesRes?.items || categoriesRes || []; // на случай разной структуры
+  const { data: categoriesResponse } = useListCategoriesQuery();
 
   const [createProduct, { isLoading: creating, error: createError }] =
     useAdminCreateProductMutation();
@@ -29,12 +30,9 @@ export const AdminProductsPage = () => {
   const [deleteProduct, { isLoading: deleting }] =
     useAdminDeleteProductMutation();
 
-  const [editing, setEditing] = useState(null); // текущий редактируемый товар
-  const [confirmId, setConfirmId] = useState(null);
-
+  const categories = categoriesResponse?.items || categoriesResponse || [];
   const items = data?.items || [];
   const pages = data?.pages || 1;
-
   const initial = useMemo(
     () =>
       editing
@@ -66,6 +64,11 @@ export const AdminProductsPage = () => {
     await deleteProduct(confirmId).unwrap();
     setConfirmId(null);
     refetch();
+  }
+
+  function handleSearchInputChange(event) {
+    setSearch(event.target.value);
+    setPage(1);
   }
 
   function handleDeleteButtonClick(event, productId) {
@@ -100,10 +103,7 @@ export const AdminProductsPage = () => {
             placeholder="Поиск по названию…"
             autoComplete="off"
             value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(1);
-            }}
+            onChange={handleSearchInputChange}
           />
           <Button type="button" onClick={() => refetch()} disabled={isFetching}>
             Обновить
