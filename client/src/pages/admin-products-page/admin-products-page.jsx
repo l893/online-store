@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useListCategoriesQuery } from '../../entities/categories';
 import {
+  ProductForm,
   createProductFormInitialValues,
   createProductPayload,
   useAdminCreateProductMutation,
@@ -8,7 +9,6 @@ import {
   useAdminUpdateProductMutation,
   useAdminDeleteProductMutation,
 } from '../../features/admin-products';
-import { ProductForm } from '../../features/admin-products';
 import { Button, ConfirmDialog, Input, Loader } from '../../shared/ui';
 import { parseApiError } from '../../shared/lib';
 import styles from './admin-products-page.module.scss';
