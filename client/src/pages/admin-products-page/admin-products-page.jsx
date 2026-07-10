@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useListCategoriesQuery } from '../../entities/categories';
 import {
+  createProductFormInitialValues,
   createProductPayload,
   useAdminCreateProductMutation,
   useAdminListProductsQuery,
@@ -34,14 +35,9 @@ export const AdminProductsPage = () => {
   const categories = categoriesResponse?.items || categoriesResponse || [];
   const items = data?.items || [];
   const pages = data?.pages || 1;
-  const initial = useMemo(
-    () =>
-      editing
-        ? {
-            ...editing,
-            image: editing.images?.[0] || '',
-          }
-        : null,
+
+  const productFormInitialValues = useMemo(
+    () => createProductFormInitialValues(editing),
     [editing],
   );
 
@@ -85,7 +81,7 @@ export const AdminProductsPage = () => {
             {editing ? 'Редактирование' : 'Добавление товара'}
           </h2>
           <ProductForm
-            initial={initial}
+            initial={productFormInitialValues}
             categories={categories}
             onSubmit={editing ? handleUpdate : handleCreate}
             submitText={editing ? 'Сохранить' : 'Добавить'}
