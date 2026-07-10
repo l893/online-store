@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useListCategoriesQuery } from '../../entities/categories';
 import {
+  createProductPayload,
   useAdminCreateProductMutation,
   useAdminListProductsQuery,
   useAdminUpdateProductMutation,
@@ -45,16 +46,16 @@ export const AdminProductsPage = () => {
   );
 
   async function handleCreate(values) {
-    const body = { ...values, images: values.image ? [values.image] : [] };
-    await createProduct(body).unwrap();
+    const payload = createProductPayload(values);
+    await createProduct(payload).unwrap();
     setPage(1);
     setEditing(null);
     refetch();
   }
 
   async function handleUpdate(values) {
-    const body = { ...values, images: values.image ? [values.image] : [] };
-    await updateProduct({ id: editing._id, ...body }).unwrap();
+    const payload = createProductPayload(values);
+    await updateProduct({ id: editing._id, ...payload }).unwrap();
     setEditing(null);
     refetch();
   }
