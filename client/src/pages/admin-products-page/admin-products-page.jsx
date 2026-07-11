@@ -68,9 +68,29 @@ export const AdminProductsPage = () => {
     setPage(1);
   }
 
+  function handleRefreshButtonClick() {
+    refetch();
+  }
+
+  function handleEditButtonClick(product) {
+    setEditing(product);
+  }
+
   function handleDeleteButtonClick(event, productId) {
     event.currentTarget.blur();
     setConfirmId(productId);
+  }
+
+  function handlePreviousPageButtonClick() {
+    setPage((currentPage) => Math.max(1, currentPage - 1));
+  }
+
+  function handleNextPageButtonClick() {
+    setPage((currentPage) => Math.min(pages, currentPage + 1));
+  }
+
+  function handleDeleteDialogCancel() {
+    setConfirmId(null);
   }
 
   return (
@@ -102,7 +122,11 @@ export const AdminProductsPage = () => {
             value={search}
             onChange={handleSearchInputChange}
           />
-          <Button type="button" onClick={() => refetch()} disabled={isFetching}>
+          <Button
+            type="button"
+            onClick={handleRefreshButtonClick}
+            disabled={isFetching}
+          >
             Обновить
           </Button>
         </div>
@@ -144,7 +168,10 @@ export const AdminProductsPage = () => {
                   </td>
                   <td className={`${styles.tableCell} ${styles.actionsCell}`}>
                     <div className={styles.actions}>
-                      <Button type="button" onClick={() => setEditing(product)}>
+                      <Button
+                        type="button"
+                        onClick={() => handleEditButtonClick(product)}
+                      >
                         Ред.
                       </Button>
                       <Button
@@ -175,9 +202,7 @@ export const AdminProductsPage = () => {
           <div className={styles.pagination}>
             <Button
               type="button"
-              onClick={() =>
-                setPage((currentPage) => Math.max(1, currentPage - 1))
-              }
+              onClick={handlePreviousPageButtonClick}
               disabled={page <= 1}
             >
               Назад
@@ -187,9 +212,7 @@ export const AdminProductsPage = () => {
             </span>
             <Button
               type="button"
-              onClick={() =>
-                setPage((currentPage) => Math.min(pages, currentPage + 1))
-              }
+              onClick={handleNextPageButtonClick}
               disabled={page >= pages}
             >
               Вперёд
@@ -201,7 +224,7 @@ export const AdminProductsPage = () => {
           open={!!confirmId}
           title="Удалить товар?"
           description="Действие нельзя отменить."
-          onCancel={() => setConfirmId(null)}
+          onCancel={handleDeleteDialogCancel}
           onConfirm={confirmDelete}
           confirmText="Удалить"
         />
