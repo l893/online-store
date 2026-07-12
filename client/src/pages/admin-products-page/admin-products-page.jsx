@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useListCategoriesQuery } from '../../entities/categories';
 import {
+  AdminProductsPagination,
   AdminProductsTable,
   ProductForm,
   createProductFormInitialValues,
@@ -159,25 +160,12 @@ export const AdminProductsPage = () => {
         />
 
         {pages > 1 && (
-          <div className={styles.pagination}>
-            <Button
-              type="button"
-              onClick={handlePreviousPageButtonClick}
-              disabled={page <= 1}
-            >
-              Назад
-            </Button>
-            <span className={styles.paginationText}>
-              Стр. {page} из {pages}
-            </span>
-            <Button
-              type="button"
-              onClick={handleNextPageButtonClick}
-              disabled={page >= pages}
-            >
-              Вперёд
-            </Button>
-          </div>
+          <AdminProductsPagination
+            currentPage={page}
+            totalPages={pages}
+            onPreviousPage={handlePreviousPageButtonClick}
+            onNextPage={handleNextPageButtonClick}
+          />
         )}
 
         <ConfirmDialog
