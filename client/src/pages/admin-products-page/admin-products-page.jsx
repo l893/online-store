@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useListCategoriesQuery } from '../../entities/categories';
 import {
+  AdminProductFormPanel,
   AdminProductsPagination,
   AdminProductsTable,
   AdminProductsToolbar,
-  ProductForm,
   createProductFormInitialValues,
   createProductPayload,
   useAdminCreateProductMutation,
@@ -14,7 +14,6 @@ import {
 } from '../../features/admin-products';
 import { useQueryParams } from '../../shared/hooks';
 import { ConfirmDialog, Loader } from '../../shared/ui';
-import { parseApiError } from '../../shared/lib';
 import styles from './admin-products-page.module.scss';
 
 export const AdminProductsPage = () => {
@@ -113,22 +112,13 @@ export const AdminProductsPage = () => {
   return (
     <div className={styles.adminProductsLayout}>
       <div className={styles.formSection}>
-        <div className={styles.card}>
-          <h2 className={styles.sectionTitle}>
-            {editing ? 'Редактирование' : 'Добавление товара'}
-          </h2>
-          <ProductForm
-            initial={productFormInitialValues}
-            categories={categories}
-            onSubmit={editing ? handleUpdate : handleCreate}
-            submitText={editing ? 'Сохранить' : 'Добавить'}
-          />
-          {(createError || updateError) && (
-            <div className={styles.formError}>
-              {parseApiError(createError || updateError)}
-            </div>
-          )}
-        </div>
+        <AdminProductFormPanel
+          isEditing={Boolean(editing)}
+          initialValues={productFormInitialValues}
+          categories={categories}
+          onSubmit={editing ? handleUpdate : handleCreate}
+          submissionError={createError || updateError}
+        />
       </div>
 
       <div className={styles.productsSection}>
