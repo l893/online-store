@@ -10,15 +10,21 @@ import {
   useAdminUpdateProductMutation,
   useAdminDeleteProductMutation,
 } from '../../features/admin-products';
+import { useQueryParams } from '../../shared/hooks';
 import { Button, ConfirmDialog, Input, Loader } from '../../shared/ui';
 import { parseApiError } from '../../shared/lib';
 import styles from './admin-products-page.module.scss';
 
 export const AdminProductsPage = () => {
+  const [queryParameters, setQueryParameters] = useQueryParams();
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
   const [editing, setEditing] = useState(null);
   const [confirmId, setConfirmId] = useState(null);
+
+  const pageParameter = Number(queryParameters.get('page') || 1);
+  const page =
+    Number.isInteger(pageParameter) && pageParameter > 0 ? pageParameter : 1;
+
   const { data, isFetching, refetch } = useAdminListProductsQuery({
     search,
     page,
@@ -45,7 +51,7 @@ export const AdminProductsPage = () => {
   async function handleCreate(values) {
     const payload = createProductPayload(values);
     await createProduct(payload).unwrap();
-    setPage(1);
+    setQueryParameters({ page: null });
     setEditing(null);
     refetch();
   }
@@ -66,7 +72,7 @@ export const AdminProductsPage = () => {
 
   function handleSearchInputChange(event) {
     setSearch(event.target.value);
-    setPage(1);
+    setQueryParameters({ page: null });
   }
 
   function handleRefreshButtonClick() {
@@ -83,11 +89,19 @@ export const AdminProductsPage = () => {
   }
 
   function handlePreviousPageButtonClick() {
-    setPage((currentPage) => Math.max(1, currentPage - 1));
+    const previousPage = Math.max(1, page - 1);
+
+    setQueryParameters({
+      page: previousPage === 1 ? null : previousPage,
+    });
   }
 
   function handleNextPageButtonClick() {
-    setPage((currentPage) => Math.min(pages, currentPage + 1));
+    const nextPage = Math.min(pages, page + 1);
+
+    setQueryParameters({
+      page: nextPage === 1 ? null : nextPage,
+    });
   }
 
   function handleDeleteDialogCancel() {
