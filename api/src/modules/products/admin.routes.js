@@ -17,7 +17,7 @@ router.get('/', async (req, res, next) => {
 
     const [items, total] = await Promise.all([
       Product.find(filter)
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: -1, _id: -1 })
         .skip((currentPage - 1) * pageLimit)
         .limit(pageLimit)
         .lean(),
