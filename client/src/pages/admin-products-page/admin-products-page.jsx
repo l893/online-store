@@ -3,6 +3,7 @@ import { useListCategoriesQuery } from '../../entities/categories';
 import {
   AdminProductsPagination,
   AdminProductsTable,
+  AdminProductsToolbar,
   ProductForm,
   createProductFormInitialValues,
   createProductPayload,
@@ -12,7 +13,7 @@ import {
   useAdminDeleteProductMutation,
 } from '../../features/admin-products';
 import { useQueryParams } from '../../shared/hooks';
-import { Button, ConfirmDialog, Input, Loader } from '../../shared/ui';
+import { ConfirmDialog, Loader } from '../../shared/ui';
 import { parseApiError } from '../../shared/lib';
 import styles from './admin-products-page.module.scss';
 
@@ -71,8 +72,8 @@ export const AdminProductsPage = () => {
     refetch();
   }
 
-  function handleSearchInputChange(event) {
-    setSearch(event.target.value);
+  function handleSearchValueChange(searchValue) {
+    setSearch(searchValue);
     setQueryParameters({ page: null });
   }
 
@@ -131,21 +132,12 @@ export const AdminProductsPage = () => {
       </div>
 
       <div className={styles.productsSection}>
-        <div className={styles.toolbar}>
-          <Input
-            placeholder="Поиск по названию…"
-            autoComplete="off"
-            value={search}
-            onChange={handleSearchInputChange}
-          />
-          <Button
-            type="button"
-            onClick={handleRefreshButtonClick}
-            disabled={isFetching}
-          >
-            Обновить
-          </Button>
-        </div>
+        <AdminProductsToolbar
+          searchValue={search}
+          isRefreshing={isFetching}
+          onSearchValueChange={handleSearchValueChange}
+          onRefresh={handleRefreshButtonClick}
+        />
 
         {(creating || updating || deleting) && (
           <div className={styles.operationLoader}>
