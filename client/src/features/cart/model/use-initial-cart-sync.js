@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { setAll } from '../cart.slice';
 import { getInitialCartSyncDecision } from '../lib/get-initial-cart-sync-decision';
@@ -10,12 +10,19 @@ export function useInitialCartSync({
   replaceCart,
 }) {
   const dispatch = useDispatch();
-  const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
+  const hasInitialSyncStartedRef = useRef(false);
 
   useEffect(() => {
-    if (!isAuthenticated || !serverCart || isInitialSyncDone) {
+    if (!isAuthenticated) {
+      hasInitialSyncStartedRef.current = false;
       return;
     }
+
+    if (!serverCart || hasInitialSyncStartedRef.current) {
+      return;
+    }
+
+    hasInitialSyncStartedRef.current = true;
 
     const serverItems = Array.isArray(serverCart.items) ? serverCart.items : [];
 
@@ -26,21 +33,14 @@ export function useInitialCartSync({
       });
 
     if (shouldPushLocalItemsToServer) {
-      replaceCart(localItems).catch(() => {});
+      replaceCart(localItems)
+        .unwrap()
+        .catch(() => {});
       return;
     }
 
     if (shouldReplaceLocalItemsWithServer) {
       dispatch(setAll(serverItems));
     }
-
-    setIsInitialSyncDone(true);
-  }, [
-    dispatch,
-    isAuthenticated,
-    isInitialSyncDone,
-    localItems,
-    replaceCart,
-    serverCart,
-  ]);
+  }, [dispatch, isAuthenticated, localItems, replaceCart, serverCart]);
 }
