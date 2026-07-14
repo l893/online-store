@@ -18,79 +18,96 @@ import styles from './admin-products-page.module.scss';
 
 export const AdminProductsPage = () => {
   const [queryParameters, setQueryParameters] = useQueryParams();
-  const [search, setSearch] = useState('');
-  const [editing, setEditing] = useState(null);
-  const [confirmId, setConfirmId] = useState(null);
+  const [searchValue, setSearchValue] = useState('');
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [productIdPendingDeletion, setProductIdPendingDeletion] =
+    useState(null);
 
-  const pageParameter = Number(queryParameters.get('page') || 1);
-  const page =
-    Number.isInteger(pageParameter) && pageParameter > 0 ? pageParameter : 1;
+  const pageParameterValue = Number(queryParameters.get('page') || 1);
+  const currentPage =
+    Number.isInteger(pageParameterValue) && pageParameterValue > 0
+      ? pageParameterValue
+      : 1;
 
-  const { data, isFetching, refetch } = useAdminListProductsQuery({
-    search,
-    page,
+  const {
+    data: productsResponse,
+    isFetching: isProductsFetching,
+    refetch: refetchProducts,
+  } = useAdminListProductsQuery({
+    search: searchValue,
+    page: currentPage,
     limit: 10,
   });
   const { data: categoriesResponse } = useListCategoriesQuery();
 
-  const [createProduct, { isLoading: creating, error: createError }] =
-    useAdminCreateProductMutation();
-  const [updateProduct, { isLoading: updating, error: updateError }] =
-    useAdminUpdateProductMutation();
-  const [deleteProduct, { isLoading: deleting }] =
+  const [
+    createProduct,
+    { isLoading: isCreatingProduct, error: createProductError },
+  ] = useAdminCreateProductMutation();
+  const [
+    updateProduct,
+    { isLoading: isUpdatingProduct, error: updateProductError },
+  ] = useAdminUpdateProductMutation();
+  const [deleteProduct, { isLoading: isDeletingProduct }] =
     useAdminDeleteProductMutation();
 
   const categories = categoriesResponse?.items || categoriesResponse || [];
-  const products = data?.items || [];
-  const pages = data?.pages || 1;
+  const products = productsResponse?.items || [];
+  const totalPages = productsResponse?.pages || 1;
 
   const productFormInitialValues = useMemo(
-    () => createProductFormInitialValues(editing),
-    [editing],
+    () => createProductFormInitialValues(editingProduct),
+    [editingProduct],
   );
 
-  async function handleCreate(values) {
-    const payload = createProductPayload(values);
-    await createProduct(payload).unwrap();
+  async function handleCreate(productFormValues) {
+    const productPayload = createProductPayload(productFormValues);
+    await createProduct(productPayload).unwrap();
     setQueryParameters({ page: null });
-    setEditing(null);
-    refetch();
+    setEditingProduct(null);
+    refetchProducts();
   }
 
-  async function handleUpdate(values) {
-    const payload = createProductPayload(values);
-    await updateProduct({ id: editing._id, ...payload }).unwrap();
-    setEditing(null);
-    refetch();
+  async function handleUpdate(productFormValues) {
+    const productPayload = createProductPayload(productFormValues);
+    await updateProduct({
+      id: editingProduct._id,
+      ...productPayload,
+    }).unwrap();
+    setEditingProduct(null);
+    refetchProducts();
   }
 
-  async function confirmDelete() {
-    if (!confirmId) return;
-    await deleteProduct(confirmId).unwrap();
-    setConfirmId(null);
-    refetch();
+  async function handleDeleteConfirm() {
+    if (!productIdPendingDeletion) {
+      return;
+    }
+
+    await deleteProduct(productIdPendingDeletion).unwrap();
+    setProductIdPendingDeletion(null);
+    refetchProducts();
   }
 
-  function handleSearchValueChange(searchValue) {
-    setSearch(searchValue);
+  function handleSearchValueChange(nextSearchValue) {
+    setSearchValue(nextSearchValue);
     setQueryParameters({ page: null });
   }
 
   function handleRefreshButtonClick() {
-    refetch();
+    refetchProducts();
   }
 
   function handleEditButtonClick(product) {
-    setEditing(product);
+    setEditingProduct(product);
   }
 
   function handleDeleteButtonClick(event, productId) {
     event.currentTarget.blur();
-    setConfirmId(productId);
+    setProductIdPendingDeletion(productId);
   }
 
   function handlePreviousPageButtonClick() {
-    const previousPage = Math.max(1, page - 1);
+    const previousPage = Math.max(1, currentPage - 1);
 
     setQueryParameters({
       page: previousPage === 1 ? null : previousPage,
@@ -98,7 +115,7 @@ export const AdminProductsPage = () => {
   }
 
   function handleNextPageButtonClick() {
-    const nextPage = Math.min(pages, page + 1);
+    const nextPage = Math.min(totalPages, currentPage + 1);
 
     setQueryParameters({
       page: nextPage === 1 ? null : nextPage,
@@ -106,30 +123,29 @@ export const AdminProductsPage = () => {
   }
 
   function handleDeleteDialogCancel() {
-    setConfirmId(null);
+    setProductIdPendingDeletion(null);
   }
 
   return (
     <div className={styles.adminProductsLayout}>
       <div className={styles.formSection}>
         <AdminProductFormPanel
-          isEditing={Boolean(editing)}
+          isEditing={Boolean(editingProduct)}
           initialValues={productFormInitialValues}
           categories={categories}
-          onSubmit={editing ? handleUpdate : handleCreate}
-          submissionError={createError || updateError}
+          onSubmit={editingProduct ? handleUpdate : handleCreate}
+          submissionError={createProductError || updateProductError}
         />
       </div>
-
       <div className={styles.productsSection}>
         <AdminProductsToolbar
-          searchValue={search}
-          isRefreshing={isFetching}
+          searchValue={searchValue}
+          isRefreshing={isProductsFetching}
           onSearchValueChange={handleSearchValueChange}
           onRefresh={handleRefreshButtonClick}
         />
 
-        {(creating || updating || deleting) && (
+        {(isCreatingProduct || isUpdatingProduct || isDeletingProduct) && (
           <div className={styles.operationLoader}>
             <Loader label="Выполняется операция…" />
           </div>
@@ -141,21 +157,21 @@ export const AdminProductsPage = () => {
           onDeleteProduct={handleDeleteButtonClick}
         />
 
-        {pages > 1 && (
+        {totalPages > 1 && (
           <AdminProductsPagination
-            currentPage={page}
-            totalPages={pages}
+            currentPage={currentPage}
+            totalPages={totalPages}
             onPreviousPage={handlePreviousPageButtonClick}
             onNextPage={handleNextPageButtonClick}
           />
         )}
 
         <ConfirmDialog
-          open={!!confirmId}
+          open={Boolean(productIdPendingDeletion)}
           title="Удалить товар?"
           description="Действие нельзя отменить."
           onCancel={handleDeleteDialogCancel}
-          onConfirm={confirmDelete}
+          onConfirm={handleDeleteConfirm}
           confirmText="Удалить"
         />
       </div>
