@@ -1,11 +1,10 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   changeQty,
   removeItem,
   clear,
-  setAll,
-  getInitialCartSyncDecision,
+  useInitialCartSync,
 } from '../../features/cart';
 import { useCartTotals } from '../../shared/hooks';
 import { AlertDialog, Loader } from '../../shared/ui';
@@ -27,7 +26,6 @@ export const CartPage = () => {
   const items = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
   const nav = useNavigate();
-  const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
   const [isCheckoutSubmitting, setIsCheckoutSubmitting] = useState(false);
   const [checkoutDialog, setCheckoutDialog] = useState(null);
 
@@ -44,36 +42,17 @@ export const CartPage = () => {
     useConfirmCheckoutMutation();
   const [removeItemFromCart] = useRemoveItemFromCartMutation(); // Хук для удаления
 
+  useInitialCartSync({
+    isAuthenticated: Boolean(user),
+    localItems: items,
+    serverCart,
+    replaceCart,
+  });
+
   const isCheckoutLoading =
     isCheckoutSubmitting || creatingOrder || confirmingCheckout;
 
   const { totalQty, totalSum } = useCartTotals(items);
-
-  // начальная синхронизация: выбираем, что считать "истиной"
-  useEffect(() => {
-    if (!user || !serverCart || isInitialSyncDone) return;
-
-    const serverItems = Array.isArray(serverCart.items) ? serverCart.items : [];
-    const { shouldPushLocalItemsToServer, shouldReplaceLocalItemsWithServer } =
-      getInitialCartSyncDecision({
-        localItems: items,
-        serverItems,
-      });
-
-    // Случай 1: гость добавлял товары, затем залогинился,
-    // а на сервере корзина пустая → пушим локальные товары на сервер
-    if (shouldPushLocalItemsToServer) {
-      replaceCart(items).catch(() => {});
-      return;
-    }
-
-    // Случай 2: локально пусто, а на сервере есть корзина → подтягиваем её в Redux
-    if (shouldReplaceLocalItemsWithServer) {
-      dispatch(setAll(serverItems));
-    }
-
-    setIsInitialSyncDone(true);
-  }, [user, serverCart, items, dispatch, replaceCart, isInitialSyncDone]);
 
   const onChangeQty = useCallback(
     (productId, qty) => {
