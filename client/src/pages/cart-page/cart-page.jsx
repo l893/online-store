@@ -1,6 +1,12 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { changeQty, removeItem, clear, setAll } from '../../features/cart';
+import {
+  changeQty,
+  removeItem,
+  clear,
+  setAll,
+  getInitialCartSyncDecision,
+} from '../../features/cart';
 import { useCartTotals } from '../../shared/hooks';
 import { AlertDialog, Loader } from '../../shared/ui';
 import { CartItem, CartSummary } from '../../widgets';
@@ -48,16 +54,21 @@ export const CartPage = () => {
     if (!user || !serverCart || isInitialSyncDone) return;
 
     const serverItems = Array.isArray(serverCart.items) ? serverCart.items : [];
-    const hasServerItems = serverItems.length > 0;
-    const hasLocalItems = items.length > 0;
+    const { shouldPushLocalItemsToServer, shouldReplaceLocalItemsWithServer } =
+      getInitialCartSyncDecision({
+        localItems: items,
+        serverItems,
+      });
 
     // Случай 1: гость добавлял товары, затем залогинился,
     // а на сервере корзина пустая → пушим локальные товары на сервер
-    if (hasLocalItems && !hasServerItems) {
+    if (shouldPushLocalItemsToServer) {
       replaceCart(items).catch(() => {});
       return;
-    } else if (!hasLocalItems && hasServerItems) {
-      // Случай 2: локально пусто, а на сервере есть корзина → подтягиваем её в Redux
+    }
+
+    // Случай 2: локально пусто, а на сервере есть корзина → подтягиваем её в Redux
+    if (shouldReplaceLocalItemsWithServer) {
       dispatch(setAll(serverItems));
     }
 
