@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useGetProductQuery } from '../../entities/products';
-import { addItem } from '../../features/cart';
+import { addProductToCart } from '../../features/cart';
 import { Button, Loader } from '../../shared/ui';
 import styles from './product-page.module.scss';
 
@@ -50,7 +50,7 @@ export const ProductPage = () => {
 
   const handleAddToCartButtonClick = () => {
     dispatch(
-      addItem({
+      addProductToCart({
         productId: product._id,
         title: product.title,
         price: product.price,
