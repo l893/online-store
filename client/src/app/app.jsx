@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -27,6 +27,7 @@ export const App = () => {
   const [refresh] = useRefreshMutation();
   const navigate = useNavigate();
   const [isAuthBootstrapped, setIsAuthBootstrapped] = useState(false);
+  const authRefreshRequestPromiseRef = useRef(null);
   const isAdmin = user?.roles?.includes('admin');
 
   useEffect(() => {
@@ -44,7 +45,11 @@ export const App = () => {
       }
 
       try {
-        await refresh().unwrap();
+        if (!authRefreshRequestPromiseRef.current) {
+          authRefreshRequestPromiseRef.current = refresh().unwrap();
+        }
+
+        await authRefreshRequestPromiseRef.current;
       } catch {
         // Невалидная refresh-сессия очищается в auth.api refresh flow.
       } finally {
