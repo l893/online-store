@@ -1,11 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  changeQty,
-  removeItem,
-  clear,
-  useInitialCartSync,
-} from '../../features/cart';
+import { changeQty, removeItem, useInitialCartSync } from '../../features/cart';
 import { useCartTotals } from '../../shared/hooks';
 import { AlertDialog, Loader } from '../../shared/ui';
 import { CartItem, CartSummary } from '../../widgets';
@@ -14,20 +9,13 @@ import {
   useReplaceCartMutation,
   useRemoveItemFromCartMutation,
 } from '../../features/cart';
-import {
-  useCreateOrderMutation,
-  useConfirmCheckoutMutation,
-} from '../../features/orders';
-import { useNavigate } from 'react-router-dom';
+import { useCartCheckout } from './model/use-cart-checkout';
 import styles from './cart-page.module.scss';
 
 export const CartPage = () => {
   const user = useSelector((state) => state.auth.user);
   const items = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
-  const nav = useNavigate();
-  const [isCheckoutSubmitting, setIsCheckoutSubmitting] = useState(false);
-  const [checkoutDialog, setCheckoutDialog] = useState(null);
 
   // если авторизован — подтянем серверную корзину
   const { data: serverCart, isLoading: loadingServerCart } = useGetCartQuery(
@@ -37,9 +25,6 @@ export const CartPage = () => {
 
   // хук для замены корзины на сервере
   const [replaceCart] = useReplaceCartMutation();
-  const [createOrder, { isLoading: creatingOrder }] = useCreateOrderMutation();
-  const [confirmCheckout, { isLoading: confirmingCheckout }] =
-    useConfirmCheckoutMutation();
   const [removeItemFromCart] = useRemoveItemFromCartMutation(); // Хук для удаления
 
   useInitialCartSync({
@@ -49,8 +34,16 @@ export const CartPage = () => {
     replaceCart,
   });
 
-  const isCheckoutLoading =
-    isCheckoutSubmitting || creatingOrder || confirmingCheckout;
+  const {
+    checkoutDialog,
+    isCheckoutLoading,
+    handleCheckout,
+    handleCheckoutDialogClose,
+  } = useCartCheckout({
+    isAuthenticated: Boolean(user),
+    cartItems: items,
+    replaceCart,
+  });
 
   const { totalQty, totalSum } = useCartTotals(items);
 
@@ -78,59 +71,6 @@ export const CartPage = () => {
       }
     },
     [dispatch, user, removeItemFromCart],
-  );
-
-  const handleCheckoutDialogClose = () => {
-    const shouldRedirectToLogin = checkoutDialog?.shouldRedirectToLogin;
-
-    setCheckoutDialog(null);
-
-    if (shouldRedirectToLogin) {
-      nav('/login', { state: { from: { pathname: '/cart' } } });
-    }
-  };
-
-  const onCheckout = useCallback(
-    async (event) => {
-      event?.currentTarget?.blur();
-
-      if (!user) {
-        setCheckoutDialog({
-          title: 'Войдите в аккаунт',
-          description: 'Для оформления заказа войдите в аккаунт',
-          shouldRedirectToLogin: true,
-        });
-        return;
-      }
-
-      setIsCheckoutSubmitting(true);
-
-      try {
-        // синхронизируем корзину на сервере (полная замена)
-        await replaceCart(items).unwrap();
-
-        // создаём заказ из серверной корзины
-        const { orderId } = await createOrder().unwrap();
-
-        // подтверждаем оплату (мок)
-        await confirmCheckout({ orderId }).unwrap();
-
-        setCheckoutDialog({
-          title: 'Оплата подтверждена',
-          description: `Заказ: ${orderId}`,
-        });
-
-        dispatch(clear());
-      } catch {
-        setCheckoutDialog({
-          title: 'Не удалось оформить заказ',
-          description: 'Попробуйте повторить позже.',
-        });
-      } finally {
-        setIsCheckoutSubmitting(false);
-      }
-    },
-    [user, replaceCart, items, createOrder, confirmCheckout, dispatch],
   );
 
   return (
@@ -161,7 +101,7 @@ export const CartPage = () => {
         <CartSummary
           totalQty={totalQty}
           totalSum={totalSum}
-          onCheckout={onCheckout}
+          onCheckout={handleCheckout}
           isCheckoutLoading={isCheckoutLoading}
         />
 
