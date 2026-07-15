@@ -1,21 +1,19 @@
-import { useCallback } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { changeQty, removeItem, useInitialCartSync } from '../../features/cart';
+import { useSelector } from 'react-redux';
+import {
+  useCartItemActions,
+  useGetCartQuery,
+  useInitialCartSync,
+  useReplaceCartMutation,
+} from '../../features/cart';
 import { useCartTotals } from '../../shared/hooks';
 import { AlertDialog, Loader } from '../../shared/ui';
 import { CartItem, CartSummary } from '../../widgets';
-import {
-  useGetCartQuery,
-  useReplaceCartMutation,
-  useRemoveItemFromCartMutation,
-} from '../../features/cart';
 import { useCartCheckout } from './model/use-cart-checkout';
 import styles from './cart-page.module.scss';
 
 export const CartPage = () => {
   const user = useSelector((state) => state.auth.user);
   const items = useSelector((state) => state.cart.items);
-  const dispatch = useDispatch();
 
   // если авторизован — подтянем серверную корзину
   const { data: serverCart, isLoading: loadingServerCart } = useGetCartQuery(
@@ -25,7 +23,6 @@ export const CartPage = () => {
 
   // хук для замены корзины на сервере
   const [replaceCart] = useReplaceCartMutation();
-  const [removeItemFromCart] = useRemoveItemFromCartMutation(); // Хук для удаления
 
   useInitialCartSync({
     isAuthenticated: Boolean(user),
@@ -33,6 +30,13 @@ export const CartPage = () => {
     serverCart,
     replaceCart,
   });
+
+  const { handleCartItemQuantityChange, handleCartItemRemove } =
+    useCartItemActions({
+      isAuthenticated: Boolean(user),
+      cartItems: items,
+      replaceCart,
+    });
 
   const {
     checkoutDialog,
@@ -46,32 +50,6 @@ export const CartPage = () => {
   });
 
   const { totalQty, totalSum } = useCartTotals(items);
-
-  const onChangeQty = useCallback(
-    (productId, qty) => {
-      dispatch(changeQty({ productId, qty }));
-
-      if (user) {
-        const nextItems = items.map((item) =>
-          item.productId === productId ? { ...item, qty } : item,
-        );
-        replaceCart(nextItems).catch(() => {});
-      }
-    },
-    [dispatch, user, items, replaceCart],
-  );
-
-  const onRemove = useCallback(
-    (productId) => {
-      dispatch(removeItem(productId)); // Убираем товар из локальной корзины
-
-      if (user) {
-        // Если авторизован, отправляем запрос на сервер
-        removeItemFromCart(productId).catch(() => {});
-      }
-    },
-    [dispatch, user, removeItemFromCart],
-  );
 
   return (
     <div className={styles.cartLayout}>
@@ -90,8 +68,8 @@ export const CartPage = () => {
             <CartItem
               key={item.productId}
               item={item}
-              onChangeQty={onChangeQty}
-              onRemove={onRemove}
+              onChangeQty={handleCartItemQuantityChange}
+              onRemove={handleCartItemRemove}
             />
           ))
         )}

@@ -3,4 +3,5 @@ export * from './cart.slice'; // addItem, changeQty, removeItem, clear, setAll
 export * from './cart.api'; // useGetCartQuery, useReplaceCartMutation
 export * from './lib/get-initial-cart-sync-decision';
 export * from './model/add-product-to-cart';
+export * from './model/use-cart-item-actions';
 export * from './model/use-initial-cart-sync';
