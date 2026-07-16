@@ -5,6 +5,6 @@ export * from './model/auth.slice'; // setCredentials, logout
 // RTK Query
 export * from './auth.api';
 
-// гардёры
-export { RequireAuth } from './require-auth';
-export { RequireRole } from './require-role';
+// Route guards
+export { RequireAuth } from './ui/require-auth';
+export { RequireRole } from './ui/require-role';
