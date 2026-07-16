@@ -2,7 +2,7 @@ import { api } from '../../shared/lib/api';
 import { setCredentials, logout as logoutAction } from './auth.slice';
 import { setAll } from '../cart/cart.slice';
 import { mergeCartItems } from '../cart/lib/merge-cart-items';
-import { normalizeUser } from './normalize-user';
+import { normalizeUser } from './lib/normalize-user';
 
 const storeAccessToken = (accessToken) => {
   if (accessToken) {
