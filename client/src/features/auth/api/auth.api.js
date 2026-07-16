@@ -1,7 +1,8 @@
 import { api } from '../../../shared/lib/api';
-import { mergeCartItems, setAll } from '../../cart';
+import { setAll } from '../../cart';
 import { normalizeUser } from '../lib/normalize-user';
 import { setCredentials, logout as logoutAction } from '../model/auth.slice';
+import { synchronizeCartAfterAuthentication } from './synchronize-cart-after-authentication';
 
 const storeAccessToken = (accessToken) => {
   if (accessToken) {
@@ -26,33 +27,10 @@ export const authApi = api.injectEndpoints({
 
           storeAccessToken(data.accessToken);
 
-          const localCartItems = getState().cart.items || [];
-
-          const serverCartResponse = await dispatch(
-            api.endpoints.getCart.initiate(undefined, {
-              forceRefetch: true,
-              subscribe: false,
-            }),
-          ).unwrap();
-
-          const serverCartItems = Array.isArray(serverCartResponse.items)
-            ? serverCartResponse.items
-            : [];
-
-          if (localCartItems.length > 0) {
-            const mergedCartItems = mergeCartItems({
-              serverItems: serverCartItems,
-              localItems: localCartItems,
-            });
-
-            const updatedCartResponse = await dispatch(
-              api.endpoints.replaceCart.initiate(mergedCartItems),
-            ).unwrap();
-
-            dispatch(setAll(updatedCartResponse.items || []));
-          } else {
-            dispatch(setAll(serverCartItems));
-          }
+          await synchronizeCartAfterAuthentication({
+            dispatch,
+            getState,
+          });
         } catch {
           // Ошибка доступна через RTK Query mutation state.
         }
@@ -68,33 +46,10 @@ export const authApi = api.injectEndpoints({
 
           storeAccessToken(data.accessToken);
 
-          const localCartItems = getState().cart.items || [];
-
-          const serverCartResponse = await dispatch(
-            api.endpoints.getCart.initiate(undefined, {
-              forceRefetch: true,
-              subscribe: false,
-            }),
-          ).unwrap();
-
-          const serverCartItems = Array.isArray(serverCartResponse.items)
-            ? serverCartResponse.items
-            : [];
-
-          if (localCartItems.length > 0) {
-            const mergedCartItems = mergeCartItems({
-              serverItems: serverCartItems,
-              localItems: localCartItems,
-            });
-
-            const updatedCartResponse = await dispatch(
-              api.endpoints.replaceCart.initiate(mergedCartItems),
-            ).unwrap();
-
-            dispatch(setAll(updatedCartResponse.items || []));
-          } else {
-            dispatch(setAll(serverCartItems));
-          }
+          await synchronizeCartAfterAuthentication({
+            dispatch,
+            getState,
+          });
         } catch {
           // Ошибка доступна через RTK Query mutation state.
         }
