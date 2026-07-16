@@ -1,6 +1,6 @@
 // реэкспорт слайса
-export { default as authReducer } from './auth.slice';
-export * from './auth.slice'; // setCredentials, logout
+export { default as authReducer } from './model/auth.slice';
+export * from './model/auth.slice'; // setCredentials, logout
 
 // RTK Query
 export * from './auth.api';
