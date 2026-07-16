@@ -1,6 +1,7 @@
 import { api } from '../../shared/lib/api';
 import { setCredentials, logout as logoutAction } from './auth.slice';
 import { setAll } from '../cart/cart.slice';
+import { mergeCartItems } from '../cart/lib/merge-cart-items';
 import { normalizeUser } from './normalize-user';
 
 const storeAccessToken = (accessToken) => {
@@ -26,22 +27,32 @@ export const authApi = api.injectEndpoints({
 
           storeAccessToken(data.accessToken);
 
-          // объединить локальную гостевую корзину с сервером
-          const items = getState().cart.items;
+          const localCartItems = getState().cart.items || [];
 
-          if (items?.length) {
-            const res = await dispatch(
-              api.endpoints.replaceCart.initiate(items),
+          const serverCartResponse = await dispatch(
+            api.endpoints.getCart.initiate(undefined, {
+              forceRefetch: true,
+              subscribe: false,
+            }),
+          ).unwrap();
+
+          const serverCartItems = Array.isArray(serverCartResponse.items)
+            ? serverCartResponse.items
+            : [];
+
+          if (localCartItems.length > 0) {
+            const mergedCartItems = mergeCartItems({
+              serverItems: serverCartItems,
+              localItems: localCartItems,
+            });
+
+            const updatedCartResponse = await dispatch(
+              api.endpoints.replaceCart.initiate(mergedCartItems),
             ).unwrap();
 
-            dispatch(setAll(res.items || []));
+            dispatch(setAll(updatedCartResponse.items || []));
           } else {
-            // извлечь серверную корзину в локальную
-            const res = await dispatch(
-              api.endpoints.getCart.initiate(),
-            ).unwrap();
-
-            dispatch(setAll(res.items || []));
+            dispatch(setAll(serverCartItems));
           }
         } catch {
           // Ошибка доступна через RTK Query mutation state.
@@ -58,20 +69,32 @@ export const authApi = api.injectEndpoints({
 
           storeAccessToken(data.accessToken);
 
-          const items = getState().cart.items;
+          const localCartItems = getState().cart.items || [];
 
-          if (items?.length) {
-            const res = await dispatch(
-              api.endpoints.replaceCart.initiate(items),
+          const serverCartResponse = await dispatch(
+            api.endpoints.getCart.initiate(undefined, {
+              forceRefetch: true,
+              subscribe: false,
+            }),
+          ).unwrap();
+
+          const serverCartItems = Array.isArray(serverCartResponse.items)
+            ? serverCartResponse.items
+            : [];
+
+          if (localCartItems.length > 0) {
+            const mergedCartItems = mergeCartItems({
+              serverItems: serverCartItems,
+              localItems: localCartItems,
+            });
+
+            const updatedCartResponse = await dispatch(
+              api.endpoints.replaceCart.initiate(mergedCartItems),
             ).unwrap();
 
-            dispatch(setAll(res.items || []));
+            dispatch(setAll(updatedCartResponse.items || []));
           } else {
-            const res = await dispatch(
-              api.endpoints.getCart.initiate(),
-            ).unwrap();
-
-            dispatch(setAll(res.items || []));
+            dispatch(setAll(serverCartItems));
           }
         } catch {
           // Ошибка доступна через RTK Query mutation state.
