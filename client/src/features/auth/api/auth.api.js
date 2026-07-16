@@ -1,8 +1,7 @@
-import { api } from '../../shared/lib/api';
-import { setCredentials, logout as logoutAction } from './model/auth.slice';
-import { setAll } from '../cart/cart.slice';
-import { mergeCartItems } from '../cart/lib/merge-cart-items';
-import { normalizeUser } from './lib/normalize-user';
+import { api } from '../../../shared/lib/api';
+import { mergeCartItems, setAll } from '../../cart';
+import { normalizeUser } from '../lib/normalize-user';
+import { setCredentials, logout as logoutAction } from '../model/auth.slice';
 
 const storeAccessToken = (accessToken) => {
   if (accessToken) {
