@@ -1,6 +1,6 @@
 import { useDispatch } from 'react-redux';
 import { useRemoveItemFromCartMutation } from '../cart.api';
-import { changeQty, removeItem } from '../cart.slice';
+import { changeQty, removeItem } from './cart.slice';
 
 export function useCartItemActions({
   isAuthenticated,

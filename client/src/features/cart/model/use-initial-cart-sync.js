@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { setAll } from '../cart.slice';
 import { getInitialCartSyncDecision } from '../lib/get-initial-cart-sync-decision';
+import { setAll } from './cart.slice';
 
 export function useInitialCartSync({
   isAuthenticated,

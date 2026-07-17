@@ -1,5 +1,5 @@
 import { cartApi } from '../cart.api';
-import { addItem } from '../cart.slice';
+import { addItem } from './cart.slice';
 
 export function addProductToCart(cartItem) {
   return async (dispatch, getState) => {
