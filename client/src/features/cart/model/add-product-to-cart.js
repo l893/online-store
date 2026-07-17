@@ -1,4 +1,4 @@
-import { cartApi } from '../cart.api';
+import { cartApi } from '../api/cart.api';
 import { addItem } from './cart.slice';
 
 export function addProductToCart(cartItem) {

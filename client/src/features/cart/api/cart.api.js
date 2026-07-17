@@ -1,4 +1,4 @@
-import { api } from '../../shared/lib/api';
+import { api } from '../../../shared/lib/api';
 
 export const cartApi = api.injectEndpoints({
   endpoints: (build) => ({

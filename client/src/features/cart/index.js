@@ -1,6 +1,6 @@
 export { default as cartReducer } from './model/cart.slice';
 export * from './model/cart.slice'; // addItem, changeQty, removeItem, clear, setAll
-export * from './cart.api'; // useGetCartQuery, useReplaceCartMutation
+export * from './api/cart.api'; // useGetCartQuery, useReplaceCartMutation
 export * from './lib/get-initial-cart-sync-decision';
 export * from './lib/merge-cart-items';
 export * from './model/add-product-to-cart';
