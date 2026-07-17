@@ -1,1 +1,1 @@
-export * from './orders.api';
+export * from './api/orders.api';
