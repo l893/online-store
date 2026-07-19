@@ -1,11 +1,11 @@
 import { useSelector } from 'react-redux';
 import {
+  getCartTotals,
   useCartItemActions,
   useGetCartQuery,
   useInitialCartSync,
   useReplaceCartMutation,
 } from '../../features/cart';
-import { useCartTotals } from '../../shared/hooks';
 import { AlertDialog, Loader } from '../../shared/ui';
 import { CartItem, CartSummary } from '../../widgets';
 import { useCartCheckout } from './model/use-cart-checkout';
@@ -49,7 +49,7 @@ export const CartPage = () => {
     replaceCart,
   });
 
-  const { totalQty, totalSum } = useCartTotals(items);
+  const { totalQuantity, totalSum } = getCartTotals(items);
 
   return (
     <div className={styles.cartLayout}>
@@ -77,7 +77,7 @@ export const CartPage = () => {
 
       <div className={styles.summarySection}>
         <CartSummary
-          totalQty={totalQty}
+          totalQuantity={totalQuantity}
           totalSum={totalSum}
           onCheckout={handleCheckout}
           isCheckoutLoading={isCheckoutLoading}

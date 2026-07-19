@@ -2,7 +2,7 @@ import { Button } from '../shared/ui/button';
 import styles from './cart-summary.module.scss';
 
 export const CartSummary = ({
-  totalQty,
+  totalQuantity,
   totalSum,
   onCheckout,
   isCheckoutLoading = false,
@@ -10,13 +10,13 @@ export const CartSummary = ({
   return (
     <aside className={styles.summary}>
       <div className={styles.title}>Итого</div>
-      <div className={styles.quantity}>Товаров: {totalQty}</div>
+      <div className={styles.quantity}>Товаров: {totalQuantity}</div>
       <div className={styles.sum}>{totalSum} ₽</div>
       <Button
         type="button"
         className={styles.checkoutButton}
         onClick={onCheckout}
-        disabled={totalQty === 0 || isCheckoutLoading}
+        disabled={totalQuantity === 0 || isCheckoutLoading}
       >
         {isCheckoutLoading ? 'Оформляем…' : 'Оформить заказ'}
       </Button>
