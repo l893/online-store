@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { getInitialCartSyncDecision } from '../lib/get-initial-cart-sync-decision';
-import { setAll } from './cart.slice';
+import { setCartItems } from './cart.slice';
 
 export function useInitialCartSync({
   isAuthenticated,
@@ -40,7 +40,7 @@ export function useInitialCartSync({
     }
 
     if (shouldReplaceLocalItemsWithServer) {
-      dispatch(setAll(serverItems));
+      dispatch(setCartItems(serverItems));
     }
   }, [dispatch, isAuthenticated, localItems, replaceCart, serverCart]);
 }

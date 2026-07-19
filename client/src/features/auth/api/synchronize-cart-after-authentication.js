@@ -1,5 +1,5 @@
 import { api } from '../../../shared/lib/api';
-import { mergeCartItems, setAll } from '../../cart';
+import { mergeCartItems, setCartItems } from '../../cart';
 
 export async function synchronizeCartAfterAuthentication({
   dispatch,
@@ -19,7 +19,7 @@ export async function synchronizeCartAfterAuthentication({
     : [];
 
   if (localCartItems.length === 0) {
-    dispatch(setAll(serverCartItems));
+    dispatch(setCartItems(serverCartItems));
     return;
   }
 
@@ -32,5 +32,5 @@ export async function synchronizeCartAfterAuthentication({
     api.endpoints.replaceCart.initiate(mergedCartItems),
   ).unwrap();
 
-  dispatch(setAll(updatedCartResponse.items || []));
+  dispatch(setCartItems(updatedCartResponse.items || []));
 }

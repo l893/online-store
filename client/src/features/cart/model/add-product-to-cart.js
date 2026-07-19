@@ -1,9 +1,9 @@
 import { cartApi } from '../api/cart.api';
-import { addItem } from './cart.slice';
+import { addCartItem } from './cart.slice';
 
 export function addProductToCart(cartItem) {
   return async (dispatch, getState) => {
-    dispatch(addItem(cartItem));
+    dispatch(addCartItem(cartItem));
 
     const isAuthenticated = Boolean(getState().auth.user);
 

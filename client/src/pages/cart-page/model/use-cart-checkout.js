@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { clear } from '../../../features/cart';
+import { clearCart } from '../../../features/cart';
 import {
   useConfirmCheckoutMutation,
   useCreateOrderMutation,
@@ -52,7 +52,7 @@ export function useCartCheckout({
         description: `Заказ: ${orderId}`,
       });
 
-      dispatch(clear());
+      dispatch(clearCart());
     } catch {
       setCheckoutDialog({
         title: 'Не удалось оформить заказ',

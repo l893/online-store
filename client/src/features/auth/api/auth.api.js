@@ -1,5 +1,5 @@
 import { api } from '../../../shared/lib/api';
-import { setAll } from '../../cart';
+import { setCartItems } from '../../cart';
 import { normalizeUser } from '../lib/normalize-user';
 import { setCredentials, logout as logoutAction } from '../model/auth.slice';
 import { synchronizeCartAfterAuthentication } from './synchronize-cart-after-authentication';
@@ -104,7 +104,7 @@ export const authApi = api.injectEndpoints({
         } finally {
           removeStoredAuthTokens();
           dispatch(logoutAction());
-          dispatch(setAll([])); // очистим локальную корзину
+          dispatch(setCartItems([]));
           dispatch(api.util.resetApiState());
         }
       },

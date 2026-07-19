@@ -1,6 +1,6 @@
 import { useDispatch } from 'react-redux';
 import { useRemoveItemFromCartMutation } from '../api/cart.api';
-import { changeQty, removeItem } from './cart.slice';
+import { changeCartItemQuantity, removeCartItem } from './cart.slice';
 
 export function useCartItemActions({
   isAuthenticated,
@@ -12,7 +12,7 @@ export function useCartItemActions({
 
   function handleCartItemQuantityChange(productId, quantity) {
     dispatch(
-      changeQty({
+      changeCartItemQuantity({
         productId,
         qty: quantity,
       }),
@@ -35,7 +35,7 @@ export function useCartItemActions({
   }
 
   function handleCartItemRemove(productId) {
-    dispatch(removeItem(productId));
+    dispatch(removeCartItem(productId));
 
     if (!isAuthenticated) {
       return;
