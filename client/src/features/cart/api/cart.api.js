@@ -1,16 +1,20 @@
 import { api } from '../../../shared/lib/api';
 
 export const cartApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    getCart: build.query({
+  endpoints: (endpointBuilder) => ({
+    getCart: endpointBuilder.query({
       query: () => '/cart',
     }),
-    replaceCart: build.mutation({
-      // полная замена items на сервере
-      query: (items) => ({ url: '/cart', method: 'PUT', body: { items } }),
+    replaceCart: endpointBuilder.mutation({
+      query: (cartItems) => ({
+        url: '/cart',
+        method: 'PUT',
+        body: {
+          items: cartItems,
+        },
+      }),
     }),
-    // Новый запрос для удаления товара из корзины
-    removeItemFromCart: build.mutation({
+    removeItemFromCart: endpointBuilder.mutation({
       query: (productId) => ({
         url: `/cart/item/${productId}`,
         method: 'DELETE',

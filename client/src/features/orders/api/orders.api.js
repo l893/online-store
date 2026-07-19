@@ -1,16 +1,15 @@
 import { api } from '../../../shared/lib/api';
 
 export const ordersApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    createOrder: build.mutation({
-      // тело можно опустить: сервер создаст заказ из серверной корзины
-      query: (payload) => ({
+  endpoints: (endpointBuilder) => ({
+    createOrder: endpointBuilder.mutation({
+      query: (request) => ({
         url: '/orders',
         method: 'POST',
-        body: payload ?? {},
+        body: request ?? {},
       }),
     }),
-    confirmCheckout: build.mutation({
+    confirmCheckout: endpointBuilder.mutation({
       query: ({ orderId }) => ({
         url: '/orders/checkout/confirm',
         method: 'POST',
