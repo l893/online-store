@@ -16,16 +16,26 @@ const removeStoredAuthTokens = () => {
 };
 
 export const authApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    register: build.mutation({
-      query: (body) => ({ url: '/auth/register', method: 'POST', body }),
-      async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
+  endpoints: (endpointBuilder) => ({
+    register: endpointBuilder.mutation({
+      query: (request) => ({
+        url: '/auth/register',
+        method: 'POST',
+        body: request,
+      }),
+      async onQueryStarted(request, { dispatch, getState, queryFulfilled }) {
         try {
-          const { data } = await queryFulfilled;
-          const user = normalizeUser(data.user);
-          dispatch(setCredentials({ ...data, user }));
+          const { data: response } = await queryFulfilled;
+          const normalizedUser = normalizeUser(response.user);
 
-          storeAccessToken(data.accessToken);
+          dispatch(
+            setCredentials({
+              ...response,
+              user: normalizedUser,
+            }),
+          );
+
+          storeAccessToken(response.accessToken);
 
           await synchronizeCartAfterAuthentication({
             dispatch,
@@ -36,15 +46,25 @@ export const authApi = api.injectEndpoints({
         }
       },
     }),
-    login: build.mutation({
-      query: (body) => ({ url: '/auth/login', method: 'POST', body }),
-      async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
+    login: endpointBuilder.mutation({
+      query: (request) => ({
+        url: '/auth/login',
+        method: 'POST',
+        body: request,
+      }),
+      async onQueryStarted(request, { dispatch, getState, queryFulfilled }) {
         try {
-          const { data } = await queryFulfilled;
-          const user = normalizeUser(data.user);
-          dispatch(setCredentials({ ...data, user }));
+          const { data: response } = await queryFulfilled;
+          const normalizedUser = normalizeUser(response.user);
 
-          storeAccessToken(data.accessToken);
+          dispatch(
+            setCredentials({
+              ...response,
+              user: normalizedUser,
+            }),
+          );
+
+          storeAccessToken(response.accessToken);
 
           await synchronizeCartAfterAuthentication({
             dispatch,
@@ -55,23 +75,30 @@ export const authApi = api.injectEndpoints({
         }
       },
     }),
-    refresh: build.mutation({
+    refresh: endpointBuilder.mutation({
       query: () => ({ url: '/auth/refresh', method: 'POST' }),
-      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+      async onQueryStarted(request, { dispatch, queryFulfilled }) {
         try {
-          const { data } = await queryFulfilled;
-          const user = normalizeUser(data.user);
-          dispatch(setCredentials({ ...data, user }));
-          storeAccessToken(data.accessToken);
+          const { data: response } = await queryFulfilled;
+          const normalizedUser = normalizeUser(response.user);
+
+          dispatch(
+            setCredentials({
+              ...response,
+              user: normalizedUser,
+            }),
+          );
+
+          storeAccessToken(response.accessToken);
         } catch {
           removeStoredAuthTokens();
           // Ошибка refresh не требует локального UI-обработчика.
         }
       },
     }),
-    logout: build.mutation({
+    logout: endpointBuilder.mutation({
       query: () => ({ url: '/auth/logout', method: 'POST' }),
-      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+      async onQueryStarted(request, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
         } finally {
