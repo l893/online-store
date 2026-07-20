@@ -1,4 +1,4 @@
-import { Button } from '../../shared/ui';
+import { Button } from '../../../shared/ui';
 import { Link } from 'react-router-dom';
 import styles from './product-card.module.scss';
 
