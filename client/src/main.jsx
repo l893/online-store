@@ -4,8 +4,8 @@ import { CssBaseline, ThemeProvider } from '@mui/material';
 import { Provider } from 'react-redux';
 import { store } from './app/store';
 import { BrowserRouter } from 'react-router-dom';
-import './normalize.css';
-import './index.css';
+import './app/styles/normalize.css';
+import './app/styles/global.css';
 import { App } from './app/app';
 import { theme } from './app/theme';
 
