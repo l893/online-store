@@ -7,7 +7,7 @@ import { BrowserRouter } from 'react-router-dom';
 import './app/styles/normalize.css';
 import './app/styles/global.css';
 import { App } from './app/app';
-import { theme } from './app/theme';
+import { theme } from './app/config/theme';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
