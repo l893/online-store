@@ -1,12 +1,8 @@
 import { useListProductsQuery } from '../../entities/products';
 import { useQueryParams } from '../../shared/hooks';
 import { Loader } from '../../shared/ui';
-import {
-  SearchBar,
-  SortControls,
-  CategorySidebar,
-  ProductGrid,
-} from '../../widgets';
+import { SearchBar, SortControls, CategorySidebar } from '../../widgets';
+import { ProductGrid } from '../../widgets/product-grid';
 import styles from './catalog-page.module.scss';
 
 export const CatalogPage = () => {
@@ -58,7 +54,7 @@ export const CatalogPage = () => {
           </div>
         )}
 
-        {!isLoading && !isFetching && <ProductGrid items={data?.items} />}
+        {!isLoading && !isFetching && <ProductGrid products={data?.items} />}
 
         {data?.pages > 1 && (
           <div className={styles.pagination}>

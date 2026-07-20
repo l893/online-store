@@ -1,27 +1,16 @@
 import { Button } from '../../shared/ui';
-import { useDispatch } from 'react-redux';
-import { addProductToCart } from '../../features/cart';
 import { Link } from 'react-router-dom';
 import styles from './product-card.module.scss';
 
 const PRODUCT_IMAGE_PLACEHOLDER_URL =
   'https://placehold.co/300x300?text=No+Image';
 
-export const ProductCard = ({ p: product }) => {
-  const dispatch = useDispatch();
-
+export const ProductCard = ({ product, onAddToCart }) => {
   const productImageUrl = product.images?.[0] || PRODUCT_IMAGE_PLACEHOLDER_URL;
 
-  const handleAddToCartButtonClick = () => {
-    dispatch(
-      addProductToCart({
-        productId: product._id,
-        title: product.title,
-        price: product.price,
-        image: product.images?.[0],
-      }),
-    );
-  };
+  function handleAddToCartButtonClick() {
+    onAddToCart(product);
+  }
 
   return (
     <div className={styles.productCard}>
