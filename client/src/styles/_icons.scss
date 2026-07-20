@@ -1,5 +1,5 @@
-@use '_variables';
-@use '_mixins';
+@use '../shared/styles/variables';
+@use '../shared/styles/mixins';
 
 .icon-cart {
   &::before {
