@@ -1,23 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import {
-  RequireAuth,
-  RequireRole,
-  useLogoutMutation,
-  useRefreshMutation,
-} from '../../features/auth';
+import { useLogoutMutation, useRefreshMutation } from '../../features/auth';
 import { ScrollToTop } from '../../shared/lib';
 import { Loader } from '../../shared/ui';
-import {
-  CatalogPage,
-  ProductPage,
-  CartPage,
-  LoginPage,
-  RegisterPage,
-  AdminProductsPage,
-  NotFoundPage,
-} from '../../pages';
+import { ApplicationRoutes } from '../routes/application-routes';
 import '../styles/icons.scss';
 import styles from './app.module.scss';
 
@@ -136,24 +123,7 @@ export const App = () => {
         </header>
 
         <main className={styles.mainContent}>
-          <Routes>
-            <Route path="/" element={<CatalogPage />} />
-            <Route path="/product/:slug" element={<ProductPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route
-              path="/admin/products"
-              element={
-                <RequireAuth>
-                  <RequireRole role="admin">
-                    <AdminProductsPage />
-                  </RequireRole>
-                </RequireAuth>
-              }
-            />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+          <ApplicationRoutes />
         </main>
       </div>
     </>
