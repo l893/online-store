@@ -18,7 +18,7 @@ import {
   AdminProductsPage,
   NotFoundPage,
 } from '../pages';
-import '../styles/custom.scss';
+import './styles/icons.scss';
 import styles from './app.module.scss';
 
 export const App = () => {

@@ -1,0 +1,10 @@
+@use '../../shared/styles/variables';
+@use '../../shared/styles/mixins';
+
+.icon-cart {
+  &::before {
+    @include mixins.textFontStyles(16px, 18, 16, variables.$color1);
+  }
+
+  transition: all 0.3s ease-in-out 0s;
+}
