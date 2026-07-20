@@ -1,5 +1,5 @@
-import { useListCategoriesQuery } from '../entities/categories';
-import { Loader } from '../shared/ui';
+import { useListCategoriesQuery } from '../../../entities/categories';
+import { Loader } from '../../../shared/ui';
 import styles from './category-sidebar.module.scss';
 
 export const CategorySidebar = ({ active, onChange }) => {
