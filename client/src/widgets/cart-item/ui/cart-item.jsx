@@ -1,5 +1,4 @@
-import { Button } from '../shared/ui/button';
-import { Input } from '../shared/ui/input';
+import { Button, Input } from '../../../shared/ui';
 import styles from './cart-item.module.scss';
 
 const CART_ITEM_IMAGE_PLACEHOLDER_URL =
