@@ -6,7 +6,7 @@ import { store } from './app/store/store';
 import { BrowserRouter } from 'react-router-dom';
 import './app/styles/normalize.css';
 import './app/styles/global.css';
-import { App } from './app/app';
+import { App } from './app/ui/app';
 import { theme } from './app/config/theme';
 
 createRoot(document.getElementById('root')).render(

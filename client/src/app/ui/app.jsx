@@ -6,9 +6,9 @@ import {
   RequireRole,
   useLogoutMutation,
   useRefreshMutation,
-} from '../features/auth';
-import { ScrollToTop } from '../shared/lib';
-import { Loader } from '../shared/ui';
+} from '../../features/auth';
+import { ScrollToTop } from '../../shared/lib';
+import { Loader } from '../../shared/ui';
 import {
   CatalogPage,
   ProductPage,
@@ -17,8 +17,8 @@ import {
   RegisterPage,
   AdminProductsPage,
   NotFoundPage,
-} from '../pages';
-import './styles/icons.scss';
+} from '../../pages';
+import '../styles/icons.scss';
 import styles from './app.module.scss';
 
 export const App = () => {
