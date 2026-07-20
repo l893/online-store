@@ -7,7 +7,8 @@ import {
   useReplaceCartMutation,
 } from '../../features/cart';
 import { AlertDialog, Loader } from '../../shared/ui';
-import { CartItem, CartSummary } from '../../widgets';
+import { CartItem } from '../../widgets';
+import { CartSummary } from '../../widgets/cart-summary';
 import { useCartCheckout } from './model/use-cart-checkout';
 import styles from './cart-page.module.scss';
 
