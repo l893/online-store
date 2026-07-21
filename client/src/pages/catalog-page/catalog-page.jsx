@@ -1,9 +1,10 @@
 import { useListProductsQuery } from '../../entities/products';
 import { useQueryParams } from '../../shared/hooks';
 import { Loader } from '../../shared/ui';
-import { SearchBar, SortControls } from '../../widgets';
+import { SearchBar } from '../../widgets';
 import { CategorySidebar } from '../../widgets/category-sidebar';
 import { ProductGrid } from '../../widgets/product-grid';
+import { SortControls } from '../../widgets/sort-controls';
 import styles from './catalog-page.module.scss';
 
 export const CatalogPage = () => {
