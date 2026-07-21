@@ -1,8 +1,8 @@
 import { useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { useGetProductQuery } from '../../entities/products';
-import { addProductToCart } from '../../features/cart';
-import { Button, Loader } from '../../shared/ui';
+import { useGetProductQuery } from '../../../entities/products';
+import { addProductToCart } from '../../../features/cart';
+import { Button, Loader } from '../../../shared/ui';
 import styles from './product-page.module.scss';
 
 const PRODUCT_IMAGE_PLACEHOLDER_URL =
