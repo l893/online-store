@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Input } from '../shared/ui';
-import { useDebouncedValue } from '../shared/hooks';
+import { Input } from '../../../shared/ui';
+import { useDebouncedValue } from '../../../shared/hooks';
 import styles from './search-bar.module.scss';
 
 export const SearchBar = ({ value = '', onChange }) => {
