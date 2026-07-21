@@ -8,3 +8,9 @@ export * from './api/auth.api';
 // Route guards
 export { RequireAuth } from './ui/require-auth';
 export { RequireRole } from './ui/require-role';
+
+// Authentication UI
+export {
+  AuthenticationForm,
+  AuthenticationFormFieldError,
+} from './ui/authentication-form';

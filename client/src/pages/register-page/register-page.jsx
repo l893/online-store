@@ -1,11 +1,13 @@
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Input } from '../../shared/ui';
-import { useRegisterMutation } from '../../features/auth';
-import { useNavigate, Link } from 'react-router-dom';
-import { parseApiError } from '../../shared/lib/parse-api-error';
-import styles from '../auth-form.module.scss';
+import { useNavigate } from 'react-router-dom';
+import {
+  AuthenticationForm,
+  AuthenticationFormFieldError,
+  useRegisterMutation,
+} from '../../features/auth';
+import { Input } from '../../shared/ui';
 
 const schema = yup.object({
   email: yup.string().required('Введите email').email('Некорректный email'),
@@ -40,64 +42,54 @@ export const RegisterPage = () => {
   };
 
   return (
-    <div className={styles.authCard}>
-      <h1 className={styles.title}>Регистрация</h1>
-      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <Input
-            placeholder="Email"
-            autoComplete="email"
-            {...register('email')}
-          />
-          {errors.email && (
-            <div className={styles.fieldError}>{errors.email.message}</div>
-          )}
-        </div>
-        <div>
-          <Input
-            placeholder="Имя (необязательно)"
-            autoComplete="name"
-            {...register('name')}
-          />
-          {errors.name && (
-            <div className={styles.fieldError}>{errors.name.message}</div>
-          )}
-        </div>
-        <div>
-          <Input
-            type="password"
-            placeholder="Пароль"
-            autoComplete="new-password"
-            {...register('password')}
-          />
-          {errors.password && (
-            <div className={styles.fieldError}>{errors.password.message}</div>
-          )}
-        </div>
-        <div>
-          <Input
-            type="password"
-            placeholder="Повторите пароль"
-            autoComplete="new-password"
-            {...register('passcheck')}
-          />
-          {errors.passcheck && (
-            <div className={styles.fieldError}>{errors.passcheck.message}</div>
-          )}
-        </div>
-        {error && (
-          <div className={styles.formError}>{parseApiError(error)}</div>
-        )}
-        <Button disabled={isLoading} className={styles.submitButton}>
-          {isLoading ? 'Регистрируем…' : 'Зарегистрироваться'}
-        </Button>
-      </form>
-      <div className={styles.footerText}>
-        Уже есть аккаунт?{' '}
-        <Link className={styles.footerLink} to="/login">
-          Войти
-        </Link>
+    <AuthenticationForm
+      title="Регистрация"
+      onSubmit={handleSubmit(onSubmit)}
+      isSubmitting={isLoading}
+      submissionError={error}
+      submitButtonLabel="Зарегистрироваться"
+      submittingButtonLabel="Регистрируем…"
+      footerText="Уже есть аккаунт?"
+      footerLinkText="Войти"
+      footerLinkPath="/login"
+    >
+      <div>
+        <Input
+          placeholder="Email"
+          autoComplete="email"
+          {...register('email')}
+        />
+        <AuthenticationFormFieldError message={errors.email?.message} />
       </div>
-    </div>
+
+      <div>
+        <Input
+          placeholder="Имя (необязательно)"
+          autoComplete="name"
+          {...register('name')}
+        />
+        <AuthenticationFormFieldError message={errors.name?.message} />
+      </div>
+
+      <div>
+        <Input
+          type="password"
+          placeholder="Пароль"
+          autoComplete="new-password"
+          {...register('password')}
+        />
+        <AuthenticationFormFieldError message={errors.password?.message} />
+      </div>
+
+      <div>
+        <Input
+          type="password"
+          placeholder="Повторите пароль"
+          autoComplete="new-password"
+          {...register('passcheck')}
+        />
+        <AuthenticationFormFieldError message={errors.passcheck?.message} />
+      </div>
+    </AuthenticationForm>
   );
 };
