@@ -5,11 +5,11 @@ import {
   useGetCartQuery,
   useInitialCartSync,
   useReplaceCartMutation,
-} from '../../features/cart';
-import { AlertDialog, Loader } from '../../shared/ui';
-import { CartItem } from '../../widgets/cart-item';
-import { CartSummary } from '../../widgets/cart-summary';
-import { useCartCheckout } from './model/use-cart-checkout';
+} from '../../../features/cart';
+import { AlertDialog, Loader } from '../../../shared/ui';
+import { CartItem } from '../../../widgets/cart-item';
+import { CartSummary } from '../../../widgets/cart-summary';
+import { useCartCheckout } from '../model/use-cart-checkout';
 import styles from './cart-page.module.scss';
 
 export const CartPage = () => {
