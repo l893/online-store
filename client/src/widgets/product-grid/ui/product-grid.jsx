@@ -17,6 +17,10 @@ export const ProductGrid = ({ products = [] }) => {
     );
   }
 
+  if (products.length === 0) {
+    return <div className={styles.emptyState}>Нет данных</div>;
+  }
+
   return (
     <div className={styles.productGrid}>
       {products.map((product) => (
