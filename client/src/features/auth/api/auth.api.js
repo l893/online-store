@@ -15,6 +15,24 @@ const removeStoredAuthTokens = () => {
   localStorage.removeItem('refreshToken');
 };
 
+async function completeAuthentication({ response, dispatch, getState }) {
+  const normalizedUser = normalizeUser(response.user);
+
+  dispatch(
+    setCredentials({
+      ...response,
+      user: normalizedUser,
+    }),
+  );
+
+  storeAccessToken(response.accessToken);
+
+  await synchronizeCartAfterAuthentication({
+    dispatch,
+    getState,
+  });
+}
+
 export const authApi = api.injectEndpoints({
   endpoints: (endpointBuilder) => ({
     register: endpointBuilder.mutation({
@@ -26,18 +44,9 @@ export const authApi = api.injectEndpoints({
       async onQueryStarted(request, { dispatch, getState, queryFulfilled }) {
         try {
           const { data: response } = await queryFulfilled;
-          const normalizedUser = normalizeUser(response.user);
 
-          dispatch(
-            setCredentials({
-              ...response,
-              user: normalizedUser,
-            }),
-          );
-
-          storeAccessToken(response.accessToken);
-
-          await synchronizeCartAfterAuthentication({
+          await completeAuthentication({
+            response,
             dispatch,
             getState,
           });
@@ -55,18 +64,9 @@ export const authApi = api.injectEndpoints({
       async onQueryStarted(request, { dispatch, getState, queryFulfilled }) {
         try {
           const { data: response } = await queryFulfilled;
-          const normalizedUser = normalizeUser(response.user);
 
-          dispatch(
-            setCredentials({
-              ...response,
-              user: normalizedUser,
-            }),
-          );
-
-          storeAccessToken(response.accessToken);
-
-          await synchronizeCartAfterAuthentication({
+          await completeAuthentication({
+            response,
             dispatch,
             getState,
           });
