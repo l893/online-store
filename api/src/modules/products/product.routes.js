@@ -1,8 +1,8 @@
 const router = require('express').Router();
 const { isValidObjectId } = require('mongoose');
 const {
-  createTitlePrefixFilter,
-} = require('../../shared/create-title-prefix-filter');
+  createProductSearchFilter,
+} = require('../../shared/create-product-search-filter');
 const Category = require('../categories/category.model');
 const Product = require('./product.model');
 
@@ -19,15 +19,7 @@ router.get('/', async (req, res, next) => {
     const currentPage = Math.max(1, parseInt(page, 10) || 1);
     const pageLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 12));
 
-    // const filter = {};
-
-    // if (search) {
-    //   filter.$text = {
-    //     $search: search,
-    //   };
-    // }
-
-    const filter = createTitlePrefixFilter(search);
+    const filter = createProductSearchFilter(search);
 
     if (category) {
       const categoryDocument = await Category.findOne({
