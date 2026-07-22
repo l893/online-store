@@ -111,17 +111,27 @@ export const AdminProductsPage = () => {
   function handlePreviousPageButtonClick() {
     const previousPage = Math.max(1, currentPage - 1);
 
-    setQueryParameters({
-      page: previousPage === 1 ? null : previousPage,
-    });
+    setQueryParameters(
+      {
+        page: previousPage === 1 ? null : previousPage,
+      },
+      {
+        replace: false,
+      },
+    );
   }
 
   function handleNextPageButtonClick() {
     const nextPage = Math.min(totalPages, currentPage + 1);
 
-    setQueryParameters({
-      page: nextPage === 1 ? null : nextPage,
-    });
+    setQueryParameters(
+      {
+        page: nextPage === 1 ? null : nextPage,
+      },
+      {
+        replace: false,
+      },
+    );
   }
 
   function handleDeleteDialogCancel() {

@@ -8,11 +8,12 @@ import { SortControls } from '../../../widgets/sort-controls';
 import styles from './catalog-page.module.scss';
 
 export const CatalogPage = () => {
-  const [params, setParams] = useQueryParams();
-  const search = params.get('search') || '';
-  const categorySlug = params.get('category') || '';
-  const sort = params.get('sort') || 'price_asc';
-  const page = Number(params.get('page') || 1);
+  const [queryParameters, setQueryParameters] = useQueryParams();
+
+  const search = queryParameters.get('search') || '';
+  const categorySlug = queryParameters.get('category') || '';
+  const sort = queryParameters.get('sort') || 'price_asc';
+  const page = Number(queryParameters.get('page') || 1);
 
   const { data, isLoading, isFetching } = useListProductsQuery({
     search,
@@ -28,7 +29,10 @@ export const CatalogPage = () => {
         <SearchBar
           value={search}
           onChange={(searchValue) =>
-            setParams({ search: searchValue, page: 1 })
+            setQueryParameters({
+              search: searchValue,
+              page: 1,
+            })
           }
         />
       </div>
@@ -37,10 +41,15 @@ export const CatalogPage = () => {
         <CategorySidebar
           activeCategorySlug={categorySlug}
           onCategoryChange={(selectedCategorySlug) =>
-            setParams({
-              category: selectedCategorySlug,
-              page: 1,
-            })
+            setQueryParameters(
+              {
+                category: selectedCategorySlug,
+                page: 1,
+              },
+              {
+                replace: false,
+              },
+            )
           }
         />
       </div>
@@ -49,7 +58,17 @@ export const CatalogPage = () => {
         <div className={styles.sortPanel}>
           <SortControls
             value={sort}
-            onChange={(sortValue) => setParams({ sort: sortValue, page: 1 })}
+            onChange={(sortValue) =>
+              setQueryParameters(
+                {
+                  sort: sortValue,
+                  page: 1,
+                },
+                {
+                  replace: false,
+                },
+              )
+            }
           />
         </div>
 
@@ -66,7 +85,16 @@ export const CatalogPage = () => {
             <button
               className={styles.paginationButton}
               disabled={page <= 1}
-              onClick={() => setParams({ page: page - 1 })}
+              onClick={() =>
+                setQueryParameters(
+                  {
+                    page: page - 1,
+                  },
+                  {
+                    replace: false,
+                  },
+                )
+              }
             >
               Назад
             </button>
@@ -76,7 +104,16 @@ export const CatalogPage = () => {
             <button
               className={styles.paginationButton}
               disabled={page >= data.pages}
-              onClick={() => setParams({ page: page + 1 })}
+              onClick={() =>
+                setQueryParameters(
+                  {
+                    page: page + 1,
+                  },
+                  {
+                    replace: false,
+                  },
+                )
+              }
             >
               Вперёд
             </button>

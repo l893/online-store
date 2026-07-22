@@ -2,18 +2,47 @@ import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 export function useQueryParams() {
-  const { search, pathname } = useLocation();
+  const { search: searchString, pathname } = useLocation();
   const navigate = useNavigate();
-  const params = useMemo(() => new URLSearchParams(search), [search]);
 
-  const setParams = (patch) => {
-    const next = new URLSearchParams(search);
-    Object.entries(patch).forEach(([k, v]) => {
-      if (v === undefined || v === null || v === '') next.delete(k);
-      else next.set(k, String(v));
-    });
-    navigate({ pathname, search: `?${next.toString()}` }, { replace: true });
-  };
+  const queryParameters = useMemo(
+    () => new URLSearchParams(searchString),
+    [searchString],
+  );
 
-  return [params, setParams];
+  function setQueryParameters(queryParameterUpdates, { replace = true } = {}) {
+    const nextQueryParameters = new URLSearchParams(searchString);
+
+    Object.entries(queryParameterUpdates).forEach(
+      ([queryParameterName, queryParameterValue]) => {
+        if (
+          queryParameterValue === undefined ||
+          queryParameterValue === null ||
+          queryParameterValue === ''
+        ) {
+          nextQueryParameters.delete(queryParameterName);
+          return;
+        }
+
+        nextQueryParameters.set(
+          queryParameterName,
+          String(queryParameterValue),
+        );
+      },
+    );
+
+    const nextSearchString = nextQueryParameters.toString();
+
+    navigate(
+      {
+        pathname,
+        search: nextSearchString ? `?${nextSearchString}` : '',
+      },
+      {
+        replace,
+      },
+    );
+  }
+
+  return [queryParameters, setQueryParameters];
 }
