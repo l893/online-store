@@ -18,11 +18,11 @@ import styles from './admin-products-page.module.scss';
 
 export const AdminProductsPage = () => {
   const [queryParameters, setQueryParameters] = useQueryParams();
-  const [searchValue, setSearchValue] = useState('');
   const [editingProduct, setEditingProduct] = useState(null);
   const [productIdPendingDeletion, setProductIdPendingDeletion] =
     useState(null);
 
+  const searchValue = queryParameters.get('search') || '';
   const pageParameterValue = Number(queryParameters.get('page') || 1);
   const currentPage =
     Number.isInteger(pageParameterValue) && pageParameterValue > 0
@@ -89,8 +89,10 @@ export const AdminProductsPage = () => {
   }
 
   function handleSearchValueChange(nextSearchValue) {
-    setSearchValue(nextSearchValue);
-    setQueryParameters({ page: null });
+    setQueryParameters({
+      search: nextSearchValue,
+      page: null,
+    });
   }
 
   function handleRefreshButtonClick() {
