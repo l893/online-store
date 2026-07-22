@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useListCategoriesQuery } from '../../entities/categories';
+import { useListCategoriesQuery } from '../../../entities/categories';
 import {
   AdminProductFormPanel,
   AdminProductsPagination,
@@ -11,9 +11,9 @@ import {
   useAdminListProductsQuery,
   useAdminUpdateProductMutation,
   useAdminDeleteProductMutation,
-} from '../../features/admin-products';
-import { useQueryParams } from '../../shared/hooks';
-import { ConfirmDialog, Loader } from '../../shared/ui';
+} from '../../../features/admin-products';
+import { useQueryParams } from '../../../shared/hooks';
+import { ConfirmDialog, Loader } from '../../../shared/ui';
 import styles from './admin-products-page.module.scss';
 
 export const AdminProductsPage = () => {
