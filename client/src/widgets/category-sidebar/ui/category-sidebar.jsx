@@ -2,8 +2,8 @@ import { useListCategoriesQuery } from '../../../entities/categories';
 import { Loader } from '../../../shared/ui';
 import styles from './category-sidebar.module.scss';
 
-export const CategorySidebar = ({ active, onChange }) => {
-  const { data, isLoading } = useListCategoriesQuery();
+export const CategorySidebar = ({ activeCategorySlug, onCategoryChange }) => {
+  const { data: categories, isLoading } = useListCategoriesQuery();
 
   return (
     <aside className={styles.sidebar}>
@@ -15,20 +15,22 @@ export const CategorySidebar = ({ active, onChange }) => {
         <li>
           <button
             className={`${styles.categoryButton} ${
-              !active ? styles.activeCategoryButton : ''
+              !activeCategorySlug ? styles.activeCategoryButton : ''
             }`}
-            onClick={() => onChange('')}
+            onClick={() => onCategoryChange('')}
           >
             Все
           </button>
         </li>
-        {data?.map((category) => (
+        {categories?.map((category) => (
           <li key={category._id}>
             <button
               className={`${styles.categoryButton} ${
-                active === category._id ? styles.activeCategoryButton : ''
+                activeCategorySlug === category.slug
+                  ? styles.activeCategoryButton
+                  : ''
               }`}
-              onClick={() => onChange(category._id)}
+              onClick={() => onCategoryChange(category.slug)}
             >
               {category.name}
             </button>

@@ -1,4 +1,6 @@
 const router = require('express').Router();
+const { isValidObjectId } = require('mongoose');
+const Category = require('../categories/category.model');
 const Product = require('./product.model');
 
 router.get('/', async (req, res, next) => {
@@ -11,15 +13,48 @@ router.get('/', async (req, res, next) => {
       limit = 12,
     } = req.query;
 
-    const filter = {};
-    if (search) filter.$text = { $search: search };
-    if (category) filter.categoryId = category;
-
-    const sortMap = { price_asc: { price: 1 }, price_desc: { price: -1 } };
-    const sortOption = sortMap[sort] || {};
-
     const currentPage = Math.max(1, parseInt(page, 10) || 1);
     const pageLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 12));
+
+    const filter = {};
+
+    if (search) {
+      filter.$text = {
+        $search: search,
+      };
+    }
+
+    if (category) {
+      const categoryDocument = await Category.findOne({
+        slug: category,
+      })
+        .select('_id')
+        .lean();
+
+      if (categoryDocument) {
+        filter.categoryId = categoryDocument._id;
+      } else if (isValidObjectId(category)) {
+        filter.categoryId = category;
+      } else {
+        return res.json({
+          items: [],
+          total: 0,
+          page: currentPage,
+          pages: 0,
+        });
+      }
+    }
+
+    const sortMap = {
+      price_asc: {
+        price: 1,
+      },
+      price_desc: {
+        price: -1,
+      },
+    };
+
+    const sortOption = sortMap[sort] || {};
 
     const [items, total] = await Promise.all([
       Product.find(filter)

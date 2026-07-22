@@ -10,13 +10,13 @@ import styles from './catalog-page.module.scss';
 export const CatalogPage = () => {
   const [params, setParams] = useQueryParams();
   const search = params.get('search') || '';
-  const category = params.get('category') || '';
+  const categorySlug = params.get('category') || '';
   const sort = params.get('sort') || 'price_asc';
   const page = Number(params.get('page') || 1);
 
   const { data, isLoading, isFetching } = useListProductsQuery({
     search,
-    category,
+    category: categorySlug,
     sort,
     page,
     limit: 10,
@@ -35,9 +35,12 @@ export const CatalogPage = () => {
 
       <div className={styles.sidebarSection}>
         <CategorySidebar
-          active={category}
-          onChange={(categoryId) =>
-            setParams({ category: categoryId, page: 1 })
+          activeCategorySlug={categorySlug}
+          onCategoryChange={(selectedCategorySlug) =>
+            setParams({
+              category: selectedCategorySlug,
+              page: 1,
+            })
           }
         />
       </div>
