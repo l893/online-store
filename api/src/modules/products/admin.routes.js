@@ -1,5 +1,8 @@
 const router = require('express').Router();
 const { requireAuth, requireRole } = require('../../shared/auth.middleware');
+const {
+  createTitlePrefixFilter,
+} = require('../../shared/create-title-prefix-filter');
 const Product = require('./product.model');
 const Category = require('../categories/category.model');
 
@@ -9,8 +12,9 @@ router.use(requireAuth, requireRole('admin'));
 router.get('/', async (req, res, next) => {
   try {
     const { search = '', page = 1, limit = 20 } = req.query;
-    const filter = {};
-    if (search) filter.$text = { $search: search };
+    // const filter = {};
+    // if (search) filter.$text = { $search: search };
+    const filter = createTitlePrefixFilter(search);
 
     const currentPage = Math.max(1, parseInt(page, 10) || 1);
     const pageLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
