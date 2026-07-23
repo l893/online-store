@@ -32,12 +32,16 @@ export const CartPage = () => {
     replaceCart,
   });
 
-  const { handleCartItemQuantityChange, handleCartItemRemove } =
-    useCartItemActions({
-      isAuthenticated: Boolean(user),
-      cartItems: items,
-      replaceCart,
-    });
+  const {
+    cartActionDialog,
+    handleCartItemQuantityChange,
+    handleCartItemRemove,
+    handleCartActionDialogClose,
+  } = useCartItemActions({
+    isAuthenticated: Boolean(user),
+    cartItems: items,
+    replaceCart,
+  });
 
   const {
     checkoutDialog,
@@ -95,6 +99,13 @@ export const CartPage = () => {
           title={checkoutDialog?.title}
           description={checkoutDialog?.description}
           onClose={handleCheckoutDialogClose}
+        />
+
+        <AlertDialog
+          open={Boolean(cartActionDialog)}
+          title={cartActionDialog?.title}
+          description={cartActionDialog?.description}
+          onClose={handleCartActionDialogClose}
         />
       </div>
     </div>
