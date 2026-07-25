@@ -17,12 +17,26 @@ export function useCartItemActions({
   const [removeItemFromCart] = useRemoveItemFromCartMutation();
 
   async function handleCartItemQuantityChange(productId, quantity) {
-    const normalizedQuantity = Math.max(1, Number(quantity) || 1);
     const currentCartItem = cartItems.find(
       (cartItem) => cartItem.productId === productId,
     );
 
-    if (!currentCartItem || currentCartItem.qty === normalizedQuantity) {
+    if (!currentCartItem) {
+      return;
+    }
+
+    const availableStock = Math.max(0, Number(currentCartItem.stock) || 0);
+
+    if (availableStock === 0) {
+      return;
+    }
+
+    const normalizedQuantity = Math.min(
+      availableStock,
+      Math.max(1, Number(quantity) || 1),
+    );
+
+    if (currentCartItem.qty === normalizedQuantity) {
       return;
     }
 

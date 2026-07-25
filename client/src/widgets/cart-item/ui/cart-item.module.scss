@@ -54,6 +54,13 @@
   text-align: center;
 }
 
+.unavailableMessage {
+  min-width: 10rem;
+  color: #dc2626;
+  font-weight: 600;
+  text-align: center;
+}
+
 .price {
   width: 6rem;
   font-weight: 600;
@@ -86,8 +93,13 @@
   }
 
   .quantityControls,
+  .unavailableMessage,
   .price {
     width: 100%;
+  }
+
+  .unavailableMessage {
+    text-align: left;
   }
 
   .price {

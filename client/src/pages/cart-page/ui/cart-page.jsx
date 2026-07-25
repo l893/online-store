@@ -1,4 +1,5 @@
 import { useSelector } from 'react-redux';
+import { useGetProductsAvailabilityQuery } from '../../../entities/products';
 import {
   getCartTotals,
   useCartItemActions,
@@ -12,9 +13,25 @@ import { CartSummary } from '../../../widgets/cart-summary';
 import { useCartCheckout } from '../model/use-cart-checkout';
 import styles from './cart-page.module.scss';
 
+function applyProductAvailability(cartItems, productAvailabilityItems = []) {
+  const productStockById = new Map(
+    productAvailabilityItems.map((productAvailabilityItem) => [
+      productAvailabilityItem.productId,
+      productAvailabilityItem.stock,
+    ]),
+  );
+
+  return cartItems.map((cartItem) => ({
+    ...cartItem,
+    stock: productStockById.get(cartItem.productId) ?? 0,
+  }));
+}
+
 export const CartPage = () => {
   const user = useSelector((state) => state.auth.user);
-  const items = useSelector((state) => state.cart.items);
+  const storedCartItems = useSelector((state) => state.cart.items);
+
+  const productIds = storedCartItems.map((cartItem) => cartItem.productId);
 
   // если авторизован — подтянем серверную корзину
   const { data: serverCart, isLoading: loadingServerCart } = useGetCartQuery(
@@ -22,12 +39,32 @@ export const CartPage = () => {
     { skip: !user },
   );
 
+  const {
+    data: productsAvailability,
+    isLoading: isProductsAvailabilityLoading,
+    isFetching: isProductsAvailabilityFetching,
+    isError: isProductsAvailabilityError,
+  } = useGetProductsAvailabilityQuery(productIds, {
+    skip: productIds.length === 0,
+    refetchOnMountOrArgChange: true,
+  });
+
+  const cartItems = applyProductAvailability(
+    storedCartItems,
+    productsAvailability?.items,
+  );
+
+  const isCartLoading =
+    (Boolean(user) && loadingServerCart) ||
+    isProductsAvailabilityLoading ||
+    isProductsAvailabilityFetching;
+
   // хук для замены корзины на сервере
   const [replaceCart] = useReplaceCartMutation();
 
   useInitialCartSync({
     isAuthenticated: Boolean(user),
-    localItems: items,
+    localItems: storedCartItems,
     serverCart,
     replaceCart,
   });
@@ -39,7 +76,7 @@ export const CartPage = () => {
     handleCartActionDialogClose,
   } = useCartItemActions({
     isAuthenticated: Boolean(user),
-    cartItems: items,
+    cartItems,
     replaceCart,
   });
 
@@ -50,11 +87,11 @@ export const CartPage = () => {
     handleCheckoutDialogClose,
   } = useCartCheckout({
     isAuthenticated: Boolean(user),
-    cartItems: items,
+    cartItems,
     replaceCart,
   });
 
-  const { totalQuantity, totalSum } = getCartTotals(items);
+  const { totalQuantity, totalSum } = getCartTotals(cartItems);
 
   return (
     <div className={styles.cartLayout}>
@@ -63,13 +100,16 @@ export const CartPage = () => {
       </div>
 
       <div className={styles.itemsSection}>
-        {loadingServerCart && user && (
-          <Loader label="Синхронизируем корзину…" />
-        )}
-        {items.length === 0 ? (
+        {isCartLoading ? (
+          <Loader label="Проверяем наличие товаров…" />
+        ) : isProductsAvailabilityError ? (
+          <div className={styles.emptyMessage}>
+            Не удалось проверить наличие товаров
+          </div>
+        ) : cartItems.length === 0 ? (
           <div className={styles.emptyMessage}>Корзина пуста</div>
         ) : (
-          items.map((item) => (
+          cartItems.map((item) => (
             <CartItem
               key={item.productId}
               item={item}

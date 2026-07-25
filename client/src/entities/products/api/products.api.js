@@ -11,8 +11,22 @@ export const productsApi = api.injectEndpoints({
       query: (slug) => `/products/${slug}`,
       providesTags: ['Product'],
     }),
+    getProductsAvailability: endpointBuilder.query({
+      query: (productIds) => ({
+        url: '/products/availability',
+        method: 'POST',
+        body: {
+          productIds,
+        },
+      }),
+      providesTags: ['Product'],
+    }),
   }),
   overrideExisting: false,
 });
 
-export const { useListProductsQuery, useGetProductQuery } = productsApi;
+export const {
+  useListProductsQuery,
+  useGetProductQuery,
+  useGetProductsAvailabilityQuery,
+} = productsApi;

@@ -6,17 +6,24 @@ const CART_ITEM_IMAGE_PLACEHOLDER_URL =
 
 export const CartItem = ({ item, onChangeQty, onRemove }) => {
   const itemImageUrl = item.image || CART_ITEM_IMAGE_PLACEHOLDER_URL;
+  const availableStock = Math.max(0, Number(item.stock) || 0);
+  const isProductUnavailable = availableStock === 0;
   const isDecreaseQuantityButtonDisabled = item.qty <= 1;
+  const isIncreaseQuantityButtonDisabled = item.qty >= availableStock;
 
-  const handleQuantityInputChange = (event) => {
-    const nextQuantity = Math.max(1, parseInt(event.target.value || '1', 10));
+  function handleQuantityInputChange(event) {
+    const parsedQuantity = Number.parseInt(event.target.value || '1', 10);
+    const nextQuantity = Math.min(
+      availableStock,
+      Math.max(1, parsedQuantity || 1),
+    );
 
     onChangeQty(item.productId, nextQuantity);
-  };
+  }
 
-  const handleItemImageError = (event) => {
+  function handleItemImageError(event) {
     event.currentTarget.src = CART_ITEM_IMAGE_PLACEHOLDER_URL;
-  };
+  }
 
   return (
     <div className={styles.cartItem}>
@@ -35,34 +42,40 @@ export const CartItem = ({ item, onChangeQty, onRemove }) => {
         <div className={styles.productId}>id: {item.productId}</div>
       </div>
 
-      <div className={styles.quantityControls}>
-        <Button
-          type="button"
-          disabled={isDecreaseQuantityButtonDisabled}
-          onClick={() => onChangeQty(item.productId, item.qty - 1)}
-        >
-          -
-        </Button>
-        <Input
-          className={styles.quantityInput}
-          fullWidth={false}
-          type="number"
-          value={item.qty}
-          onChange={handleQuantityInputChange}
-          slotProps={{
-            htmlInput: {
-              'aria-label': `Количество товара ${item.title}`,
-              min: 1,
-            },
-          }}
-        />
-        <Button
-          type="button"
-          onClick={() => onChangeQty(item.productId, item.qty + 1)}
-        >
-          +
-        </Button>
-      </div>
+      {isProductUnavailable ? (
+        <div className={styles.unavailableMessage}>Товар закончился</div>
+      ) : (
+        <div className={styles.quantityControls}>
+          <Button
+            type="button"
+            disabled={isDecreaseQuantityButtonDisabled}
+            onClick={() => onChangeQty(item.productId, item.qty - 1)}
+          >
+            -
+          </Button>
+          <Input
+            className={styles.quantityInput}
+            fullWidth={false}
+            type="number"
+            value={item.qty}
+            onChange={handleQuantityInputChange}
+            slotProps={{
+              htmlInput: {
+                'aria-label': `Количество товара ${item.title}`,
+                min: 1,
+                max: availableStock,
+              },
+            }}
+          />
+          <Button
+            type="button"
+            disabled={isIncreaseQuantityButtonDisabled}
+            onClick={() => onChangeQty(item.productId, item.qty + 1)}
+          >
+            +
+          </Button>
+        </div>
+      )}
 
       <div className={styles.price}>{item.price * item.qty} ₽</div>
 
