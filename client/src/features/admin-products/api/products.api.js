@@ -17,7 +17,13 @@ export const adminProductsApi = api.injectEndpoints({
     }),
     adminCreateProduct: build.mutation({
       query: (body) => ({ url: '/admin/products', method: 'POST', body }),
-      invalidatesTags: [{ type: 'AdminProduct', id: 'LIST' }],
+      invalidatesTags: [
+        {
+          type: 'AdminProduct',
+          id: 'LIST',
+        },
+        'Product',
+      ],
     }),
     adminUpdateProduct: build.mutation({
       query: ({ id, ...patch }) => ({
@@ -25,14 +31,27 @@ export const adminProductsApi = api.injectEndpoints({
         method: 'PATCH',
         body: patch,
       }),
-      invalidatesTags: (res, err, arg) => [
-        { type: 'AdminProduct', id: arg.id },
-        { type: 'AdminProduct', id: 'LIST' },
+      invalidatesTags: (response, error, queryArgument) => [
+        {
+          type: 'AdminProduct',
+          id: queryArgument.id,
+        },
+        {
+          type: 'AdminProduct',
+          id: 'LIST',
+        },
+        'Product',
       ],
     }),
     adminDeleteProduct: build.mutation({
       query: (id) => ({ url: `/admin/products/${id}`, method: 'DELETE' }),
-      invalidatesTags: [{ type: 'AdminProduct', id: 'LIST' }],
+      invalidatesTags: [
+        {
+          type: 'AdminProduct',
+          id: 'LIST',
+        },
+        'Product',
+      ],
     }),
   }),
   overrideExisting: false,
