@@ -6,6 +6,8 @@ const {
 const Category = require('../categories/category.model');
 const Product = require('./product.model');
 
+const MAX_PRODUCTS_AVAILABILITY_REQUEST_SIZE = 100;
+
 router.get('/', async (req, res, next) => {
   try {
     const {
@@ -71,6 +73,58 @@ router.get('/', async (req, res, next) => {
       total,
       page: currentPage,
       pages: Math.ceil(total / pageLimit),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/availability', async (request, response, next) => {
+  try {
+    const { productIds = [] } = request.body || {};
+
+    if (!Array.isArray(productIds)) {
+      return response.status(400).json({
+        message: 'productIds must be an array',
+      });
+    }
+
+    const normalizedProductIds = Array.from(
+      new Set(
+        productIds.map((productId) => String(productId).trim()).filter(Boolean),
+      ),
+    );
+
+    if (normalizedProductIds.length > MAX_PRODUCTS_AVAILABILITY_REQUEST_SIZE) {
+      return response.status(400).json({
+        message: `A maximum of ${MAX_PRODUCTS_AVAILABILITY_REQUEST_SIZE} products can be checked`,
+      });
+    }
+
+    const validProductIds = normalizedProductIds.filter((productId) =>
+      isValidObjectId(productId),
+    );
+
+    const productDocuments = await Product.find({
+      _id: {
+        $in: validProductIds,
+      },
+    })
+      .select('_id stock')
+      .lean();
+
+    const productStockById = new Map(
+      productDocuments.map((productDocument) => [
+        String(productDocument._id),
+        Math.max(0, Math.floor(Number(productDocument.stock) || 0)),
+      ]),
+    );
+
+    return response.json({
+      items: normalizedProductIds.map((productId) => ({
+        productId,
+        stock: productStockById.get(productId) ?? 0,
+      })),
     });
   } catch (error) {
     next(error);
