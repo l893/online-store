@@ -3,53 +3,143 @@ const { requireAuth } = require('../../shared/auth.middleware');
 const Cart = require('./cart.model');
 const Product = require('../products/product.model');
 
+function getAvailableProductStock(productDocument) {
+  return Math.max(0, Math.floor(Number(productDocument.stock) || 0));
+}
+
+async function getProductDocumentsById(cartItems) {
+  const productIds = cartItems
+    .map((cartItem) => cartItem.productId)
+    .filter(Boolean);
+
+  const productDocuments = await Product.find({
+    _id: {
+      $in: productIds,
+    },
+  })
+    .select('title price images stock')
+    .lean();
+
+  return new Map(
+    productDocuments.map((productDocument) => [
+      String(productDocument._id),
+      productDocument,
+    ]),
+  );
+}
+
+function createCartResponse(cartDocument, productDocumentsById) {
+  return {
+    ...cartDocument,
+    items: (cartDocument.items || []).map((cartItem) => {
+      const productDocument = productDocumentsById.get(
+        String(cartItem.productId),
+      );
+
+      return {
+        ...cartItem,
+        stock: productDocument ? getAvailableProductStock(productDocument) : 0,
+      };
+    }),
+  };
+}
+
 router.use(requireAuth);
 
 // GET /api/cart
-router.get('/', async (req, res, next) => {
+router.get('/', async (request, response, next) => {
   try {
-    const cart = await Cart.findOne({ userId: req.user.id });
-    res.json(cart || { userId: req.user.id, items: [] });
-  } catch (e) {
-    next(e);
+    const cartDocument = await Cart.findOne({
+      userId: request.user.id,
+    }).lean();
+
+    if (!cartDocument) {
+      return response.json({
+        userId: request.user.id,
+        items: [],
+      });
+    }
+
+    const productDocumentsById = await getProductDocumentsById(
+      cartDocument.items,
+    );
+
+    return response.json(
+      createCartResponse(cartDocument, productDocumentsById),
+    );
+  } catch (error) {
+    next(error);
   }
 });
 
 // PUT /api/cart  { items:[{productId, qty}] }
-router.put('/', async (req, res, next) => {
+router.put('/', async (request, response, next) => {
   try {
-    const { items = [] } = req.body || {};
+    const { items = [] } = request.body || {};
+
     // нормализация: подтянем актуальные title/price с продуктов
-    const productIds = items.map((i) => i.productId).filter(Boolean);
-    const products = await Product.find({ _id: { $in: productIds } });
-    const map = new Map(products.map((p) => [String(p._id), p]));
+    const productDocumentsById = await getProductDocumentsById(items);
 
-    const normalized = [];
-    for (const it of items) {
-      const p = map.get(String(it.productId));
+    const normalizedCartItems = [];
 
-      if (!p) continue;
+    for (const requestedCartItem of items) {
+      const productDocument = productDocumentsById.get(
+        String(requestedCartItem.productId),
+      );
 
-      const qty = Math.max(1, parseInt(it.qty || 1, 10));
+      if (!productDocument) {
+        continue;
+      }
 
-      normalized.push({
-        productId: p._id,
-        title: p.title,
-        price: p.price,
-        image: p.images?.[0] || '',
-        qty,
+      const parsedRequestedQuantity = Number.parseInt(
+        requestedCartItem.qty,
+        10,
+      );
+      const requestedQuantity = Number.isInteger(parsedRequestedQuantity)
+        ? Math.max(1, parsedRequestedQuantity)
+        : 1;
+      const availableStock = getAvailableProductStock(productDocument);
+
+      if (requestedQuantity > availableStock) {
+        return response.status(409).json({
+          code: 'INSUFFICIENT_STOCK',
+          message: `Недостаточно товара «${productDocument.title}» на складе`,
+          productId: String(productDocument._id),
+          requestedQuantity,
+          availableStock,
+        });
+      }
+
+      normalizedCartItems.push({
+        productId: productDocument._id,
+        title: productDocument.title,
+        price: productDocument.price,
+        image: productDocument.images?.[0] || '',
+        qty: requestedQuantity,
       });
     }
 
-    const cart = await Cart.findOneAndUpdate(
-      { userId: req.user.id },
-      { $set: { items: normalized, updatedAt: new Date() } },
-      { upsert: true, new: true }
-    );
+    const cartDocument = await Cart.findOneAndUpdate(
+      {
+        userId: request.user.id,
+      },
+      {
+        $set: {
+          items: normalizedCartItems,
+          updatedAt: new Date(),
+        },
+      },
+      {
+        upsert: true,
+        new: true,
+      },
+    ).lean();
 
-    res.json(cart);
-  } catch (e) {
-    next(e);
+    return response.json(
+      createCartResponse(cartDocument, productDocumentsById),
+    );
+  } catch (error) {
+    next(error);
   }
 });
 
@@ -67,7 +157,7 @@ router.delete('/item/:productId', async (req, res, next) => {
 
     // Удаляем товар из массива
     cart.items = cart.items.filter(
-      (item) => String(item.productId) !== String(productId)
+      (item) => String(item.productId) !== String(productId),
     );
 
     cart.markModified('items');
