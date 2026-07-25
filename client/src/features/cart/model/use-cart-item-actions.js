@@ -17,7 +17,15 @@ export function useCartItemActions({
   const [removeItemFromCart] = useRemoveItemFromCartMutation();
 
   async function handleCartItemQuantityChange(productId, quantity) {
-    const normalizedQuantity = Math.max(1, quantity);
+    const normalizedQuantity = Math.max(1, Number(quantity) || 1);
+    const currentCartItem = cartItems.find(
+      (cartItem) => cartItem.productId === productId,
+    );
+
+    if (!currentCartItem || currentCartItem.qty === normalizedQuantity) {
+      return;
+    }
+
     const previousCartItems = cartItems;
 
     dispatch(

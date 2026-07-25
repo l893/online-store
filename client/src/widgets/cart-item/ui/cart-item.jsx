@@ -6,6 +6,7 @@ const CART_ITEM_IMAGE_PLACEHOLDER_URL =
 
 export const CartItem = ({ item, onChangeQty, onRemove }) => {
   const itemImageUrl = item.image || CART_ITEM_IMAGE_PLACEHOLDER_URL;
+  const isDecreaseQuantityButtonDisabled = item.qty <= 1;
 
   const handleQuantityInputChange = (event) => {
     const nextQuantity = Math.max(1, parseInt(event.target.value || '1', 10));
@@ -37,6 +38,7 @@ export const CartItem = ({ item, onChangeQty, onRemove }) => {
       <div className={styles.quantityControls}>
         <Button
           type="button"
+          disabled={isDecreaseQuantityButtonDisabled}
           onClick={() => onChangeQty(item.productId, item.qty - 1)}
         >
           -
