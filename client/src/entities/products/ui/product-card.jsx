@@ -5,7 +5,11 @@ import styles from './product-card.module.scss';
 const PRODUCT_IMAGE_PLACEHOLDER_URL =
   'https://placehold.co/300x300?text=No+Image';
 
-export const ProductCard = ({ product, onAddToCart }) => {
+export const ProductCard = ({
+  product,
+  isAddToCartDisabled = false,
+  onAddToCart,
+}) => {
   const productImageUrl = product.images?.[0] || PRODUCT_IMAGE_PLACEHOLDER_URL;
 
   function handleAddToCartButtonClick() {
@@ -32,8 +36,12 @@ export const ProductCard = ({ product, onAddToCart }) => {
       </div>
 
       <div className={styles.actions}>
-        <Button type="button" onClick={handleAddToCartButtonClick}>
-          В корзину
+        <Button
+          type="button"
+          disabled={isAddToCartDisabled}
+          onClick={handleAddToCartButtonClick}
+        >
+          {isAddToCartDisabled ? 'Максимум в корзине' : 'В корзину'}
         </Button>
       </div>
     </div>

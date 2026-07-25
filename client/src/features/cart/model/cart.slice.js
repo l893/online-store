@@ -10,18 +10,33 @@ const cartSlice = createSlice({
   reducers: {
     addCartItem: (state, action) => {
       const cartItem = action.payload;
+      const availableStock = Math.max(0, Number(cartItem.stock) || 0);
+
+      if (availableStock === 0) {
+        return;
+      }
 
       const existingItemIndex = state.items.findIndex(
         (existingCartItem) => existingCartItem.productId === cartItem.productId,
       );
 
-      const quantity = cartItem.qty || 1;
+      const quantity = Math.min(
+        availableStock,
+        Math.max(1, Number(cartItem.qty) || 1),
+      );
 
       if (existingItemIndex >= 0) {
-        state.items[existingItemIndex].qty += quantity;
+        const existingCartItem = state.items[existingItemIndex];
+
+        existingCartItem.qty = Math.min(
+          availableStock,
+          existingCartItem.qty + quantity,
+        );
+        existingCartItem.stock = availableStock;
       } else {
         state.items.push({
           ...cartItem,
+          stock: availableStock,
           qty: quantity,
         });
       }

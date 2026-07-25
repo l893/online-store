@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useGetProductQuery } from '../../../entities/products';
 import { addProductToCart } from '../../../features/cart';
 import { Button, Loader } from '../../../shared/ui';
@@ -11,6 +11,7 @@ const PRODUCT_IMAGE_PLACEHOLDER_URL =
 export const ProductPage = () => {
   const { slug } = useParams();
   const dispatch = useDispatch();
+  const cartItems = useSelector((state) => state.cart.items);
 
   const {
     data: product,
@@ -47,6 +48,12 @@ export const ProductPage = () => {
   }
 
   const productImageUrl = product.images?.[0] || PRODUCT_IMAGE_PLACEHOLDER_URL;
+  const availableStock = Math.max(0, Number(product.stock) || 0);
+  const currentCartItem = cartItems.find(
+    (cartItem) => cartItem.productId === product._id,
+  );
+  const isAddToCartButtonDisabled =
+    (currentCartItem?.qty || 0) >= availableStock;
 
   const handleAddToCartButtonClick = () => {
     dispatch(
@@ -55,6 +62,7 @@ export const ProductPage = () => {
         title: product.title,
         price: product.price,
         image: product.images?.[0],
+        stock: availableStock,
       }),
     );
   };
@@ -99,8 +107,12 @@ export const ProductPage = () => {
         </div>
 
         <div className={styles.actions}>
-          <Button type="button" onClick={handleAddToCartButtonClick}>
-            Купить
+          <Button
+            type="button"
+            disabled={isAddToCartButtonDisabled}
+            onClick={handleAddToCartButtonClick}
+          >
+            {isAddToCartButtonDisabled ? 'Максимум в корзине' : 'Купить'}
           </Button>
         </div>
       </div>

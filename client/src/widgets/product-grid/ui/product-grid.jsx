@@ -1,10 +1,11 @@
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ProductCard } from '../../../entities/products';
 import { addProductToCart } from '../../../features/cart';
 import styles from './product-grid.module.scss';
 
 export const ProductGrid = ({ products = [] }) => {
   const dispatch = useDispatch();
+  const cartItems = useSelector((state) => state.cart.items);
 
   function handleAddProductToCart(product) {
     dispatch(
@@ -13,6 +14,7 @@ export const ProductGrid = ({ products = [] }) => {
         title: product.title,
         price: product.price,
         image: product.images?.[0],
+        stock: product.stock,
       }),
     );
   }
@@ -27,6 +29,10 @@ export const ProductGrid = ({ products = [] }) => {
         <ProductCard
           key={product._id}
           product={product}
+          isAddToCartDisabled={
+            (cartItems.find((cartItem) => cartItem.productId === product._id)
+              ?.qty || 0) >= Math.max(0, Number(product.stock) || 0)
+          }
           onAddToCart={handleAddProductToCart}
         />
       ))}
