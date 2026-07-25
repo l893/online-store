@@ -19,7 +19,12 @@ router.get('/', async (req, res, next) => {
     const currentPage = Math.max(1, parseInt(page, 10) || 1);
     const pageLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 12));
 
-    const filter = createProductSearchFilter(search);
+    const filter = {
+      ...createProductSearchFilter(search),
+      stock: {
+        $gt: 0,
+      },
+    };
 
     if (category) {
       const categoryDocument = await Category.findOne({
@@ -74,7 +79,13 @@ router.get('/', async (req, res, next) => {
 
 router.get('/:slug', async (req, res, next) => {
   try {
-    const product = await Product.findOne({ slug: req.params.slug });
+    const product = await Product.findOne({
+      slug: req.params.slug,
+      stock: {
+        $gt: 0,
+      },
+    });
+
     if (!product) return res.status(404).json({ message: 'Product not found' });
     res.json(product);
   } catch (error) {
