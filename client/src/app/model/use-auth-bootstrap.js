@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useRefreshMutation } from '../../features/auth';
+import { setCartItems, useLazyGetCartQuery } from '../../features/cart';
 
 export function useAuthBootstrap() {
-  const authRefreshRequestPromiseReference = useRef(null);
+  const authenticatedSessionBootstrapPromiseReference = useRef(null);
 
   const [isAuthBootstrapped, setIsAuthBootstrapped] = useState(false);
+
+  const dispatch = useDispatch();
+
   const [refresh] = useRefreshMutation();
+  const [getCart] = useLazyGetCartQuery();
 
   useEffect(() => {
     let isMounted = true;
@@ -22,11 +28,20 @@ export function useAuthBootstrap() {
       }
 
       try {
-        if (!authRefreshRequestPromiseReference.current) {
-          authRefreshRequestPromiseReference.current = refresh().unwrap();
+        if (!authenticatedSessionBootstrapPromiseReference.current) {
+          authenticatedSessionBootstrapPromiseReference.current = (async () => {
+            await refresh().unwrap();
+
+            const serverCart = await getCart().unwrap();
+            const serverCartItems = Array.isArray(serverCart.items)
+              ? serverCart.items
+              : [];
+
+            dispatch(setCartItems(serverCartItems));
+          })();
         }
 
-        await authRefreshRequestPromiseReference.current;
+        await authenticatedSessionBootstrapPromiseReference.current;
       } catch {
         // Невалидная refresh-сессия очищается в auth API lifecycle.
       } finally {
@@ -41,7 +56,7 @@ export function useAuthBootstrap() {
     return () => {
       isMounted = false;
     };
-  }, [refresh]);
+  }, [dispatch, getCart, refresh]);
 
   return isAuthBootstrapped;
 }

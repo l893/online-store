@@ -26,6 +26,7 @@ export const cartApi = api.injectEndpoints({
 
 export const {
   useGetCartQuery,
+  useLazyGetCartQuery,
   useReplaceCartMutation,
   useRemoveItemFromCartMutation,
 } = cartApi;
