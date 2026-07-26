@@ -44,6 +44,15 @@ function createCartResponse(cartDocument, productDocumentsById) {
   };
 }
 
+function getCartItemQuantitiesByProductId(cartDocument) {
+  return new Map(
+    (cartDocument?.items || []).map((cartItem) => [
+      String(cartItem.productId),
+      Math.max(1, Number(cartItem.qty) || 1),
+    ]),
+  );
+}
+
 router.use(requireAuth);
 
 // GET /api/cart
@@ -77,6 +86,12 @@ router.put('/', async (request, response, next) => {
   try {
     const { items = [] } = request.body || {};
 
+    const existingCartDocument = await Cart.findOne({
+      userId: request.user.id,
+    }).lean();
+    const existingCartItemQuantitiesByProductId =
+      getCartItemQuantitiesByProductId(existingCartDocument);
+
     // нормализация: подтянем актуальные title/price с продуктов
     const productDocumentsById = await getProductDocumentsById(items);
 
@@ -99,14 +114,20 @@ router.put('/', async (request, response, next) => {
         ? Math.max(1, parsedRequestedQuantity)
         : 1;
       const availableStock = getAvailableProductStock(productDocument);
+      const existingQuantity =
+        existingCartItemQuantitiesByProductId.get(
+          String(productDocument._id),
+        ) || 0;
+      const maximumAllowedQuantity = Math.max(availableStock, existingQuantity);
 
-      if (requestedQuantity > availableStock) {
+      if (requestedQuantity > maximumAllowedQuantity) {
         return response.status(409).json({
           code: 'INSUFFICIENT_STOCK',
           message: `Недостаточно товара «${productDocument.title}» на складе`,
           productId: String(productDocument._id),
           requestedQuantity,
           availableStock,
+          existingQuantity,
         });
       }
 
