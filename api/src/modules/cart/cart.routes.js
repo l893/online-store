@@ -165,32 +165,37 @@ router.put('/', async (request, response, next) => {
 });
 
 // Удаление товара из корзины
-router.delete('/item/:productId', async (req, res, next) => {
+router.delete('/item/:productId', async (request, response, next) => {
   try {
-    const { productId } = req.params;
+    const { productId } = request.params;
 
     // Найдём корзину пользователя
-    const cart = await Cart.findOne({ userId: req.user.id });
+    const cartDocument = await Cart.findOne({
+      userId: request.user.id,
+    });
 
-    if (!cart) {
-      return res.status(404).json({ message: 'Корзина не найдена' });
+    if (!cartDocument) {
+      return response.json({
+        userId: request.user.id,
+        items: [],
+      });
     }
 
     // Удаляем товар из массива
-    cart.items = cart.items.filter(
-      (item) => String(item.productId) !== String(productId),
+    cartDocument.items = cartDocument.items.filter(
+      (cartItem) => String(cartItem.productId) !== String(productId),
     );
 
-    cart.markModified('items');
-    cart.updatedAt = new Date();
+    cartDocument.markModified('items');
+    cartDocument.updatedAt = new Date();
 
     // Обновляем корзину в базе
-    await cart.save();
+    await cartDocument.save();
 
     // Возвращаем обновлённую корзину
-    res.json(cart);
-  } catch (e) {
-    next(e);
+    return response.json(cartDocument);
+  } catch (error) {
+    next(error);
   }
 });
 
