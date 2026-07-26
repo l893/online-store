@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { setupListeners } from '@reduxjs/toolkit/query';
 import { api } from '../../shared/lib/api';
 import { authReducer } from '../../features/auth';
 import { cartReducer } from '../../features/cart';
@@ -12,3 +13,5 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(api.middleware),
 });
+
+setupListeners(store.dispatch);

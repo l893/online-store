@@ -15,13 +15,19 @@ export const CatalogPage = () => {
   const sort = queryParameters.get('sort') || 'price_asc';
   const page = Number(queryParameters.get('page') || 1);
 
-  const { data, isLoading, isFetching } = useListProductsQuery({
-    search,
-    category: categorySlug,
-    sort,
-    page,
-    limit: 10,
-  });
+  const { data, isLoading, isFetching } = useListProductsQuery(
+    {
+      search,
+      category: categorySlug,
+      sort,
+      page,
+      limit: 10,
+    },
+    {
+      refetchOnMountOrArgChange: true,
+      refetchOnFocus: true,
+    },
+  );
 
   return (
     <div className={styles.catalogLayout}>
