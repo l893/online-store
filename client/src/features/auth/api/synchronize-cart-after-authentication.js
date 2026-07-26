@@ -1,3 +1,4 @@
+import { productsApi } from '../../../entities/products';
 import { api } from '../../../shared/lib/api';
 import { mergeCartItems, setCartItems } from '../../cart';
 
@@ -23,14 +24,55 @@ export async function synchronizeCartAfterAuthentication({
     return;
   }
 
-  const mergedCartItems = mergeCartItems({
-    serverItems: serverCartItems,
-    localItems: localCartItems,
-  });
+  const productIds = Array.from(
+    new Set(
+      [...serverCartItems, ...localCartItems]
+        .map((cartItem) => cartItem.productId)
+        .filter(Boolean),
+    ),
+  );
 
-  const updatedCartResponse = await dispatch(
-    api.endpoints.replaceCart.initiate(mergedCartItems),
-  ).unwrap();
+  try {
+    const productAvailabilityResponse = await dispatch(
+      productsApi.endpoints.getProductsAvailability.initiate(productIds, {
+        forceRefetch: true,
+        subscribe: false,
+      }),
+    ).unwrap();
 
-  dispatch(setCartItems(updatedCartResponse.items || []));
+    const productAvailabilityItems = Array.isArray(
+      productAvailabilityResponse.items,
+    )
+      ? productAvailabilityResponse.items
+      : [];
+
+    const mergedCartItems = mergeCartItems({
+      serverCartItems,
+      localCartItems,
+      productAvailabilityItems,
+    });
+
+    if (mergedCartItems.length === 0) {
+      dispatch(setCartItems([]));
+      return;
+    }
+
+    const updatedCartResponse = await dispatch(
+      api.endpoints.replaceCart.initiate(mergedCartItems),
+    ).unwrap();
+
+    const updatedServerCartItems = Array.isArray(updatedCartResponse.items)
+      ? updatedCartResponse.items
+      : [];
+
+    dispatch(
+      api.util.updateQueryData('getCart', undefined, (cachedCartResponse) => {
+        Object.assign(cachedCartResponse, updatedCartResponse);
+      }),
+    );
+
+    dispatch(setCartItems(updatedServerCartItems));
+  } catch {
+    dispatch(setCartItems(serverCartItems));
+  }
 }
