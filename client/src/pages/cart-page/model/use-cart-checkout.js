@@ -9,6 +9,7 @@ import {
 
 export function useCartCheckout({
   isAuthenticated,
+  isCartAvailabilityConfirmed,
   cartItems = [],
   replaceCart,
 }) {
@@ -28,6 +29,46 @@ export function useCartCheckout({
 
   async function handleCheckout(event) {
     event?.currentTarget?.blur();
+
+    if (!isCartAvailabilityConfirmed) {
+      setCheckoutDialog({
+        title: 'Наличие товаров не подтверждено',
+        description: 'Дождитесь проверки наличия товаров и повторите попытку.',
+      });
+      return;
+    }
+
+    const unavailableCartItems = cartItems.filter(
+      (cartItem) => cartItem.stock <= 0,
+    );
+
+    if (unavailableCartItems.length > 0) {
+      const unavailableProductTitles = unavailableCartItems
+        .map((cartItem) => cartItem.title)
+        .join(', ');
+
+      setCheckoutDialog({
+        title: 'В корзине есть недоступные товары',
+        description: `Удалите товары перед оформлением: ${unavailableProductTitles}`,
+      });
+      return;
+    }
+
+    const excessiveQuantityCartItems = cartItems.filter(
+      (cartItem) => cartItem.stock > 0 && cartItem.qty > cartItem.stock,
+    );
+
+    if (excessiveQuantityCartItems.length > 0) {
+      const excessiveQuantityProductTitles = excessiveQuantityCartItems
+        .map((cartItem) => cartItem.title)
+        .join(', ');
+
+      setCheckoutDialog({
+        title: 'Количество превышает остаток',
+        description: `Уменьшите количество товаров: ${excessiveQuantityProductTitles}`,
+      });
+      return;
+    }
 
     if (!isAuthenticated) {
       setCheckoutDialog({

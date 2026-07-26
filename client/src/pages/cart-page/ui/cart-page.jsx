@@ -27,6 +27,46 @@ function applyProductAvailability(cartItems, productAvailabilityItems = []) {
   }));
 }
 
+function getCartAvailabilityMessage({
+  isLoading,
+  isError,
+  unavailableCartItems,
+  excessiveQuantityCartItems,
+}) {
+  if (isLoading) {
+    return 'Проверяем наличие товаров…';
+  }
+
+  if (isError) {
+    return 'Не удалось проверить наличие товаров';
+  }
+
+  if (
+    unavailableCartItems.length > 0 &&
+    excessiveQuantityCartItems.length > 0
+  ) {
+    return 'Удалите закончившиеся товары и уменьшите количество остальных до доступного остатка.';
+  }
+
+  if (unavailableCartItems.length > 0) {
+    const unavailableProductTitles = unavailableCartItems
+      .map((cartItem) => cartItem.title)
+      .join(', ');
+
+    return `Удалите недоступные товары: ${unavailableProductTitles}`;
+  }
+
+  if (excessiveQuantityCartItems.length > 0) {
+    const excessiveQuantityProductTitles = excessiveQuantityCartItems
+      .map((cartItem) => cartItem.title)
+      .join(', ');
+
+    return `Уменьшите количество товаров до доступного остатка: ${excessiveQuantityProductTitles}`;
+  }
+
+  return '';
+}
+
 export const CartPage = () => {
   const user = useSelector((state) => state.auth.user);
   const storedCartItems = useSelector((state) => state.cart.items);
@@ -59,6 +99,25 @@ export const CartPage = () => {
     isProductsAvailabilityLoading ||
     isProductsAvailabilityFetching;
 
+  const unavailableCartItems = cartItems.filter(
+    (cartItem) => cartItem.stock <= 0,
+  );
+  const excessiveQuantityCartItems = cartItems.filter(
+    (cartItem) => cartItem.stock > 0 && cartItem.qty > cartItem.stock,
+  );
+  const hasCartAvailabilityIssues =
+    unavailableCartItems.length > 0 || excessiveQuantityCartItems.length > 0;
+  const isCartAvailabilityConfirmed =
+    !isCartLoading && !isProductsAvailabilityError;
+  const isCheckoutDisabledByAvailability =
+    !isCartAvailabilityConfirmed || hasCartAvailabilityIssues;
+  const cartAvailabilityMessage = getCartAvailabilityMessage({
+    isLoading: isCartLoading,
+    isError: isProductsAvailabilityError,
+    unavailableCartItems,
+    excessiveQuantityCartItems,
+  });
+
   // хук для замены корзины на сервере
   const [replaceCart] = useReplaceCartMutation();
 
@@ -87,6 +146,7 @@ export const CartPage = () => {
     handleCheckoutDialogClose,
   } = useCartCheckout({
     isAuthenticated: Boolean(user),
+    isCartAvailabilityConfirmed,
     cartItems,
     replaceCart,
   });
@@ -124,6 +184,9 @@ export const CartPage = () => {
         <CartSummary
           totalQuantity={totalQuantity}
           totalSum={totalSum}
+          availabilityMessage={cartAvailabilityMessage}
+          hideTotals={isCartLoading || isProductsAvailabilityError}
+          isCheckoutDisabled={isCheckoutDisabledByAvailability}
           onCheckout={handleCheckout}
           isCheckoutLoading={isCheckoutLoading}
         />
