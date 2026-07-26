@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { api } from '../../../shared/lib/api';
 import { useRemoveItemFromCartMutation } from '../api/cart.api';
 import {
   changeCartItemQuantity,
@@ -64,12 +65,39 @@ export function useCartItemActions({
 
     try {
       await replaceCart(nextCartItems).unwrap();
-    } catch {
-      dispatch(setCartItems(previousCartItems));
+    } catch (error) {
+      const isInsufficientStockError =
+        error?.data?.code === 'INSUFFICIENT_STOCK';
+      const availableStock = Number(error?.data?.availableStock);
+      const hasValidAvailableStock =
+        Number.isFinite(availableStock) && availableStock >= 0;
+
+      const restoredCartItems =
+        isInsufficientStockError && hasValidAvailableStock
+          ? previousCartItems.map((previousCartItem) =>
+              previousCartItem.productId === productId
+                ? {
+                    ...previousCartItem,
+                    stock: availableStock,
+                  }
+                : previousCartItem,
+            )
+          : previousCartItems;
+
+      dispatch(setCartItems(restoredCartItems));
+
+      if (isInsufficientStockError) {
+        dispatch(api.util.invalidateTags(['Product']));
+      }
 
       setCartActionDialog({
-        title: 'Не удалось изменить количество',
-        description: 'Корзина восстановлена. Попробуйте повторить позже.',
+        title: isInsufficientStockError
+          ? 'Недостаточно товара'
+          : 'Не удалось изменить количество',
+        description:
+          isInsufficientStockError && hasValidAvailableStock
+            ? `Доступно: ${availableStock}. Корзина восстановлена.`
+            : 'Корзина восстановлена. Попробуйте повторить позже.',
       });
     }
   }

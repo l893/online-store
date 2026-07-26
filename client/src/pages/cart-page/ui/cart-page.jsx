@@ -87,6 +87,7 @@ export const CartPage = () => {
   } = useGetProductsAvailabilityQuery(productIds, {
     skip: productIds.length === 0,
     refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
   });
 
   const cartItems = applyProductAvailability(
