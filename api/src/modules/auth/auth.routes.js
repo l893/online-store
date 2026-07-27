@@ -7,17 +7,37 @@ const RefreshToken = require('./refresh-token.model');
 const { signAccess, signRefresh, verifyRefresh } = require('../../shared/jwt');
 
 const COOKIE_NAME = 'refreshToken'; // httpOnly cookie
+const REFRESH_COOKIE_PATH = '/api/auth';
+const REFRESH_TOKEN_LIFETIME_MILLISECONDS = 30 * 24 * 60 * 60 * 1000;
 
 // helpers
-function setRefreshCookie(res, token) {
-  const isProd = process.env.NODE_ENV === 'production';
+function getRefreshCookieOptions() {
+  const isProduction = process.env.NODE_ENV === 'production';
 
-  res.cookie(COOKIE_NAME, token, {
+  return {
     httpOnly: true,
-    secure: isProd,
+    secure: isProduction,
     sameSite: 'strict',
-    path: '/api/auth', // теперь кука доступна и для /logout
-    maxAge: 30 * 24 * 60 * 60 * 1000,
+    path: REFRESH_COOKIE_PATH,
+  };
+}
+
+function setRefreshCookie(response, refreshToken) {
+  response.cookie(COOKIE_NAME, refreshToken, {
+    ...getRefreshCookieOptions(),
+    maxAge: REFRESH_TOKEN_LIFETIME_MILLISECONDS,
+  });
+}
+
+function clearRefreshCookie(response) {
+  response.clearCookie(COOKIE_NAME, getRefreshCookieOptions());
+}
+
+function rejectRefreshRequest(response, message) {
+  clearRefreshCookie(response);
+
+  return response.status(401).json({
+    message,
   });
 }
 
@@ -30,7 +50,7 @@ async function createRefresh(userId, ua, ip) {
     jti,
     userAgent: ua,
     ip,
-    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    expiresAt: new Date(Date.now() + REFRESH_TOKEN_LIFETIME_MILLISECONDS),
   });
 
   return token;
@@ -61,7 +81,7 @@ router.post('/register', async (req, res, next) => {
     const refreshToken = await createRefresh(
       user._id,
       req.headers['user-agent'] || '',
-      req.ip
+      req.ip,
     );
 
     setRefreshCookie(res, refreshToken);
@@ -94,7 +114,7 @@ router.post('/login', async (req, res, next) => {
     const refreshToken = await createRefresh(
       user._id,
       req.headers['user-agent'] || '',
-      req.ip
+      req.ip,
     );
 
     setRefreshCookie(res, refreshToken);
@@ -112,45 +132,49 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
-router.post('/refresh', async (req, res, next) => {
+router.post('/refresh', async (request, response, next) => {
   try {
-    const cookie = req.cookies?.refreshToken;
-    if (!cookie) return res.status(401).json({ message: 'No refresh cookie' });
+    const refreshCookie = request.cookies?.refreshToken;
 
-    // верифицируем
-    let payload;
-    try {
-      payload = verifyRefresh(cookie);
-    } catch {
-      return res.status(401).json({ message: 'Invalid refresh token' });
+    if (!refreshCookie) {
+      return rejectRefreshRequest(response, 'No refresh cookie');
     }
 
-    // найдём в БД и проверим не отозван ли
-    const stored = await RefreshToken.findOne({
-      jti: payload.jti,
-      userId: payload.sub,
+    let refreshTokenPayload;
+
+    try {
+      refreshTokenPayload = verifyRefresh(refreshCookie);
+    } catch {
+      return rejectRefreshRequest(response, 'Invalid refresh token');
+    }
+
+    const storedRefreshToken = await RefreshToken.findOne({
+      jti: refreshTokenPayload.jti,
+      userId: refreshTokenPayload.sub,
       revokedAt: null,
     });
-    if (!stored) return res.status(401).json({ message: 'Refresh not found' });
 
-    // ротация: старый инвалидируем
-    stored.revokedAt = new Date();
-    await stored.save();
+    if (!storedRefreshToken) {
+      return rejectRefreshRequest(response, 'Refresh not found');
+    }
 
-    // создаём новый refresh
+    storedRefreshToken.revokedAt = new Date();
+    await storedRefreshToken.save();
+
     const refreshToken = await createRefresh(
-      payload.sub,
-      req.headers['user-agent'] || '',
-      req.ip
+      refreshTokenPayload.sub,
+      request.headers['user-agent'] || '',
+      request.ip,
     );
-    setRefreshCookie(res, refreshToken);
+    setRefreshCookie(response, refreshToken);
 
-    const user = await User.findById(payload.sub);
+    const user = await User.findById(refreshTokenPayload.sub);
     const accessToken = signAccess({
       sub: user._id.toString(),
       roles: user.roles,
     });
-    res.json({
+
+    return response.json({
       accessToken,
       user: {
         id: user._id,
@@ -159,8 +183,8 @@ router.post('/refresh', async (req, res, next) => {
         roles: user.roles,
       },
     });
-  } catch (e) {
-    next(e);
+  } catch (error) {
+    next(error);
   }
 });
 
@@ -184,7 +208,7 @@ router.post('/logout', async (req, res, next) => {
         console.error('Logout cleanup error:', err.message);
       }
     }
-    res.clearCookie(COOKIE_NAME, { path: '/api/auth' }); // чтобы cookie отправлялась и на /auth/logout
+    clearRefreshCookie(res);
     res.json({ ok: true });
   } catch (e) {
     next(e);
