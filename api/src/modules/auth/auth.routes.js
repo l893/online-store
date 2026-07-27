@@ -41,6 +41,20 @@ function rejectRefreshRequest(response, message) {
   });
 }
 
+async function revokeUserRefreshSessions(userId) {
+  await RefreshToken.updateMany(
+    {
+      userId,
+      revokedAt: null,
+    },
+    {
+      $set: {
+        revokedAt: new Date(),
+      },
+    },
+  );
+}
+
 async function createRefresh(userId, ua, ip) {
   const jti = crypto.randomUUID();
   const token = signRefresh({ sub: userId, jti });
@@ -148,18 +162,37 @@ router.post('/refresh', async (request, response, next) => {
       return rejectRefreshRequest(response, 'Invalid refresh token');
     }
 
-    const storedRefreshToken = await RefreshToken.findOne({
-      jti: refreshTokenPayload.jti,
-      userId: refreshTokenPayload.sub,
-      revokedAt: null,
-    });
+    const storedRefreshToken = await RefreshToken.findOneAndUpdate(
+      {
+        jti: refreshTokenPayload.jti,
+        userId: refreshTokenPayload.sub,
+        revokedAt: null,
+      },
+      {
+        $set: {
+          revokedAt: new Date(),
+        },
+      },
+      {
+        new: false,
+      },
+    );
 
     if (!storedRefreshToken) {
-      return rejectRefreshRequest(response, 'Refresh not found');
-    }
+      const knownRefreshToken = await RefreshToken.exists({
+        jti: refreshTokenPayload.jti,
+        userId: refreshTokenPayload.sub,
+      });
 
-    storedRefreshToken.revokedAt = new Date();
-    await storedRefreshToken.save();
+      await revokeUserRefreshSessions(refreshTokenPayload.sub);
+
+      return rejectRefreshRequest(
+        response,
+        knownRefreshToken
+          ? 'Refresh token reuse detected'
+          : 'Refresh not found',
+      );
+    }
 
     const refreshToken = await createRefresh(
       refreshTokenPayload.sub,
