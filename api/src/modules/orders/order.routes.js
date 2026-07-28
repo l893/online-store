@@ -39,6 +39,61 @@ function createRequestedCartItems(cartItems) {
   return Array.from(requestedCartItemsByProductId.values());
 }
 
+function normalizeOrderItemQuantity(orderItem) {
+  return Math.max(1, Math.floor(Number(orderItem.qty) || 1));
+}
+
+async function restoreReservedProductStock(reservedStockItems) {
+  if (reservedStockItems.length === 0) {
+    return;
+  }
+
+  await Product.bulkWrite(
+    reservedStockItems.map((reservedStockItem) => ({
+      updateOne: {
+        filter: {
+          _id: reservedStockItem.productId,
+        },
+        update: {
+          $inc: {
+            stock: reservedStockItem.quantity,
+          },
+        },
+      },
+    })),
+  );
+}
+
+async function rollbackOrderCheckout({ orderId, reservedStockItems }) {
+  await restoreReservedProductStock(reservedStockItems);
+
+  await Order.updateOne(
+    {
+      _id: orderId,
+      status: 'processing',
+    },
+    {
+      $set: {
+        status: 'draft',
+      },
+    },
+  );
+}
+
+async function clearUserCart(userId) {
+  await Cart.updateOne(
+    {
+      userId,
+    },
+    {
+      $set: {
+        items: [],
+        updatedAt: new Date(),
+      },
+    },
+  );
+}
+
 router.use(requireAuth);
 
 // POST /api/orders
@@ -144,32 +199,178 @@ router.post('/', async (request, response, next) => {
   }
 });
 
-// POST /api/checkout/confirm  { orderId }
-router.post('/checkout/confirm', async (req, res, next) => {
+// POST /api/orders/checkout/confirm  { orderId }
+router.post('/checkout/confirm', async (request, response, next) => {
+  const reservedStockItems = [];
+  let claimedOrderDocument = null;
+  let isOrderPaid = false;
+
   try {
-    const { orderId } = req.body || {};
+    const { orderId } = request.body || {};
 
-    if (!orderId) return res.status(400).json({ message: 'orderId required' });
+    if (!orderId) {
+      return response.status(400).json({
+        message: 'orderId required',
+      });
+    }
 
-    const order = await Order.findOne({ _id: orderId, userId: req.user.id });
-
-    if (!order) return res.status(404).json({ message: 'Order not found' });
-
-    if (order.status === 'paid')
-      return res.json({ ok: true, status: order.status });
-
-    order.status = 'paid';
-    await order.save();
-
-    // очистим серверную корзину
-    await Cart.updateOne(
-      { userId: req.user.id },
-      { $set: { items: [], updatedAt: new Date() } },
+    claimedOrderDocument = await Order.findOneAndUpdate(
+      {
+        _id: orderId,
+        userId: request.user.id,
+        status: 'draft',
+      },
+      {
+        $set: {
+          status: 'processing',
+        },
+      },
+      {
+        new: true,
+      },
     );
 
-    res.json({ ok: true, status: 'paid' });
-  } catch (e) {
-    next(e);
+    if (!claimedOrderDocument) {
+      const existingOrderDocument = await Order.findOne({
+        _id: orderId,
+        userId: request.user.id,
+      }).lean();
+
+      if (!existingOrderDocument) {
+        return response.status(404).json({
+          message: 'Order not found',
+        });
+      }
+
+      if (existingOrderDocument.status === 'paid') {
+        await clearUserCart(request.user.id);
+
+        return response.json({
+          ok: true,
+          status: 'paid',
+        });
+      }
+
+      if (existingOrderDocument.status === 'processing') {
+        return response.status(409).json({
+          code: 'ORDER_CHECKOUT_IN_PROGRESS',
+          message: 'Подтверждение заказа уже выполняется',
+        });
+      }
+
+      return response.status(409).json({
+        code: 'ORDER_NOT_CONFIRMABLE',
+        message: 'Заказ нельзя подтвердить в текущем статусе',
+      });
+    }
+
+    for (const orderItem of claimedOrderDocument.items) {
+      const requestedQuantity = normalizeOrderItemQuantity(orderItem);
+
+      const updatedProductDocument = await Product.findOneAndUpdate(
+        {
+          _id: orderItem.productId,
+          stock: {
+            $gte: requestedQuantity,
+          },
+        },
+        {
+          $inc: {
+            stock: -requestedQuantity,
+          },
+        },
+        {
+          new: true,
+        },
+      )
+        .select('_id title stock')
+        .lean();
+
+      if (!updatedProductDocument) {
+        const currentProductDocument = await Product.findById(
+          orderItem.productId,
+        )
+          .select('title stock')
+          .lean();
+
+        await rollbackOrderCheckout({
+          orderId: claimedOrderDocument._id,
+          reservedStockItems,
+        });
+
+        return response.status(409).json({
+          code: 'ORDER_STOCK_CONFLICT',
+          message: 'Некоторые товары недоступны в выбранном количестве',
+          items: [
+            {
+              productId: String(orderItem.productId),
+              title:
+                currentProductDocument?.title ||
+                orderItem.titleSnapshot ||
+                'Неизвестный товар',
+              requestedQuantity,
+              availableStock: currentProductDocument
+                ? getAvailableProductStock(currentProductDocument)
+                : 0,
+            },
+          ],
+        });
+      }
+
+      reservedStockItems.push({
+        productId: updatedProductDocument._id,
+        quantity: requestedQuantity,
+      });
+    }
+
+    const paidOrderDocument = await Order.findOneAndUpdate(
+      {
+        _id: claimedOrderDocument._id,
+        status: 'processing',
+      },
+      {
+        $set: {
+          status: 'paid',
+        },
+      },
+      {
+        new: true,
+      },
+    ).lean();
+
+    if (!paidOrderDocument) {
+      await rollbackOrderCheckout({
+        orderId: claimedOrderDocument._id,
+        reservedStockItems,
+      });
+
+      return response.status(409).json({
+        code: 'ORDER_STATE_CONFLICT',
+        message: 'Статус заказа изменился во время подтверждения',
+      });
+    }
+
+    isOrderPaid = true;
+
+    await clearUserCart(request.user.id);
+
+    return response.json({
+      ok: true,
+      status: 'paid',
+    });
+  } catch (error) {
+    if (claimedOrderDocument && !isOrderPaid) {
+      try {
+        await rollbackOrderCheckout({
+          orderId: claimedOrderDocument._id,
+          reservedStockItems,
+        });
+      } catch (rollbackError) {
+        return next(rollbackError);
+      }
+    }
+
+    next(error);
   }
 });
 

@@ -8,7 +8,7 @@ const orderItemSchema = new Schema(
     qty: Number,
     image: String,
   },
-  { _id: false }
+  { _id: false },
 );
 
 const orderSchema = new Schema(
@@ -18,12 +18,12 @@ const orderSchema = new Schema(
     total: Number,
     status: {
       type: String,
-      enum: ['draft', 'paid', 'cancelled'],
+      enum: ['draft', 'processing', 'paid', 'cancelled'],
       default: 'draft',
       index: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = model('Order', orderSchema);
