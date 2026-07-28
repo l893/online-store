@@ -162,6 +162,16 @@ router.post('/refresh', async (request, response, next) => {
       return rejectRefreshRequest(response, 'Invalid refresh token');
     }
 
+    const user = await User.findById(refreshTokenPayload.sub);
+
+    if (!user) {
+      await RefreshToken.deleteMany({
+        userId: refreshTokenPayload.sub,
+      });
+
+      return rejectRefreshRequest(response, 'Session user not found');
+    }
+
     const storedRefreshToken = await RefreshToken.findOneAndUpdate(
       {
         jti: refreshTokenPayload.jti,
@@ -201,7 +211,6 @@ router.post('/refresh', async (request, response, next) => {
     );
     setRefreshCookie(response, refreshToken);
 
-    const user = await User.findById(refreshTokenPayload.sub);
     const accessToken = signAccess({
       sub: user._id.toString(),
       roles: user.roles,
