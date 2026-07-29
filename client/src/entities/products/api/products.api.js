@@ -3,12 +3,15 @@ import { api } from '../../../shared/lib/api';
 export const productsApi = api.injectEndpoints({
   endpoints: (endpointBuilder) => ({
     listProducts: endpointBuilder.query({
-      query: (params) => ({ url: '/products', params }),
+      query: (queryParameters) => ({
+        url: '/products',
+        params: queryParameters,
+      }),
       keepUnusedDataFor: 60,
       providesTags: ['Product'],
     }),
     getProduct: endpointBuilder.query({
-      query: (slug) => `/products/${slug}`,
+      query: (productSlug) => `/products/${productSlug}`,
       providesTags: ['Product'],
     }),
     getProductsAvailability: endpointBuilder.query({
