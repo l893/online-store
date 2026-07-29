@@ -4,12 +4,16 @@ import styles from './cart-item.module.scss';
 const CART_ITEM_IMAGE_PLACEHOLDER_URL =
   'https://placehold.co/300x300?text=No+Image';
 
-export const CartItem = ({ item, onChangeQty, onRemove }) => {
-  const itemImageUrl = item.image || CART_ITEM_IMAGE_PLACEHOLDER_URL;
-  const availableStock = Math.max(0, Number(item.stock) || 0);
+export const CartItem = ({
+  cartItem,
+  onCartItemQuantityChange,
+  onCartItemRemove,
+}) => {
+  const cartItemImageUrl = cartItem.image || CART_ITEM_IMAGE_PLACEHOLDER_URL;
+  const availableStock = Math.max(0, Number(cartItem.stock) || 0);
   const isProductUnavailable = availableStock === 0;
-  const isDecreaseQuantityButtonDisabled = item.qty <= 1;
-  const isIncreaseQuantityButtonDisabled = item.qty >= availableStock;
+  const isDecreaseQuantityButtonDisabled = cartItem.qty <= 1;
+  const isIncreaseQuantityButtonDisabled = cartItem.qty >= availableStock;
 
   function handleQuantityInputChange(event) {
     const parsedQuantity = Number.parseInt(event.target.value || '1', 10);
@@ -18,7 +22,7 @@ export const CartItem = ({ item, onChangeQty, onRemove }) => {
       Math.max(1, parsedQuantity || 1),
     );
 
-    onChangeQty(item.productId, nextQuantity);
+    onCartItemQuantityChange(cartItem.productId, nextQuantity);
   }
 
   function handleItemImageError(event) {
@@ -29,8 +33,8 @@ export const CartItem = ({ item, onChangeQty, onRemove }) => {
     <div className={styles.cartItem}>
       <div className={styles.imageWrapper}>
         <img
-          src={itemImageUrl}
-          alt={item.title}
+          src={cartItemImageUrl}
+          alt={cartItem.title}
           className={styles.image}
           loading="lazy"
           onError={handleItemImageError}
@@ -38,8 +42,8 @@ export const CartItem = ({ item, onChangeQty, onRemove }) => {
       </div>
 
       <div className={styles.content}>
-        <div className={styles.title}>{item.title}</div>
-        <div className={styles.productId}>id: {item.productId}</div>
+        <div className={styles.title}>{cartItem.title}</div>
+        <div className={styles.productId}>id: {cartItem.productId}</div>
       </div>
 
       {isProductUnavailable ? (
@@ -49,7 +53,9 @@ export const CartItem = ({ item, onChangeQty, onRemove }) => {
           <Button
             type="button"
             disabled={isDecreaseQuantityButtonDisabled}
-            onClick={() => onChangeQty(item.productId, item.qty - 1)}
+            onClick={() =>
+              onCartItemQuantityChange(cartItem.productId, cartItem.qty - 1)
+            }
           >
             -
           </Button>
@@ -57,11 +63,11 @@ export const CartItem = ({ item, onChangeQty, onRemove }) => {
             className={styles.quantityInput}
             fullWidth={false}
             type="number"
-            value={item.qty}
+            value={cartItem.qty}
             onChange={handleQuantityInputChange}
             slotProps={{
               htmlInput: {
-                'aria-label': `Количество товара ${item.title}`,
+                'aria-label': `Количество товара ${cartItem.title}`,
                 min: 1,
                 max: availableStock,
               },
@@ -70,20 +76,22 @@ export const CartItem = ({ item, onChangeQty, onRemove }) => {
           <Button
             type="button"
             disabled={isIncreaseQuantityButtonDisabled}
-            onClick={() => onChangeQty(item.productId, item.qty + 1)}
+            onClick={() =>
+              onCartItemQuantityChange(cartItem.productId, cartItem.qty + 1)
+            }
           >
             +
           </Button>
         </div>
       )}
 
-      <div className={styles.price}>{item.price * item.qty} ₽</div>
+      <div className={styles.price}>{cartItem.price * cartItem.qty} ₽</div>
 
       <button
         type="button"
-        aria-label={`Удалить товар ${item.title} из корзины`}
+        aria-label={`Удалить товар ${cartItem.title} из корзины`}
         className={styles.removeButton}
-        onClick={() => onRemove(item.productId)}
+        onClick={() => onCartItemRemove(cartItem.productId)}
       >
         ✕
       </button>

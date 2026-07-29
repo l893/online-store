@@ -170,12 +170,12 @@ export const CartPage = () => {
         ) : cartItems.length === 0 ? (
           <div className={styles.emptyMessage}>Корзина пуста</div>
         ) : (
-          cartItems.map((item) => (
+          cartItems.map((cartItem) => (
             <CartItem
-              key={item.productId}
-              item={item}
-              onChangeQty={handleCartItemQuantityChange}
-              onRemove={handleCartItemRemove}
+              key={cartItem.productId}
+              cartItem={cartItem}
+              onCartItemQuantityChange={handleCartItemQuantityChange}
+              onCartItemRemove={handleCartItemRemove}
             />
           ))
         )}
