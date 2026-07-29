@@ -124,7 +124,7 @@ export const CartPage = () => {
 
   useInitialCartSync({
     isAuthenticated: Boolean(user),
-    localItems: storedCartItems,
+    localCartItems: storedCartItems,
     serverCart,
     replaceCart,
   });

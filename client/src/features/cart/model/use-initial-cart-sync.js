@@ -5,42 +5,44 @@ import { setCartItems } from './cart.slice';
 
 export function useInitialCartSync({
   isAuthenticated,
-  localItems = [],
+  localCartItems = [],
   serverCart,
   replaceCart,
 }) {
   const dispatch = useDispatch();
-  const hasInitialSyncStartedRef = useRef(false);
+  const hasInitialCartSyncStartedReference = useRef(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
-      hasInitialSyncStartedRef.current = false;
+      hasInitialCartSyncStartedReference.current = false;
       return;
     }
 
-    if (!serverCart || hasInitialSyncStartedRef.current) {
+    if (!serverCart || hasInitialCartSyncStartedReference.current) {
       return;
     }
 
-    hasInitialSyncStartedRef.current = true;
+    hasInitialCartSyncStartedReference.current = true;
 
-    const serverItems = Array.isArray(serverCart.items) ? serverCart.items : [];
+    const serverCartItems = Array.isArray(serverCart.items)
+      ? serverCart.items
+      : [];
 
     const { shouldPushLocalItemsToServer, shouldReplaceLocalItemsWithServer } =
       getInitialCartSyncDecision({
-        localItems,
-        serverItems,
+        localItems: localCartItems,
+        serverItems: serverCartItems,
       });
 
     if (shouldPushLocalItemsToServer) {
-      replaceCart(localItems)
+      replaceCart(localCartItems)
         .unwrap()
         .catch(() => {});
       return;
     }
 
     if (shouldReplaceLocalItemsWithServer) {
-      dispatch(setCartItems(serverItems));
+      dispatch(setCartItems(serverCartItems));
     }
-  }, [dispatch, isAuthenticated, localItems, replaceCart, serverCart]);
+  }, [dispatch, isAuthenticated, localCartItems, replaceCart, serverCart]);
 }
