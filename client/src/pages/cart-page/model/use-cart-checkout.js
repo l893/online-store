@@ -1,11 +1,77 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { clearCart } from '../../../features/cart';
+import { clearCart, setCartItems } from '../../../features/cart';
 import {
   useConfirmCheckoutMutation,
   useCreateOrderMutation,
 } from '../../../features/orders';
+import { api } from '../../../shared/lib/api';
+
+function getStockConflictItems(error, cartItems) {
+  const errorCode = error?.data?.code;
+
+  if (errorCode === 'ORDER_STOCK_CONFLICT') {
+    return Array.isArray(error.data.items) ? error.data.items : [];
+  }
+
+  if (errorCode !== 'INSUFFICIENT_STOCK') {
+    return [];
+  }
+
+  const matchingCartItem = cartItems.find(
+    (cartItem) => cartItem.productId === error.data.productId,
+  );
+
+  return [
+    {
+      productId: error.data.productId,
+      title: matchingCartItem?.title || 'Неизвестный товар',
+      requestedQuantity: error.data.requestedQuantity,
+      availableStock: error.data.availableStock,
+    },
+  ];
+}
+
+function applyStockConflictsToCartItems(cartItems, stockConflictItems) {
+  const productStockById = new Map(
+    stockConflictItems.map((stockConflictItem) => [
+      stockConflictItem.productId,
+      Math.max(0, Number(stockConflictItem.availableStock) || 0),
+    ]),
+  );
+
+  return cartItems.map((cartItem) => {
+    if (!productStockById.has(cartItem.productId)) {
+      return cartItem;
+    }
+
+    return {
+      ...cartItem,
+      stock: productStockById.get(cartItem.productId),
+    };
+  });
+}
+
+function createStockConflictDescription(stockConflictItems) {
+  const stockConflictMessages = stockConflictItems.map((stockConflictItem) => {
+    const title = stockConflictItem.title || 'Неизвестный товар';
+    const requestedQuantity = Math.max(
+      1,
+      Number(stockConflictItem.requestedQuantity) || 1,
+    );
+    const availableStock = Math.max(
+      0,
+      Number(stockConflictItem.availableStock) || 0,
+    );
+
+    return `«${title}»: в корзине ${requestedQuantity}, доступно ${availableStock}`;
+  });
+
+  return `${stockConflictMessages.join(
+    '; ',
+  )}. Проверьте корзину и повторите оформление.`;
+}
 
 export function useCartCheckout({
   isAuthenticated,
@@ -88,13 +154,39 @@ export function useCartCheckout({
 
       await confirmCheckout({ orderId }).unwrap();
 
+      dispatch(
+        api.util.updateQueryData('getCart', undefined, (cachedCartResponse) => {
+          cachedCartResponse.items = [];
+        }),
+      );
+
+      dispatch(clearCart());
+      dispatch(api.util.invalidateTags(['Product']));
+
       setCheckoutDialog({
         title: 'Оплата подтверждена',
         description: `Заказ: ${orderId}`,
       });
+    } catch (error) {
+      const stockConflictItems = getStockConflictItems(error, cartItems);
 
-      dispatch(clearCart());
-    } catch {
+      if (stockConflictItems.length > 0) {
+        dispatch(
+          setCartItems(
+            applyStockConflictsToCartItems(cartItems, stockConflictItems),
+          ),
+        );
+
+        dispatch(api.util.invalidateTags(['Product']));
+
+        setCheckoutDialog({
+          title: 'Остаток товаров изменился',
+          description: createStockConflictDescription(stockConflictItems),
+        });
+
+        return;
+      }
+
       setCheckoutDialog({
         title: 'Не удалось оформить заказ',
         description: 'Попробуйте повторить позже.',
