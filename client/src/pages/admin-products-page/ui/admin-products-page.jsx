@@ -22,7 +22,7 @@ export const AdminProductsPage = () => {
   const [productIdPendingDeletion, setProductIdPendingDeletion] =
     useState(null);
 
-  const searchValue = queryParameters.get('search') || '';
+  const searchQuery = queryParameters.get('search') || '';
   const pageParameterValue = Number(queryParameters.get('page') || 1);
   const currentPage =
     Number.isInteger(pageParameterValue) && pageParameterValue > 0
@@ -34,7 +34,7 @@ export const AdminProductsPage = () => {
     isFetching: isProductsFetching,
     refetch: refetchProducts,
   } = useAdminListProductsQuery({
-    search: searchValue,
+    search: searchQuery,
     page: currentPage,
     limit: 10,
   });
@@ -88,14 +88,14 @@ export const AdminProductsPage = () => {
     refetchProducts();
   }
 
-  function handleSearchValueChange(nextSearchValue) {
+  function handleSearchQueryChange(nextSearchQuery) {
     setQueryParameters({
-      search: nextSearchValue,
+      search: nextSearchQuery,
       page: null,
     });
   }
 
-  function handleRefreshButtonClick() {
+  function handleProductsRefresh() {
     refetchProducts();
   }
 
@@ -151,10 +151,10 @@ export const AdminProductsPage = () => {
       </div>
       <div className={styles.productsSection}>
         <AdminProductsToolbar
-          searchValue={searchValue}
-          isRefreshing={isProductsFetching}
-          onSearchValueChange={handleSearchValueChange}
-          onRefresh={handleRefreshButtonClick}
+          searchQuery={searchQuery}
+          isProductsRefreshing={isProductsFetching}
+          onSearchQueryChange={handleSearchQueryChange}
+          onProductsRefresh={handleProductsRefresh}
         />
 
         {(isCreatingProduct || isUpdatingProduct || isDeletingProduct) && (

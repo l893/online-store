@@ -6,48 +6,48 @@ import styles from './admin-products-toolbar.module.scss';
 const ADMIN_PRODUCTS_SEARCH_DELAY_MILLISECONDS = 500;
 
 export const AdminProductsToolbar = ({
-  searchValue,
-  isRefreshing,
-  onSearchValueChange,
-  onRefresh,
+  searchQuery,
+  isProductsRefreshing,
+  onSearchQueryChange,
+  onProductsRefresh,
 }) => {
-  const onSearchValueChangeReference = useRef(onSearchValueChange);
-  const isSynchronizingExternalSearchValueReference = useRef(false);
+  const onSearchQueryChangeReference = useRef(onSearchQueryChange);
+  const isSynchronizingExternalSearchQueryReference = useRef(false);
 
-  const [inputSearchValue, setInputSearchValue] = useState(searchValue);
+  const [inputSearchQuery, setInputSearchQuery] = useState(searchQuery);
 
-  const debouncedSearchValue = useDebouncedValue(
-    inputSearchValue,
+  const debouncedSearchQuery = useDebouncedValue(
+    inputSearchQuery,
     ADMIN_PRODUCTS_SEARCH_DELAY_MILLISECONDS,
   );
 
   useEffect(() => {
-    onSearchValueChangeReference.current = onSearchValueChange;
-  }, [onSearchValueChange]);
+    onSearchQueryChangeReference.current = onSearchQueryChange;
+  }, [onSearchQueryChange]);
 
   useEffect(() => {
-    isSynchronizingExternalSearchValueReference.current = true;
-    setInputSearchValue(searchValue);
-  }, [searchValue]);
+    isSynchronizingExternalSearchQueryReference.current = true;
+    setInputSearchQuery(searchQuery);
+  }, [searchQuery]);
 
   useEffect(() => {
-    if (isSynchronizingExternalSearchValueReference.current) {
-      if (debouncedSearchValue === searchValue) {
-        isSynchronizingExternalSearchValueReference.current = false;
+    if (isSynchronizingExternalSearchQueryReference.current) {
+      if (debouncedSearchQuery === searchQuery) {
+        isSynchronizingExternalSearchQueryReference.current = false;
       }
 
       return;
     }
 
-    if (debouncedSearchValue === searchValue) {
+    if (debouncedSearchQuery === searchQuery) {
       return;
     }
 
-    onSearchValueChangeReference.current(debouncedSearchValue);
-  }, [debouncedSearchValue, searchValue]);
+    onSearchQueryChangeReference.current(debouncedSearchQuery);
+  }, [debouncedSearchQuery, searchQuery]);
 
   function handleSearchInputChange(event) {
-    setInputSearchValue(event.target.value);
+    setInputSearchQuery(event.target.value);
   }
 
   return (
@@ -55,11 +55,15 @@ export const AdminProductsToolbar = ({
       <Input
         placeholder="Поиск по названию…"
         autoComplete="off"
-        value={inputSearchValue}
+        value={inputSearchQuery}
         onChange={handleSearchInputChange}
       />
 
-      <Button type="button" onClick={onRefresh} disabled={isRefreshing}>
+      <Button
+        type="button"
+        onClick={onProductsRefresh}
+        disabled={isProductsRefreshing}
+      >
         Обновить
       </Button>
     </div>
