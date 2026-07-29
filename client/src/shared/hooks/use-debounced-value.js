@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
 
-export function useDebouncedValue(value, delay = 400) {
-  const [v, setV] = useState(value);
+export function useDebouncedValue(sourceValue, delayMilliseconds = 400) {
+  const [debouncedValue, setDebouncedValue] = useState(sourceValue);
 
   useEffect(() => {
-    const id = setTimeout(() => setV(value), delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
+    const timeoutIdentifier = window.setTimeout(() => {
+      setDebouncedValue(sourceValue);
+    }, delayMilliseconds);
 
-  return v;
+    return () => {
+      window.clearTimeout(timeoutIdentifier);
+    };
+  }, [sourceValue, delayMilliseconds]);
+
+  return debouncedValue;
 }
