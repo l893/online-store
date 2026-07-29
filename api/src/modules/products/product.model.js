@@ -10,9 +10,7 @@ const productSchema = new Schema(
     categoryId: { type: Schema.Types.ObjectId, ref: 'Category', index: true },
     stock: { type: Number, default: 0 },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
-
-productSchema.index({ title: 'text', description: 'text' });
 
 module.exports = model('Product', productSchema);
