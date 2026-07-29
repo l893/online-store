@@ -30,8 +30,8 @@ export function useInitialCartSync({
 
     const { shouldPushLocalItemsToServer, shouldReplaceLocalItemsWithServer } =
       getInitialCartSyncDecision({
-        localItems: localCartItems,
-        serverItems: serverCartItems,
+        localCartItems,
+        serverCartItems,
       });
 
     if (shouldPushLocalItemsToServer) {

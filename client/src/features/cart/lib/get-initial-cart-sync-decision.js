@@ -1,12 +1,12 @@
 export function getInitialCartSyncDecision({
-  localItems = [],
-  serverItems = [],
+  localCartItems = [],
+  serverCartItems = [],
 }) {
-  const hasLocalItems = localItems.length > 0;
-  const hasServerItems = serverItems.length > 0;
+  const hasLocalCartItems = localCartItems.length > 0;
+  const hasServerCartItems = serverCartItems.length > 0;
 
   return {
-    shouldPushLocalItemsToServer: hasLocalItems && !hasServerItems,
-    shouldReplaceLocalItemsWithServer: !hasLocalItems && hasServerItems,
+    shouldPushLocalItemsToServer: hasLocalCartItems && !hasServerCartItems,
+    shouldReplaceLocalItemsWithServer: !hasLocalCartItems && hasServerCartItems,
   };
 }
