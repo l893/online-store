@@ -37,8 +37,8 @@ export const CatalogPage = () => {
     <div className={styles.catalogLayout}>
       <div className={styles.searchSection}>
         <SearchBar
-          value={searchQuery}
-          onChange={(nextSearchQuery) =>
+          searchQuery={searchQuery}
+          onSearchQueryChange={(nextSearchQuery) =>
             setQueryParameters({
               search: nextSearchQuery,
               page: 1,

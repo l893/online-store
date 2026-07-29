@@ -3,44 +3,44 @@ import { Input } from '../../../shared/ui';
 import { useDebouncedValue } from '../../../shared/hooks';
 import styles from './search-bar.module.scss';
 
-export const SearchBar = ({ value = '', onChange }) => {
-  const [searchValue, setSearchValue] = useState(value);
-  const onChangeRef = useRef(onChange);
-  const isSynchronizingExternalValueReference = useRef(false);
-  const debouncedSearchValue = useDebouncedValue(searchValue, 500);
+export const SearchBar = ({ searchQuery = '', onSearchQueryChange }) => {
+  const [inputSearchQuery, setInputSearchQuery] = useState(searchQuery);
+  const onSearchQueryChangeReference = useRef(onSearchQueryChange);
+  const isSynchronizingExternalSearchQueryReference = useRef(false);
+  const debouncedSearchQuery = useDebouncedValue(inputSearchQuery, 500);
 
   useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
+    onSearchQueryChangeReference.current = onSearchQueryChange;
+  }, [onSearchQueryChange]);
 
   useEffect(() => {
-    isSynchronizingExternalValueReference.current = true;
-    setSearchValue(value);
-  }, [value]);
+    isSynchronizingExternalSearchQueryReference.current = true;
+    setInputSearchQuery(searchQuery);
+  }, [searchQuery]);
 
   useEffect(() => {
-    if (isSynchronizingExternalValueReference.current) {
-      if (debouncedSearchValue === value) {
-        isSynchronizingExternalValueReference.current = false;
+    if (isSynchronizingExternalSearchQueryReference.current) {
+      if (debouncedSearchQuery === searchQuery) {
+        isSynchronizingExternalSearchQueryReference.current = false;
       }
 
       return;
     }
 
-    if (debouncedSearchValue === value) {
+    if (debouncedSearchQuery === searchQuery) {
       return;
     }
 
-    onChangeRef.current?.(debouncedSearchValue);
-  }, [debouncedSearchValue, value]);
+    onSearchQueryChangeReference.current?.(debouncedSearchQuery);
+  }, [debouncedSearchQuery, searchQuery]);
 
   return (
     <div className={styles.searchBar}>
       <Input
         placeholder="Поиск по названию…"
         autoComplete="off"
-        value={searchValue}
-        onChange={(event) => setSearchValue(event.target.value)}
+        value={inputSearchQuery}
+        onChange={(event) => setInputSearchQuery(event.target.value)}
       />
     </div>
   );
