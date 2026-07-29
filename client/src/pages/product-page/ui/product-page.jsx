@@ -9,24 +9,24 @@ const PRODUCT_IMAGE_PLACEHOLDER_URL =
   'https://placehold.co/600x600?text=No+Image';
 
 export const ProductPage = () => {
-  const { slug } = useParams();
+  const { slug: productSlug } = useParams();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
 
   const {
     data: product,
-    isLoading,
-    isError,
-    error,
-  } = useGetProductQuery(slug, {
-    skip: !slug,
+    isLoading: isProductLoading,
+    isError: isProductError,
+    error: productError,
+  } = useGetProductQuery(productSlug, {
+    skip: !productSlug,
   });
 
-  if (!slug) {
+  if (!productSlug) {
     return <div className={styles.pageMessage}>Товар не найден</div>;
   }
 
-  if (isLoading) {
+  if (isProductLoading) {
     return (
       <div className={styles.loaderWrapper}>
         <Loader />
@@ -34,11 +34,11 @@ export const ProductPage = () => {
     );
   }
 
-  if (isError) {
+  if (isProductError) {
     return (
       <div className={styles.errorMessage}>
         Ошибка при загрузке товара:{' '}
-        {error?.data?.message || 'неизвестная ошибка'}
+        {productError?.data?.message || 'неизвестная ошибка'}
       </div>
     );
   }
