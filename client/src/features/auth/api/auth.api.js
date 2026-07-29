@@ -1,5 +1,6 @@
 import { api } from '../../../shared/lib/api';
 import { setCartItems } from '../../cart';
+import { publishAuthSessionChange } from '../lib/auth-session-events';
 import { normalizeUser } from '../lib/normalize-user';
 import { setCredentials, logout as logoutAction } from '../model/auth.slice';
 import { synchronizeCartAfterAuthentication } from './synchronize-cart-after-authentication';
@@ -31,6 +32,8 @@ async function completeAuthentication({ response, dispatch, getState }) {
     dispatch,
     getState,
   });
+
+  publishAuthSessionChange();
 }
 
 export const authApi = api.injectEndpoints({
@@ -106,6 +109,7 @@ export const authApi = api.injectEndpoints({
           dispatch(logoutAction());
           dispatch(setCartItems([]));
           dispatch(api.util.resetApiState());
+          publishAuthSessionChange();
         }
       },
     }),
