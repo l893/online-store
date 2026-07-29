@@ -1,9 +1,9 @@
 import { Button } from '../../../shared/ui';
 import styles from './sort-controls.module.scss';
 
-export const SortControls = ({ value = 'price_asc', onChange }) => {
-  const isPriceAscendingActive = value === 'price_asc';
-  const isPriceDescendingActive = value === 'price_desc';
+export const SortControls = ({ sortValue = 'price_asc', onSortChange }) => {
+  const isPriceAscendingActive = sortValue === 'price_asc';
+  const isPriceDescendingActive = sortValue === 'price_desc';
 
   return (
     <div className={styles.sortControls}>
@@ -11,14 +11,14 @@ export const SortControls = ({ value = 'price_asc', onChange }) => {
       <Button
         type="button"
         variant={isPriceAscendingActive ? 'contained' : 'outlined'}
-        onClick={() => onChange('price_asc')}
+        onClick={() => onSortChange('price_asc')}
       >
         По цене ↑
       </Button>
       <Button
         type="button"
         variant={isPriceDescendingActive ? 'contained' : 'outlined'}
-        onClick={() => onChange('price_desc')}
+        onClick={() => onSortChange('price_desc')}
       >
         По цене ↓
       </Button>

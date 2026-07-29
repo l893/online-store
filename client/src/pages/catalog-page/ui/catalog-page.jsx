@@ -63,11 +63,11 @@ export const CatalogPage = () => {
       <div className={styles.contentSection}>
         <div className={styles.sortPanel}>
           <SortControls
-            value={sort}
-            onChange={(sortValue) =>
+            sortValue={sort}
+            onSortChange={(selectedSortValue) =>
               setQueryParameters(
                 {
-                  sort: sortValue,
+                  sort: selectedSortValue,
                   page: 1,
                 },
                 {
