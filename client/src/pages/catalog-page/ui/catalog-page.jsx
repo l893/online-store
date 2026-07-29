@@ -10,17 +10,21 @@ import styles from './catalog-page.module.scss';
 export const CatalogPage = () => {
   const [queryParameters, setQueryParameters] = useQueryParams();
 
-  const search = queryParameters.get('search') || '';
+  const searchQuery = queryParameters.get('search') || '';
   const categorySlug = queryParameters.get('category') || '';
-  const sort = queryParameters.get('sort') || 'price_asc';
-  const page = Number(queryParameters.get('page') || 1);
+  const sortValue = queryParameters.get('sort') || 'price_asc';
+  const pageNumber = Number(queryParameters.get('page') || 1);
 
-  const { data, isLoading, isFetching } = useListProductsQuery(
+  const {
+    data: productsResponse,
+    isLoading: isProductsLoading,
+    isFetching: isProductsFetching,
+  } = useListProductsQuery(
     {
-      search,
+      search: searchQuery,
       category: categorySlug,
-      sort,
-      page,
+      sort: sortValue,
+      page: pageNumber,
       limit: 10,
     },
     {
@@ -33,10 +37,10 @@ export const CatalogPage = () => {
     <div className={styles.catalogLayout}>
       <div className={styles.searchSection}>
         <SearchBar
-          value={search}
-          onChange={(searchValue) =>
+          value={searchQuery}
+          onChange={(nextSearchQuery) =>
             setQueryParameters({
-              search: searchValue,
+              search: nextSearchQuery,
               page: 1,
             })
           }
@@ -63,7 +67,7 @@ export const CatalogPage = () => {
       <div className={styles.contentSection}>
         <div className={styles.sortPanel}>
           <SortControls
-            sortValue={sort}
+            sortValue={sortValue}
             onSortChange={(selectedSortValue) =>
               setQueryParameters(
                 {
@@ -78,23 +82,25 @@ export const CatalogPage = () => {
           />
         </div>
 
-        {(isLoading || isFetching) && (
+        {(isProductsLoading || isProductsFetching) && (
           <div className={styles.loaderWrapper}>
             <Loader label="Загружаем товары…" />
           </div>
         )}
 
-        {!isLoading && !isFetching && <ProductGrid products={data?.items} />}
+        {!isProductsLoading && !isProductsFetching && (
+          <ProductGrid products={productsResponse?.items} />
+        )}
 
-        {data?.pages > 1 && (
+        {productsResponse?.pages > 1 && (
           <div className={styles.pagination}>
             <button
               className={styles.paginationButton}
-              disabled={page <= 1}
+              disabled={pageNumber <= 1}
               onClick={() =>
                 setQueryParameters(
                   {
-                    page: page - 1,
+                    page: pageNumber - 1,
                   },
                   {
                     replace: false,
@@ -105,15 +111,15 @@ export const CatalogPage = () => {
               Назад
             </button>
             <span className={styles.paginationText}>
-              Стр. {page} из {data.pages}
+              Стр. {pageNumber} из {productsResponse.pages}
             </span>
             <button
               className={styles.paginationButton}
-              disabled={page >= data.pages}
+              disabled={pageNumber >= productsResponse.pages}
               onClick={() =>
                 setQueryParameters(
                   {
-                    page: page + 1,
+                    page: pageNumber + 1,
                   },
                   {
                     replace: false,
