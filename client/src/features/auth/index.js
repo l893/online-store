@@ -1,15 +1,16 @@
-// реэкспорт слайса
+// Store
 export { default as authReducer } from './model/auth.slice';
-export * from './model/auth.slice'; // setCredentials, logout
 
 // RTK Query
-export * from './api/auth.api';
+export {
+  useRegisterMutation,
+  useLoginMutation,
+  useRefreshMutation,
+  useLogoutMutation,
+} from './api/auth.api';
 
 // Cross-tab session synchronization
-export {
-  publishAuthSessionChange,
-  subscribeToAuthSessionChanges,
-} from './lib/auth-session-events';
+export { subscribeToAuthSessionChanges } from './lib/auth-session-events';
 
 // Route guards
 export { RequireAuth } from './ui/require-auth';
