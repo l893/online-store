@@ -50,7 +50,7 @@ export const CatalogPage = () => {
       <div className={styles.sidebarSection}>
         <CategorySidebar
           activeCategorySlug={categorySlug}
-          onCategoryChange={(selectedCategorySlug) =>
+          onCategorySlugChange={(selectedCategorySlug) =>
             setQueryParameters(
               {
                 category: selectedCategorySlug,
