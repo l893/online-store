@@ -1,15 +1,16 @@
+import {
+  PRODUCT_IMAGE_PLACEHOLDER_URL,
+  replaceBrokenProductImageWithPlaceholder,
+} from '../../../shared/lib';
 import { Button, Input } from '../../../shared/ui';
 import styles from './cart-item.module.scss';
-
-const CART_ITEM_IMAGE_PLACEHOLDER_URL =
-  'https://placehold.co/300x300?text=No+Image';
 
 export const CartItem = ({
   cartItem,
   onCartItemQuantityChange,
   onCartItemRemove,
 }) => {
-  const cartItemImageUrl = cartItem.image || CART_ITEM_IMAGE_PLACEHOLDER_URL;
+  const cartItemImageUrl = cartItem.image || PRODUCT_IMAGE_PLACEHOLDER_URL;
   const availableStock = Math.max(0, Number(cartItem.stock) || 0);
   const isProductUnavailable = availableStock === 0;
   const isDecreaseQuantityButtonDisabled = cartItem.qty <= 1;
@@ -25,10 +26,6 @@ export const CartItem = ({
     onCartItemQuantityChange(cartItem.productId, nextQuantity);
   }
 
-  function handleItemImageError(event) {
-    event.currentTarget.src = CART_ITEM_IMAGE_PLACEHOLDER_URL;
-  }
-
   return (
     <div className={styles.cartItem}>
       <div className={styles.imageWrapper}>
@@ -37,7 +34,7 @@ export const CartItem = ({
           alt={cartItem.title}
           className={styles.image}
           loading="lazy"
-          onError={handleItemImageError}
+          onError={replaceBrokenProductImageWithPlaceholder}
         />
       </div>
 

@@ -5,11 +5,12 @@ import {
   addProductToCart,
   createCartItemFromProduct,
 } from '../../../features/cart';
+import {
+  PRODUCT_IMAGE_PLACEHOLDER_URL,
+  replaceBrokenProductImageWithPlaceholder,
+} from '../../../shared/lib';
 import { Button, Loader } from '../../../shared/ui';
 import styles from './product-page.module.scss';
-
-const PRODUCT_IMAGE_PLACEHOLDER_URL =
-  'https://placehold.co/600x600?text=No+Image';
 
 export const ProductPage = () => {
   const { slug: productSlug } = useParams();
@@ -62,10 +63,6 @@ export const ProductPage = () => {
     dispatch(addProductToCart(createCartItemFromProduct(product)));
   };
 
-  const handleProductImageError = (event) => {
-    event.currentTarget.src = PRODUCT_IMAGE_PLACEHOLDER_URL;
-  };
-
   return (
     <section className={styles.productPage}>
       <div className={styles.productDetailsCard}>
@@ -75,7 +72,7 @@ export const ProductPage = () => {
             alt={product.title}
             className={styles.productImage}
             loading="eager"
-            onError={handleProductImageError}
+            onError={replaceBrokenProductImageWithPlaceholder}
           />
         </div>
 

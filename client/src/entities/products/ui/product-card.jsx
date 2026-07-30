@@ -1,9 +1,10 @@
+import {
+  PRODUCT_IMAGE_PLACEHOLDER_URL,
+  replaceBrokenProductImageWithPlaceholder,
+} from '../../../shared/lib';
 import { Button } from '../../../shared/ui';
 import { Link } from 'react-router-dom';
 import styles from './product-card.module.scss';
-
-const PRODUCT_IMAGE_PLACEHOLDER_URL =
-  'https://placehold.co/300x300?text=No+Image';
 
 export const ProductCard = ({
   product,
@@ -24,6 +25,7 @@ export const ProductCard = ({
           alt={product.title}
           className={styles.image}
           loading="lazy"
+          onError={replaceBrokenProductImageWithPlaceholder}
         />
       </div>
 

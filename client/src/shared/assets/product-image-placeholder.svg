@@ -1,0 +1,54 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 600 600"
+  role="img"
+  aria-labelledby="product-image-placeholder-title"
+>
+  <title id="product-image-placeholder-title">
+    Изображение товара отсутствует
+  </title>
+
+  <rect
+    width="600"
+    height="600"
+    fill="#f3f4f6"
+  />
+
+  <rect
+    x="170"
+    y="150"
+    width="260"
+    height="210"
+    rx="24"
+    fill="none"
+    stroke="#9ca3af"
+    stroke-width="18"
+  />
+
+  <circle
+    cx="245"
+    cy="225"
+    r="28"
+    fill="#9ca3af"
+  />
+
+  <path
+    d="M190 330L275 245L330 300L370 260L415 330"
+    fill="none"
+    stroke="#9ca3af"
+    stroke-width="18"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <text
+    x="300"
+    y="425"
+    fill="#6b7280"
+    font-family="Arial, sans-serif"
+    font-size="32"
+    text-anchor="middle"
+  >
+    Нет изображения
+  </text>
+</svg>
