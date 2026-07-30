@@ -10,6 +10,7 @@ export {
   useReplaceCartMutation,
 } from './api/cart.api';
 
+export { createCartItemFromProduct } from './lib/create-cart-item-from-product';
 export { getCartTotals } from './lib/get-cart-totals';
 export { mergeCartItems } from './lib/merge-cart-items';
 export { addProductToCart } from './model/add-product-to-cart';

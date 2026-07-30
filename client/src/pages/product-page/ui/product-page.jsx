@@ -1,7 +1,10 @@
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useGetProductQuery } from '../../../entities/products';
-import { addProductToCart } from '../../../features/cart';
+import {
+  addProductToCart,
+  createCartItemFromProduct,
+} from '../../../features/cart';
 import { Button, Loader } from '../../../shared/ui';
 import styles from './product-page.module.scss';
 
@@ -56,15 +59,7 @@ export const ProductPage = () => {
     (currentCartItem?.qty || 0) >= availableStock;
 
   const handleAddToCartButtonClick = () => {
-    dispatch(
-      addProductToCart({
-        productId: product._id,
-        title: product.title,
-        price: product.price,
-        image: product.images?.[0],
-        stock: availableStock,
-      }),
-    );
+    dispatch(addProductToCart(createCartItemFromProduct(product)));
   };
 
   const handleProductImageError = (event) => {

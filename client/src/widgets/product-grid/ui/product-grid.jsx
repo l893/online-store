@@ -1,6 +1,9 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { ProductCard } from '../../../entities/products';
-import { addProductToCart } from '../../../features/cart';
+import {
+  addProductToCart,
+  createCartItemFromProduct,
+} from '../../../features/cart';
 import styles from './product-grid.module.scss';
 
 export const ProductGrid = ({ products = [] }) => {
@@ -8,15 +11,7 @@ export const ProductGrid = ({ products = [] }) => {
   const cartItems = useSelector((state) => state.cart.items);
 
   function handleAddProductToCart(product) {
-    dispatch(
-      addProductToCart({
-        productId: product._id,
-        title: product.title,
-        price: product.price,
-        image: product.images?.[0],
-        stock: product.stock,
-      }),
-    );
+    dispatch(addProductToCart(createCartItemFromProduct(product)));
   }
 
   if (products.length === 0) {
