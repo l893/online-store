@@ -1,1 +1,1 @@
-export * from './api/categories.api';
+export { useListCategoriesQuery } from './api/categories.api';
