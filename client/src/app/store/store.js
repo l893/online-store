@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import { api } from '../../shared/lib/api';
+import { api } from '../../shared/lib';
 import { authReducer } from '../../features/auth';
 import { cartReducer } from '../../features/cart';
 

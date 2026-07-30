@@ -6,7 +6,7 @@ import {
   useConfirmCheckoutMutation,
   useCreateOrderMutation,
 } from '../../../features/orders';
-import { api } from '../../../shared/lib/api';
+import { api } from '../../../shared/lib';
 
 function getStockConflictItems(error, cartItems) {
   const errorCode = error?.data?.code;

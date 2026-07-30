@@ -1,4 +1,4 @@
-import { api } from '../../../shared/lib/api';
+import { api } from '../../../shared/lib';
 import { setCartItems } from '../../cart';
 import { publishAuthSessionChange } from '../lib/auth-session-events';
 import { normalizeUser } from '../lib/normalize-user';

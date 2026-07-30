@@ -1,5 +1,5 @@
 import { productsApi } from '../../../entities/products';
-import { api } from '../../../shared/lib/api';
+import { api } from '../../../shared/lib';
 import { mergeCartItems, setCartItems } from '../../cart';
 
 export async function synchronizeCartAfterAuthentication({
