@@ -1,8 +1,8 @@
 import { api } from '../../../shared/lib';
 
 export const categoriesApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    listCategories: build.query({
+  endpoints: (endpointBuilder) => ({
+    listCategories: endpointBuilder.query({
       query: () => '/categories',
       keepUnusedDataFor: 300,
     }),
