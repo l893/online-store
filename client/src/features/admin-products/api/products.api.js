@@ -1,22 +1,29 @@
 import { api } from '../../../shared/lib/api';
 
 export const adminProductsApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    adminListProducts: build.query({
+  endpoints: (endpointBuilder) => ({
+    adminListProducts: endpointBuilder.query({
       query: ({ search = '', page = 1, limit = 20 } = {}) => ({
         url: '/admin/products',
         params: { search, page, limit },
       }),
-      providesTags: (res) =>
-        res?.items
+      providesTags: (productsResponse) =>
+        productsResponse?.items
           ? [
-              ...res.items.map((p) => ({ type: 'AdminProduct', id: p._id })),
+              ...productsResponse.items.map((product) => ({
+                type: 'AdminProduct',
+                id: product._id,
+              })),
               { type: 'AdminProduct', id: 'LIST' },
             ]
           : [{ type: 'AdminProduct', id: 'LIST' }],
     }),
-    adminCreateProduct: build.mutation({
-      query: (body) => ({ url: '/admin/products', method: 'POST', body }),
+    adminCreateProduct: endpointBuilder.mutation({
+      query: (productPayload) => ({
+        url: '/admin/products',
+        method: 'POST',
+        body: productPayload,
+      }),
       invalidatesTags: [
         {
           type: 'AdminProduct',
@@ -25,11 +32,11 @@ export const adminProductsApi = api.injectEndpoints({
         'Product',
       ],
     }),
-    adminUpdateProduct: build.mutation({
-      query: ({ id, ...patch }) => ({
-        url: `/admin/products/${id}`,
+    adminUpdateProduct: endpointBuilder.mutation({
+      query: ({ id: productId, ...productChanges }) => ({
+        url: `/admin/products/${productId}`,
         method: 'PATCH',
-        body: patch,
+        body: productChanges,
       }),
       invalidatesTags: (response, error, queryArgument) => [
         {
@@ -43,8 +50,11 @@ export const adminProductsApi = api.injectEndpoints({
         'Product',
       ],
     }),
-    adminDeleteProduct: build.mutation({
-      query: (id) => ({ url: `/admin/products/${id}`, method: 'DELETE' }),
+    adminDeleteProduct: endpointBuilder.mutation({
+      query: (productId) => ({
+        url: `/admin/products/${productId}`,
+        method: 'DELETE',
+      }),
       invalidatesTags: [
         {
           type: 'AdminProduct',
