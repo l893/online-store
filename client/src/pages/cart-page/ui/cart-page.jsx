@@ -74,9 +74,11 @@ export const CartPage = () => {
   const productIds = storedCartItems.map((cartItem) => cartItem.productId);
 
   // если авторизован — подтянем серверную корзину
-  const { data: serverCart, isLoading: loadingServerCart } = useGetCartQuery(
+  const { data: serverCart, isLoading: isServerCartLoading } = useGetCartQuery(
     undefined,
-    { skip: !user },
+    {
+      skip: !user,
+    },
   );
 
   const {
@@ -96,7 +98,7 @@ export const CartPage = () => {
   );
 
   const isCartLoading =
-    (Boolean(user) && loadingServerCart) ||
+    (Boolean(user) && isServerCartLoading) ||
     isProductsAvailabilityLoading ||
     isProductsAvailabilityFetching;
 

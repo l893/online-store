@@ -1,4 +1,4 @@
-import { Button as MuiButton } from '@mui/material';
+import { Button as MaterialButton } from '@mui/material';
 
 export const Button = ({
   type = 'submit',
@@ -6,5 +6,7 @@ export const Button = ({
   color = 'warning',
   ...props
 }) => {
-  return <MuiButton type={type} variant={variant} color={color} {...props} />;
+  return (
+    <MaterialButton type={type} variant={variant} color={color} {...props} />
+  );
 };
