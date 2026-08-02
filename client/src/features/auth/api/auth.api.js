@@ -1,9 +1,10 @@
 import { api } from '../../../shared/lib';
-import { setCartItems } from '../../cart';
-import { publishAuthSessionChange } from '../lib/auth-session-events';
 import { normalizeUser } from '../lib/normalize-user';
+import {
+  authenticatedSessionCleared,
+  authenticatedSessionEstablished,
+} from '../model/auth-session.events';
 import { setCredentials, logout as logoutAction } from '../model/auth.slice';
-import { synchronizeCartAfterAuthentication } from './synchronize-cart-after-authentication';
 
 const storeAccessToken = (accessToken) => {
   if (accessToken) {
@@ -16,7 +17,7 @@ const removeStoredAuthTokens = () => {
   localStorage.removeItem('refreshToken');
 };
 
-async function completeAuthentication({ response, dispatch, getState }) {
+function completeAuthentication({ response, dispatch }) {
   const normalizedUser = normalizeUser(response.user);
 
   dispatch(
@@ -28,12 +29,7 @@ async function completeAuthentication({ response, dispatch, getState }) {
 
   storeAccessToken(response.accessToken);
 
-  await synchronizeCartAfterAuthentication({
-    dispatch,
-    getState,
-  });
-
-  publishAuthSessionChange();
+  dispatch(authenticatedSessionEstablished());
 }
 
 export const authApi = api.injectEndpoints({
@@ -44,14 +40,13 @@ export const authApi = api.injectEndpoints({
         method: 'POST',
         body: request,
       }),
-      async onQueryStarted(request, { dispatch, getState, queryFulfilled }) {
+      async onQueryStarted(request, { dispatch, queryFulfilled }) {
         try {
           const { data: response } = await queryFulfilled;
 
-          await completeAuthentication({
+          completeAuthentication({
             response,
             dispatch,
-            getState,
           });
         } catch {
           // Ошибка доступна через RTK Query mutation state.
@@ -64,14 +59,13 @@ export const authApi = api.injectEndpoints({
         method: 'POST',
         body: request,
       }),
-      async onQueryStarted(request, { dispatch, getState, queryFulfilled }) {
+      async onQueryStarted(request, { dispatch, queryFulfilled }) {
         try {
           const { data: response } = await queryFulfilled;
 
-          await completeAuthentication({
+          completeAuthentication({
             response,
             dispatch,
-            getState,
           });
         } catch {
           // Ошибка доступна через RTK Query mutation state.
@@ -107,9 +101,8 @@ export const authApi = api.injectEndpoints({
         } finally {
           removeStoredAuthTokens();
           dispatch(logoutAction());
-          dispatch(setCartItems([]));
           dispatch(api.util.resetApiState());
-          publishAuthSessionChange();
+          dispatch(authenticatedSessionCleared());
         }
       },
     }),

@@ -1,7 +1,12 @@
 const AUTH_SESSION_CHANGE_STORAGE_KEY = 'authSessionChange';
 
-export function publishAuthSessionChange() {
-  localStorage.setItem(AUTH_SESSION_CHANGE_STORAGE_KEY, crypto.randomUUID());
+export function publishAuthSessionChange(
+  sessionChangeIdentifier = crypto.randomUUID(),
+) {
+  localStorage.setItem(
+    AUTH_SESSION_CHANGE_STORAGE_KEY,
+    sessionChangeIdentifier,
+  );
 }
 
 export function subscribeToAuthSessionChanges(listener) {

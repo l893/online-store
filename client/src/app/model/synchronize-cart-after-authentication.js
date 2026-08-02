@@ -1,10 +1,11 @@
-import { productsApi } from '../../../entities/products';
-import { api } from '../../../shared/lib';
-import { mergeCartItems, setCartItems } from '../../cart';
+import { productsApi } from '../../entities/products';
+import { mergeCartItems, setCartItems } from '../../features/cart';
+import { api } from '../../shared/lib';
 
 export async function synchronizeCartAfterAuthentication({
   dispatch,
   getState,
+  signal,
 }) {
   const localCartItems = getState().cart.items || [];
 
@@ -14,6 +15,10 @@ export async function synchronizeCartAfterAuthentication({
       subscribe: false,
     }),
   ).unwrap();
+
+  if (signal.aborted) {
+    return;
+  }
 
   const serverCartItems = Array.isArray(serverCartResponse.items)
     ? serverCartResponse.items
@@ -40,6 +45,10 @@ export async function synchronizeCartAfterAuthentication({
       }),
     ).unwrap();
 
+    if (signal.aborted) {
+      return;
+    }
+
     const productAvailabilityItems = Array.isArray(
       productAvailabilityResponse.items,
     )
@@ -61,6 +70,10 @@ export async function synchronizeCartAfterAuthentication({
       api.endpoints.replaceCart.initiate(mergedCartItems),
     ).unwrap();
 
+    if (signal.aborted) {
+      return;
+    }
+
     const updatedServerCartItems = Array.isArray(updatedCartResponse.items)
       ? updatedCartResponse.items
       : [];
@@ -73,6 +86,8 @@ export async function synchronizeCartAfterAuthentication({
 
     dispatch(setCartItems(updatedServerCartItems));
   } catch {
-    dispatch(setCartItems(serverCartItems));
+    if (!signal.aborted) {
+      dispatch(setCartItems(serverCartItems));
+    }
   }
 }

@@ -8,6 +8,7 @@ import {
   loadGuestCartItems,
   saveGuestCartItems,
 } from '../../features/cart';
+import { authCartSynchronizationListener } from './auth-cart-synchronization-listener';
 
 const preloadedGuestCartItems = loadGuestCartItems();
 
@@ -23,7 +24,9 @@ export const store = configureStore({
     },
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(api.middleware),
+    getDefaultMiddleware()
+      .prepend(authCartSynchronizationListener.middleware)
+      .concat(api.middleware),
 });
 
 let previousCartItems = store.getState().cart.items;

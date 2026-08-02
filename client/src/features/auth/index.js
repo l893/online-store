@@ -10,7 +10,16 @@ export {
 } from './api/auth.api';
 
 // Cross-tab session synchronization
-export { subscribeToAuthSessionChanges } from './lib/auth-session-events';
+export {
+  publishAuthSessionChange,
+  subscribeToAuthSessionChanges,
+} from './lib/auth-session-events';
+
+// Authenticated session events
+export {
+  authenticatedSessionCleared,
+  authenticatedSessionEstablished,
+} from './model/auth-session.events';
 
 // Route guards
 export { RequireAuth } from './ui/require-auth';
