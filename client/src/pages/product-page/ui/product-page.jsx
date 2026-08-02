@@ -16,6 +16,7 @@ export const ProductPage = () => {
   const { slug: productSlug } = useParams();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
+  const isAuthenticated = useSelector((state) => Boolean(state.auth.user));
 
   const {
     data: product,
@@ -60,7 +61,12 @@ export const ProductPage = () => {
     (currentCartItem?.qty || 0) >= availableStock;
 
   const handleAddToCartButtonClick = () => {
-    dispatch(addProductToCart(createCartItemFromProduct(product)));
+    dispatch(
+      addProductToCart({
+        cartItem: createCartItemFromProduct(product),
+        isAuthenticated,
+      }),
+    );
   };
 
   return (

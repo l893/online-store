@@ -2,7 +2,7 @@ import { api } from '../../../shared/lib';
 import { cartApi } from '../api/cart.api';
 import { addCartItem, setCartItems } from './cart.slice';
 
-export function addProductToCart(cartItem) {
+export function addProductToCart({ cartItem, isAuthenticated }) {
   return async (dispatch, getState) => {
     const availableStock = Math.max(0, Number(cartItem.stock) || 0);
     const previousCartItems = getState().cart.items;
@@ -31,8 +31,6 @@ export function addProductToCart(cartItem) {
         qty: quantityToAdd,
       }),
     );
-
-    const isAuthenticated = Boolean(getState().auth.user);
 
     if (!isAuthenticated) {
       return;

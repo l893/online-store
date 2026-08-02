@@ -9,9 +9,15 @@ import styles from './product-grid.module.scss';
 export const ProductGrid = ({ products = [] }) => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
+  const isAuthenticated = useSelector((state) => Boolean(state.auth.user));
 
   function handleAddProductToCart(product) {
-    dispatch(addProductToCart(createCartItemFromProduct(product)));
+    dispatch(
+      addProductToCart({
+        cartItem: createCartItemFromProduct(product),
+        isAuthenticated,
+      }),
+    );
   }
 
   if (products.length === 0) {
