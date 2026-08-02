@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useRefreshMutation } from '../../features/auth';
 import { setCartItems, useLazyGetCartQuery } from '../../features/cart';
+import { getStoredAccessToken } from '../../shared/lib';
 
 export function useAuthBootstrap() {
   const authenticatedSessionBootstrapPromiseReference = useRef(null);
@@ -17,7 +18,7 @@ export function useAuthBootstrap() {
     let isMounted = true;
 
     async function bootstrapAuth() {
-      const hasStoredAccessToken = Boolean(localStorage.getItem('accessToken'));
+      const hasStoredAccessToken = Boolean(getStoredAccessToken());
 
       if (!hasStoredAccessToken) {
         if (isMounted) {

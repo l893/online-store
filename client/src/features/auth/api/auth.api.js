@@ -1,4 +1,8 @@
-import { api } from '../../../shared/lib';
+import {
+  api,
+  removeStoredAccessToken,
+  storeAccessToken,
+} from '../../../shared/lib';
 import { normalizeUser } from '../lib/normalize-user';
 import {
   authenticatedSessionCleared,
@@ -6,16 +10,15 @@ import {
 } from '../model/auth-session.events';
 import { setCredentials, logout as logoutAction } from '../model/auth.slice';
 
-const storeAccessToken = (accessToken) => {
-  if (accessToken) {
-    localStorage.setItem('accessToken', accessToken);
-  }
-};
+function clearStoredAuthenticationData() {
+  removeStoredAccessToken();
 
-const removeStoredAuthTokens = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-};
+  try {
+    localStorage.removeItem('refreshToken');
+  } catch {
+    // Legacy refresh token cleanup is best-effort.
+  }
+}
 
 function completeAuthentication({ response, dispatch }) {
   const normalizedUser = normalizeUser(response.user);
@@ -88,7 +91,7 @@ export const authApi = api.injectEndpoints({
 
           storeAccessToken(response.accessToken);
         } catch {
-          removeStoredAuthTokens();
+          clearStoredAuthenticationData();
           // Ошибка refresh не требует локального UI-обработчика.
         }
       },
@@ -99,7 +102,7 @@ export const authApi = api.injectEndpoints({
         try {
           await queryFulfilled;
         } finally {
-          removeStoredAuthTokens();
+          clearStoredAuthenticationData();
           dispatch(logoutAction());
           dispatch(api.util.resetApiState());
           dispatch(authenticatedSessionCleared());
