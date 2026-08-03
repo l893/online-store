@@ -25,7 +25,6 @@ function completeAuthentication({ response, dispatch }) {
 
   dispatch(
     setCredentials({
-      ...response,
       user: normalizedUser,
     }),
   );
@@ -84,7 +83,6 @@ export const authApi = api.injectEndpoints({
 
           dispatch(
             setCredentials({
-              ...response,
               user: normalizedUser,
             }),
           );
