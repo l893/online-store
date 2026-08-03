@@ -5,11 +5,10 @@ const User = require('./user.model');
 const RefreshToken = require('./refresh-token.model');
 const { signAccess, signRefresh, verifyRefresh } = require('../../shared/jwt');
 
-const COOKIE_NAME = 'refreshToken'; // httpOnly cookie
+const REFRESH_TOKEN_COOKIE_NAME = 'refreshToken';
 const REFRESH_COOKIE_PATH = '/api/auth';
 const REFRESH_TOKEN_LIFETIME_MILLISECONDS = 30 * 24 * 60 * 60 * 1000;
 
-// helpers
 function getRefreshCookieOptions() {
   const isProduction = process.env.NODE_ENV === 'production';
 
@@ -22,14 +21,14 @@ function getRefreshCookieOptions() {
 }
 
 function setRefreshCookie(response, refreshToken) {
-  response.cookie(COOKIE_NAME, refreshToken, {
+  response.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
     ...getRefreshCookieOptions(),
     maxAge: REFRESH_TOKEN_LIFETIME_MILLISECONDS,
   });
 }
 
 function clearRefreshCookie(response) {
-  response.clearCookie(COOKIE_NAME, getRefreshCookieOptions());
+  response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, getRefreshCookieOptions());
 }
 
 function rejectRefreshRequest(response, message) {
@@ -54,32 +53,44 @@ async function revokeUserRefreshSessions(userId) {
   );
 }
 
-async function createRefresh(userId, ua, ip) {
-  const jti = crypto.randomUUID();
-  const token = signRefresh({ sub: userId, jti });
+async function createRefreshToken(userId, userAgent, ipAddress) {
+  const refreshTokenIdentifier = crypto.randomUUID();
+  const refreshToken = signRefresh({
+    sub: userId,
+    jti: refreshTokenIdentifier,
+  });
 
   await RefreshToken.create({
     userId,
-    jti,
-    userAgent: ua,
-    ip,
+    jti: refreshTokenIdentifier,
+    userAgent,
+    ip: ipAddress,
     expiresAt: new Date(Date.now() + REFRESH_TOKEN_LIFETIME_MILLISECONDS),
   });
 
-  return token;
+  return refreshToken;
 }
 
-router.post('/register', async (req, res, next) => {
+router.post('/register', async (request, response, nextMiddleware) => {
   try {
-    const { email, password, name } = req.body || {};
-    if (!email || !password)
-      return res.status(400).json({ message: 'email & password required' });
-    const exists = await User.findOne({ email });
-    if (exists)
-      return res.status(409).json({ message: 'Email already registered' });
+    const { email, password, name } = request.body || {};
+
+    if (!email || !password) {
+      return response.status(400).json({
+        message: 'email & password required',
+      });
+    }
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return response.status(409).json({
+        message: 'Email already registered',
+      });
+    }
 
     const passwordHash = await bcrypt.hash(password, 11);
-    const user = await User.create({
+    const userDocument = await User.create({
       email,
       passwordHash,
       name,
@@ -87,65 +98,79 @@ router.post('/register', async (req, res, next) => {
     });
 
     const accessToken = signAccess({
-      sub: user._id.toString(),
-      roles: user.roles,
+      sub: userDocument._id.toString(),
+      roles: userDocument.roles,
     });
 
-    const refreshToken = await createRefresh(
-      user._id,
-      req.headers['user-agent'] || '',
-      req.ip,
+    const refreshToken = await createRefreshToken(
+      userDocument._id,
+      request.headers['user-agent'] || '',
+      request.ip,
     );
 
-    setRefreshCookie(res, refreshToken);
-    res.json({
+    setRefreshCookie(response, refreshToken);
+    response.json({
       accessToken,
       user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        roles: user.roles,
+        id: userDocument._id,
+        email: userDocument.email,
+        name: userDocument.name,
+        roles: userDocument.roles,
       },
     });
-  } catch (e) {
-    next(e);
+  } catch (error) {
+    nextMiddleware(error);
   }
 });
 
-router.post('/login', async (req, res, next) => {
+router.post('/login', async (request, response, nextMiddleware) => {
   try {
-    const { email, password } = req.body || {};
-    const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
-    const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
+    const { email, password } = request.body || {};
+    const userDocument = await User.findOne({ email });
+
+    if (!userDocument) {
+      return response.status(401).json({
+        message: 'Invalid credentials',
+      });
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      userDocument.passwordHash,
+    );
+
+    if (!isPasswordValid) {
+      return response.status(401).json({
+        message: 'Invalid credentials',
+      });
+    }
 
     const accessToken = signAccess({
-      sub: user._id.toString(),
-      roles: user.roles,
+      sub: userDocument._id.toString(),
+      roles: userDocument.roles,
     });
-    const refreshToken = await createRefresh(
-      user._id,
-      req.headers['user-agent'] || '',
-      req.ip,
+    const refreshToken = await createRefreshToken(
+      userDocument._id,
+      request.headers['user-agent'] || '',
+      request.ip,
     );
 
-    setRefreshCookie(res, refreshToken);
-    res.json({
+    setRefreshCookie(response, refreshToken);
+    response.json({
       accessToken,
       user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        roles: user.roles,
+        id: userDocument._id,
+        email: userDocument.email,
+        name: userDocument.name,
+        roles: userDocument.roles,
       },
     });
-  } catch (e) {
-    next(e);
+  } catch (error) {
+    nextMiddleware(error);
   }
 });
 
-router.post('/refresh', async (request, response, next) => {
+router.post('/refresh', async (request, response, nextMiddleware) => {
   try {
     const refreshCookie = request.cookies?.refreshToken;
 
@@ -161,9 +186,9 @@ router.post('/refresh', async (request, response, next) => {
       return rejectRefreshRequest(response, 'Invalid refresh token');
     }
 
-    const user = await User.findById(refreshTokenPayload.sub);
+    const userDocument = await User.findById(refreshTokenPayload.sub);
 
-    if (!user) {
+    if (!userDocument) {
       await RefreshToken.deleteMany({
         userId: refreshTokenPayload.sub,
       });
@@ -203,7 +228,7 @@ router.post('/refresh', async (request, response, next) => {
       );
     }
 
-    const refreshToken = await createRefresh(
+    const refreshToken = await createRefreshToken(
       refreshTokenPayload.sub,
       request.headers['user-agent'] || '',
       request.ip,
@@ -211,41 +236,44 @@ router.post('/refresh', async (request, response, next) => {
     setRefreshCookie(response, refreshToken);
 
     const accessToken = signAccess({
-      sub: user._id.toString(),
-      roles: user.roles,
+      sub: userDocument._id.toString(),
+      roles: userDocument.roles,
     });
 
     return response.json({
       accessToken,
       user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        roles: user.roles,
+        id: userDocument._id,
+        email: userDocument.email,
+        name: userDocument.name,
+        roles: userDocument.roles,
       },
     });
   } catch (error) {
-    next(error);
+    nextMiddleware(error);
   }
 });
 
-router.post('/logout', async (req, res, next) => {
+router.post('/logout', async (request, response, nextMiddleware) => {
   try {
-    const cookie = req.cookies?.refreshToken;
-    if (cookie) {
-      try {
-        const payload = verifyRefresh(cookie);
+    const refreshCookie = request.cookies?.refreshToken;
 
-        // Удаляем все токены текущего пользователя
-        await RefreshToken.deleteMany({ userId: payload.sub });
-      } catch (err) {
-        console.error('Logout cleanup error:', err.message);
+    if (refreshCookie) {
+      try {
+        const refreshTokenPayload = verifyRefresh(refreshCookie);
+
+        await RefreshToken.deleteMany({
+          userId: refreshTokenPayload.sub,
+        });
+      } catch (error) {
+        console.error('Logout cleanup error:', error.message);
       }
     }
-    clearRefreshCookie(res);
-    res.json({ ok: true });
-  } catch (e) {
-    next(e);
+
+    clearRefreshCookie(response);
+    response.json({ ok: true });
+  } catch (error) {
+    nextMiddleware(error);
   }
 });
 
