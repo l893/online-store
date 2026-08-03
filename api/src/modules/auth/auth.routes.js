@@ -71,6 +71,38 @@ async function createRefreshToken(userId, userAgent, ipAddress) {
   return refreshToken;
 }
 
+function createAuthenticatedUserResponse(userDocument) {
+  return {
+    id: userDocument._id,
+    email: userDocument.email,
+    name: userDocument.name,
+    roles: userDocument.roles,
+  };
+}
+
+async function establishAuthenticatedSession({
+  userDocument,
+  request,
+  response,
+}) {
+  const accessToken = signAccess({
+    sub: userDocument._id.toString(),
+    roles: userDocument.roles,
+  });
+  const refreshToken = await createRefreshToken(
+    userDocument._id,
+    request.headers['user-agent'] || '',
+    request.ip,
+  );
+
+  setRefreshCookie(response, refreshToken);
+
+  return response.json({
+    accessToken,
+    user: createAuthenticatedUserResponse(userDocument),
+  });
+}
+
 router.post('/register', async (request, response, nextMiddleware) => {
   try {
     const { email, password, name } = request.body || {};
@@ -97,26 +129,10 @@ router.post('/register', async (request, response, nextMiddleware) => {
       roles: ['user'],
     });
 
-    const accessToken = signAccess({
-      sub: userDocument._id.toString(),
-      roles: userDocument.roles,
-    });
-
-    const refreshToken = await createRefreshToken(
-      userDocument._id,
-      request.headers['user-agent'] || '',
-      request.ip,
-    );
-
-    setRefreshCookie(response, refreshToken);
-    response.json({
-      accessToken,
-      user: {
-        id: userDocument._id,
-        email: userDocument.email,
-        name: userDocument.name,
-        roles: userDocument.roles,
-      },
+    return establishAuthenticatedSession({
+      userDocument,
+      request,
+      response,
     });
   } catch (error) {
     nextMiddleware(error);
@@ -145,25 +161,10 @@ router.post('/login', async (request, response, nextMiddleware) => {
       });
     }
 
-    const accessToken = signAccess({
-      sub: userDocument._id.toString(),
-      roles: userDocument.roles,
-    });
-    const refreshToken = await createRefreshToken(
-      userDocument._id,
-      request.headers['user-agent'] || '',
-      request.ip,
-    );
-
-    setRefreshCookie(response, refreshToken);
-    response.json({
-      accessToken,
-      user: {
-        id: userDocument._id,
-        email: userDocument.email,
-        name: userDocument.name,
-        roles: userDocument.roles,
-      },
+    return establishAuthenticatedSession({
+      userDocument,
+      request,
+      response,
     });
   } catch (error) {
     nextMiddleware(error);
@@ -228,26 +229,10 @@ router.post('/refresh', async (request, response, nextMiddleware) => {
       );
     }
 
-    const refreshToken = await createRefreshToken(
-      refreshTokenPayload.sub,
-      request.headers['user-agent'] || '',
-      request.ip,
-    );
-    setRefreshCookie(response, refreshToken);
-
-    const accessToken = signAccess({
-      sub: userDocument._id.toString(),
-      roles: userDocument.roles,
-    });
-
-    return response.json({
-      accessToken,
-      user: {
-        id: userDocument._id,
-        email: userDocument.email,
-        name: userDocument.name,
-        roles: userDocument.roles,
-      },
+    return establishAuthenticatedSession({
+      userDocument,
+      request,
+      response,
     });
   } catch (error) {
     nextMiddleware(error);
