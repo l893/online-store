@@ -2,7 +2,6 @@ const router = require('express').Router();
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const User = require('./user.model');
-const Cart = require('../cart/cart.model');
 const RefreshToken = require('./refresh-token.model');
 const { signAccess, signRefresh, verifyRefresh } = require('../../shared/jwt');
 
@@ -239,13 +238,6 @@ router.post('/logout', async (req, res, next) => {
 
         // Удаляем все токены текущего пользователя
         await RefreshToken.deleteMany({ userId: payload.sub });
-
-        // Очистка пустых корзин
-        const cart = await Cart.findOne({ userId: payload.sub });
-        if (cart && (!cart.items || cart.items.length === 0)) {
-          await Cart.deleteOne({ userId: payload.sub });
-          console.log(`🧺 Removed empty cart for user ${payload.sub}`);
-        }
       } catch (err) {
         console.error('Logout cleanup error:', err.message);
       }
