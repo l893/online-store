@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { requireAuth } = require('../../shared/auth.middleware');
 const Cart = require('../cart/cart.model');
+const { deleteUserCartDocument } = require('../cart/cart.service');
 const Product = require('../products/product.model');
 const Order = require('./order.model');
 
@@ -75,20 +76,6 @@ async function rollbackOrderCheckout({ orderId, reservedStockItems }) {
     {
       $set: {
         status: 'draft',
-      },
-    },
-  );
-}
-
-async function clearUserCart(userId) {
-  await Cart.updateOne(
-    {
-      userId,
-    },
-    {
-      $set: {
-        items: [],
-        updatedAt: new Date(),
       },
     },
   );
@@ -243,7 +230,7 @@ router.post('/checkout/confirm', async (request, response, next) => {
       }
 
       if (existingOrderDocument.status === 'paid') {
-        await clearUserCart(request.user.id);
+        await deleteUserCartDocument(request.user.id);
 
         return response.json({
           ok: true,
@@ -352,7 +339,7 @@ router.post('/checkout/confirm', async (request, response, next) => {
 
     isOrderPaid = true;
 
-    await clearUserCart(request.user.id);
+    await deleteUserCartDocument(request.user.id);
 
     return response.json({
       ok: true,

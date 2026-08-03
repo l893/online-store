@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { requireAuth } = require('../../shared/auth.middleware');
 const Cart = require('./cart.model');
 const Product = require('../products/product.model');
+const { deleteUserCartDocument } = require('./cart.service');
 
 function getAvailableProductStock(productDocument) {
   return Math.max(0, Math.floor(Number(productDocument.stock) || 0));
@@ -140,6 +141,15 @@ router.put('/', async (request, response, next) => {
       });
     }
 
+    if (normalizedCartItems.length === 0) {
+      await deleteUserCartDocument(request.user.id);
+
+      return response.json({
+        userId: request.user.id,
+        items: [],
+      });
+    }
+
     const cartDocument = await Cart.findOneAndUpdate(
       {
         userId: request.user.id,
@@ -185,6 +195,15 @@ router.delete('/item/:productId', async (request, response, next) => {
     cartDocument.items = cartDocument.items.filter(
       (cartItem) => String(cartItem.productId) !== String(productId),
     );
+
+    if (cartDocument.items.length === 0) {
+      await deleteUserCartDocument(request.user.id);
+
+      return response.json({
+        userId: request.user.id,
+        items: [],
+      });
+    }
 
     cartDocument.markModified('items');
     cartDocument.updatedAt = new Date();
