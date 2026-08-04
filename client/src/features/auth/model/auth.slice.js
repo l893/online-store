@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { authenticationSessionExpired } from '../../../shared/lib';
 
 const initialAuthState = {
   user: null,
@@ -14,6 +15,11 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(authenticationSessionExpired, (state) => {
+      state.user = null;
+    });
   },
 });
 

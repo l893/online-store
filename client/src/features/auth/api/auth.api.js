@@ -1,5 +1,6 @@
 import {
   api,
+  invalidatePendingAccessTokenRefresh,
   removeStoredAccessToken,
   storeAccessToken,
 } from '../../../shared/lib';
@@ -22,6 +23,8 @@ function clearStoredAuthenticationData() {
 
 function completeAuthentication({ response, dispatch }) {
   const normalizedUser = normalizeUser(response.user);
+
+  invalidatePendingAccessTokenRefresh();
 
   dispatch(
     setCredentials({
@@ -87,6 +90,7 @@ export const authApi = api.injectEndpoints({
             }),
           );
 
+          invalidatePendingAccessTokenRefresh();
           storeAccessToken(response.accessToken);
         } catch {
           clearStoredAuthenticationData();
@@ -97,6 +101,9 @@ export const authApi = api.injectEndpoints({
     logout: endpointBuilder.mutation({
       query: () => ({ url: '/auth/logout', method: 'POST' }),
       async onQueryStarted(request, { dispatch, queryFulfilled }) {
+        invalidatePendingAccessTokenRefresh();
+        clearStoredAuthenticationData();
+
         try {
           await queryFulfilled;
         } finally {
