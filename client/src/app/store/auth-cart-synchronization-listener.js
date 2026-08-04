@@ -19,13 +19,23 @@ authCartSynchronizationListener.startListening({
   effect: async (authSessionAction, listenerApi) => {
     listenerApi.cancelActiveListeners();
 
-    if (
-      authenticatedSessionCleared.match(authSessionAction) ||
-      authenticationSessionExpired.match(authSessionAction)
-    ) {
+    const isAuthenticationSessionCleared =
+      authenticatedSessionCleared.match(authSessionAction);
+    const isAuthenticationSessionExpired =
+      authenticationSessionExpired.match(authSessionAction);
+
+    if (isAuthenticationSessionCleared || isAuthenticationSessionExpired) {
+      if (isAuthenticationSessionExpired) {
+        await listenerApi.delay(0);
+
+        if (listenerApi.signal.aborted) {
+          return;
+        }
+      }
+
       listenerApi.dispatch(setCartItems([]));
 
-      if (authenticationSessionExpired.match(authSessionAction)) {
+      if (isAuthenticationSessionExpired) {
         listenerApi.dispatch(api.util.resetApiState());
       }
 
