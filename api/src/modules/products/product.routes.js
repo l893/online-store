@@ -52,9 +52,11 @@ router.get('/', async (req, res, next) => {
     const sortMap = {
       price_asc: {
         price: 1,
+        _id: 1,
       },
       price_desc: {
         price: -1,
+        _id: -1,
       },
     };
 
