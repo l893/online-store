@@ -65,7 +65,6 @@ export const AdminProductsPage = () => {
     await createProduct(productPayload).unwrap();
     setQueryParameters({ page: null });
     setEditingProduct(null);
-    refetchProducts();
   }
 
   async function handleUpdate(productFormValues) {
@@ -75,7 +74,6 @@ export const AdminProductsPage = () => {
       ...productPayload,
     }).unwrap();
     setEditingProduct(null);
-    refetchProducts();
   }
 
   async function handleDeleteConfirm() {
@@ -85,7 +83,6 @@ export const AdminProductsPage = () => {
 
     await deleteProduct(productIdPendingDeletion).unwrap();
     setProductIdPendingDeletion(null);
-    refetchProducts();
   }
 
   function handleSearchQueryChange(nextSearchQuery) {
