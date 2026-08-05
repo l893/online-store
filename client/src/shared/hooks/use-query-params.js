@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 export function useQueryParams() {
@@ -10,39 +10,42 @@ export function useQueryParams() {
     [searchString],
   );
 
-  function setQueryParameters(queryParameterUpdates, { replace = true } = {}) {
-    const nextQueryParameters = new URLSearchParams(searchString);
+  const setQueryParameters = useCallback(
+    (queryParameterUpdates, { replace = true } = {}) => {
+      const nextQueryParameters = new URLSearchParams(searchString);
 
-    Object.entries(queryParameterUpdates).forEach(
-      ([queryParameterName, queryParameterValue]) => {
-        if (
-          queryParameterValue === undefined ||
-          queryParameterValue === null ||
-          queryParameterValue === ''
-        ) {
-          nextQueryParameters.delete(queryParameterName);
-          return;
-        }
+      Object.entries(queryParameterUpdates).forEach(
+        ([queryParameterName, queryParameterValue]) => {
+          if (
+            queryParameterValue === undefined ||
+            queryParameterValue === null ||
+            queryParameterValue === ''
+          ) {
+            nextQueryParameters.delete(queryParameterName);
+            return;
+          }
 
-        nextQueryParameters.set(
-          queryParameterName,
-          String(queryParameterValue),
-        );
-      },
-    );
+          nextQueryParameters.set(
+            queryParameterName,
+            String(queryParameterValue),
+          );
+        },
+      );
 
-    const nextSearchString = nextQueryParameters.toString();
+      const nextSearchString = nextQueryParameters.toString();
 
-    navigate(
-      {
-        pathname,
-        search: nextSearchString ? `?${nextSearchString}` : '',
-      },
-      {
-        replace,
-      },
-    );
-  }
+      navigate(
+        {
+          pathname,
+          search: nextSearchString ? `?${nextSearchString}` : '',
+        },
+        {
+          replace,
+        },
+      );
+    },
+    [navigate, pathname, searchString],
+  );
 
   return [queryParameters, setQueryParameters];
 }

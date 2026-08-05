@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useListCategoriesQuery } from '../../../entities/categories';
 import { useListProductsQuery } from '../../../entities/products';
 import { useQueryParams } from '../../../shared/hooks';
 import { Loader } from '../../../shared/ui';
@@ -5,18 +7,31 @@ import { CategorySidebar } from '../../../widgets/category-sidebar';
 import { ProductGrid } from '../../../widgets/product-grid';
 import { SearchBar } from '../../../widgets/search-bar';
 import { SortControls } from '../../../widgets/sort-controls';
+import {
+  isKnownCatalogCategorySlug,
+  normalizeCatalogCategorySlug,
+  normalizeCatalogPageNumber,
+  normalizeCatalogSortValue,
+} from '../model/catalog-query-parameters';
 import styles from './catalog-page.module.scss';
 
 export const CatalogPage = () => {
   const [queryParameters, setQueryParameters] = useQueryParams();
 
   const searchQuery = queryParameters.get('search') || '';
-  const categorySlug = queryParameters.get('category') || '';
-  const sortValue = queryParameters.get('sort') || 'price_asc';
-  const pageNumber = Number(queryParameters.get('page') || 1);
+  const categoryParameterValue = queryParameters.get('category');
+  const sortParameterValue = queryParameters.get('sort');
+  const pageParameterValue = queryParameters.get('page');
+
+  const categorySlug = normalizeCatalogCategorySlug(categoryParameterValue);
+  const sortValue = normalizeCatalogSortValue(sortParameterValue);
+  const pageNumber = normalizeCatalogPageNumber(pageParameterValue);
+
+  const { data: categories = [], isSuccess: areCategoriesLoaded } =
+    useListCategoriesQuery();
 
   const {
-    data: productsResponse,
+    currentData: productsResponse,
     isLoading: isProductsLoading,
     isFetching: isProductsFetching,
   } = useListProductsQuery(
@@ -32,6 +47,63 @@ export const CatalogPage = () => {
       refetchOnFocus: true,
     },
   );
+
+  useEffect(() => {
+    const queryParameterUpdates = {};
+
+    if (
+      pageParameterValue !== null &&
+      pageParameterValue !== String(pageNumber)
+    ) {
+      queryParameterUpdates.page = pageNumber;
+    }
+
+    if (sortParameterValue !== null && sortParameterValue !== sortValue) {
+      queryParameterUpdates.sort = sortValue;
+      queryParameterUpdates.page = 1;
+    }
+
+    if (
+      categoryParameterValue !== null &&
+      categoryParameterValue !== categorySlug
+    ) {
+      queryParameterUpdates.category = categorySlug || null;
+      queryParameterUpdates.page = 1;
+    }
+
+    if (
+      areCategoriesLoaded &&
+      !isKnownCatalogCategorySlug(categorySlug, categories)
+    ) {
+      queryParameterUpdates.category = null;
+      queryParameterUpdates.page = 1;
+    }
+
+    if (productsResponse) {
+      const maximumPageNumber = Math.max(productsResponse.pages, 1);
+
+      if (pageNumber > maximumPageNumber) {
+        queryParameterUpdates.page = maximumPageNumber;
+      }
+    }
+
+    if (Object.keys(queryParameterUpdates).length > 0) {
+      setQueryParameters(queryParameterUpdates, {
+        replace: true,
+      });
+    }
+  }, [
+    areCategoriesLoaded,
+    categories,
+    categoryParameterValue,
+    categorySlug,
+    pageNumber,
+    pageParameterValue,
+    productsResponse,
+    setQueryParameters,
+    sortParameterValue,
+    sortValue,
+  ]);
 
   return (
     <div className={styles.catalogLayout}>

@@ -60,7 +60,7 @@ router.get('/', async (req, res, next) => {
       },
     };
 
-    const sortOption = sortMap[sort] || {};
+    const sortOption = sortMap[sort] || sortMap.price_asc;
 
     const [items, total] = await Promise.all([
       Product.find(filter)
