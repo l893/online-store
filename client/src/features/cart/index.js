@@ -11,6 +11,7 @@ export {
 } from './api/cart.api';
 
 export { createCartItemFromProduct } from './lib/create-cart-item-from-product';
+export { applyProductDetailsToCartItems } from './lib/apply-product-details-to-cart-items';
 export {
   clearGuestCartItems,
   loadGuestCartItems,

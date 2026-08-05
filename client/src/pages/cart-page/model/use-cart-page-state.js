@@ -1,24 +1,14 @@
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { useGetProductsAvailabilityQuery } from '../../../entities/products';
 import {
+  applyProductDetailsToCartItems,
   getCartTotals,
+  setCartItems,
   useGetCartQuery,
   useInitialCartSync,
   useReplaceCartMutation,
 } from '../../../features/cart';
-
-function applyProductAvailability(cartItems, productAvailabilityItems = []) {
-  const productStockById = new Map(
-    productAvailabilityItems.map((productAvailabilityItem) => [
-      productAvailabilityItem.productId,
-      productAvailabilityItem.stock,
-    ]),
-  );
-
-  return cartItems.map((cartItem) => ({
-    ...cartItem,
-    stock: productStockById.get(cartItem.productId) ?? 0,
-  }));
-}
 
 function getCartAvailabilityMessage({
   isCartLoading,
@@ -61,6 +51,7 @@ function getCartAvailabilityMessage({
 }
 
 export function useCartPageState({ isAuthenticated, storedCartItems = [] }) {
+  const dispatch = useDispatch();
   const productIds = storedCartItems.map((cartItem) => cartItem.productId);
 
   const { data: serverCart, isLoading: isServerCartLoading } = useGetCartQuery(
@@ -90,10 +81,32 @@ export function useCartPageState({ isAuthenticated, storedCartItems = [] }) {
     replaceCart,
   });
 
-  const cartItems = applyProductAvailability(
+  const cartItems = applyProductDetailsToCartItems(
     storedCartItems,
     productsAvailability?.items,
   );
+
+  const haveStoredProductDetailsChanged =
+    Boolean(productsAvailability?.items) &&
+    cartItems.some((cartItem, cartItemIndex) => {
+      const storedCartItem = storedCartItems[cartItemIndex];
+
+      return (
+        !storedCartItem ||
+        storedCartItem.title !== cartItem.title ||
+        storedCartItem.price !== cartItem.price ||
+        storedCartItem.image !== cartItem.image ||
+        storedCartItem.stock !== cartItem.stock
+      );
+    });
+
+  useEffect(() => {
+    if (!haveStoredProductDetailsChanged) {
+      return;
+    }
+
+    dispatch(setCartItems(cartItems));
+  }, [cartItems, dispatch, haveStoredProductDetailsChanged]);
 
   const isCartLoading =
     (isAuthenticated && isServerCartLoading) ||

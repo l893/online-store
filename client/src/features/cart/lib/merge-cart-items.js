@@ -1,3 +1,5 @@
+import { applyProductDetailsToCartItems } from './apply-product-details-to-cart-items';
+
 function normalizeCartItemQuantity(cartItem) {
   return Math.max(1, Number(cartItem.qty) || 1);
 }
@@ -74,5 +76,8 @@ export function mergeCartItems({
     });
   }
 
-  return Array.from(mergedItemsByProductId.values());
+  return applyProductDetailsToCartItems(
+    Array.from(mergedItemsByProductId.values()),
+    productAvailabilityItems,
+  );
 }

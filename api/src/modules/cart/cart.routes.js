@@ -37,9 +37,20 @@ function createCartResponse(cartDocument, productDocumentsById) {
         String(cartItem.productId),
       );
 
+      const currentProductDetails = productDocument
+        ? {
+            title: productDocument.title,
+            price: productDocument.price,
+            image: productDocument.images?.[0] || '',
+            stock: getAvailableProductStock(productDocument),
+          }
+        : {
+            stock: 0,
+          };
+
       return {
         ...cartItem,
-        stock: productDocument ? getAvailableProductStock(productDocument) : 0,
+        ...currentProductDetails,
       };
     }),
   };
@@ -211,8 +222,14 @@ router.delete('/item/:productId', async (request, response, next) => {
     // Обновляем корзину в базе
     await cartDocument.save();
 
-    // Возвращаем обновлённую корзину
-    return response.json(cartDocument);
+    const updatedCartDocument = cartDocument.toObject();
+    const productDocumentsById = await getProductDocumentsById(
+      updatedCartDocument.items,
+    );
+
+    return response.json(
+      createCartResponse(updatedCartDocument, productDocumentsById),
+    );
   } catch (error) {
     next(error);
   }

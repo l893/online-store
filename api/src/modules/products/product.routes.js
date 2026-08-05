@@ -112,21 +112,35 @@ router.post('/availability', async (request, response, next) => {
         $in: validProductIds,
       },
     })
-      .select('_id stock')
+      .select('_id title price images stock')
       .lean();
 
-    const productStockById = new Map(
+    const productDocumentsById = new Map(
       productDocuments.map((productDocument) => [
         String(productDocument._id),
-        Math.max(0, Math.floor(Number(productDocument.stock) || 0)),
+        productDocument,
       ]),
     );
 
     return response.json({
-      items: normalizedProductIds.map((productId) => ({
-        productId,
-        stock: productStockById.get(productId) ?? 0,
-      })),
+      items: normalizedProductIds.map((productId) => {
+        const productDocument = productDocumentsById.get(productId);
+
+        if (!productDocument) {
+          return {
+            productId,
+            stock: 0,
+          };
+        }
+
+        return {
+          productId,
+          title: productDocument.title,
+          price: productDocument.price,
+          image: productDocument.images?.[0] || '',
+          stock: Math.max(0, Math.floor(Number(productDocument.stock) || 0)),
+        };
+      }),
     });
   } catch (error) {
     next(error);
