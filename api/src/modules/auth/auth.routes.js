@@ -4,6 +4,9 @@ const crypto = require('crypto');
 const User = require('./user.model');
 const RefreshToken = require('./refresh-token.model');
 const { signAccess, signRefresh, verifyRefresh } = require('../../shared/jwt');
+const {
+  isMongoDuplicateKeyError,
+} = require('../../shared/is-mongo-duplicate-key-error');
 
 const REFRESH_TOKEN_COOKIE_NAME = 'refreshToken';
 const REFRESH_COOKIE_PATH = '/api/auth';
@@ -80,6 +83,13 @@ function createAuthenticatedUserResponse(userDocument) {
   };
 }
 
+function sendEmailConflictResponse(response) {
+  return response.status(409).json({
+    code: 'AUTH_EMAIL_CONFLICT',
+    message: 'Email already registered',
+  });
+}
+
 async function establishAuthenticatedSession({
   userDocument,
   request,
@@ -116,9 +126,7 @@ router.post('/register', async (request, response, nextMiddleware) => {
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      return response.status(409).json({
-        message: 'Email already registered',
-      });
+      return sendEmailConflictResponse(response);
     }
 
     const passwordHash = await bcrypt.hash(password, 11);
@@ -135,6 +143,10 @@ router.post('/register', async (request, response, nextMiddleware) => {
       response,
     });
   } catch (error) {
+    if (isMongoDuplicateKeyError(error, 'email')) {
+      return sendEmailConflictResponse(response);
+    }
+
     nextMiddleware(error);
   }
 });

@@ -3,8 +3,18 @@ const { requireAuth, requireRole } = require('../../shared/auth.middleware');
 const {
   createProductSearchFilter,
 } = require('../../shared/create-product-search-filter');
+const {
+  isMongoDuplicateKeyError,
+} = require('../../shared/is-mongo-duplicate-key-error');
 const Product = require('./product.model');
 const Category = require('../categories/category.model');
+
+function sendProductSlugConflictResponse(response) {
+  return response.status(409).json({
+    code: 'PRODUCT_SLUG_CONFLICT',
+    message: 'Slug already exists',
+  });
+}
 
 router.use(requireAuth, requireRole('admin'));
 
@@ -76,7 +86,10 @@ router.post('/', async (req, res, next) => {
     if (!title || !slug || !price)
       return res.status(400).json({ message: 'title, slug, price required' });
     const exists = await Product.findOne({ slug });
-    if (exists) return res.status(409).json({ message: 'Slug already exists' });
+    if (exists) {
+      return sendProductSlugConflictResponse(res);
+    }
+
     const created = await Product.create({
       title,
       slug,
@@ -88,6 +101,10 @@ router.post('/', async (req, res, next) => {
     });
     res.status(201).json(created);
   } catch (error) {
+    if (isMongoDuplicateKeyError(error, 'slug')) {
+      return sendProductSlugConflictResponse(res);
+    }
+
     next(error);
   }
 });
@@ -111,8 +128,10 @@ router.patch('/:id', async (req, res, next) => {
         _id: { $ne: req.params.id },
         slug: patch.slug,
       });
-      if (duplicateProduct)
-        return res.status(409).json({ message: 'Slug already exists' });
+
+      if (duplicateProduct) {
+        return sendProductSlugConflictResponse(res);
+      }
     }
     const updated = await Product.findByIdAndUpdate(
       req.params.id,
@@ -124,6 +143,10 @@ router.patch('/:id', async (req, res, next) => {
     if (!updated) return res.status(404).json({ message: 'Product not found' });
     res.json(updated);
   } catch (error) {
+    if (isMongoDuplicateKeyError(error, 'slug')) {
+      return sendProductSlugConflictResponse(res);
+    }
+
     next(error);
   }
 });
