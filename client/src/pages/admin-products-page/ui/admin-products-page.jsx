@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useListCategoriesQuery } from '../../../entities/categories';
 import {
   AdminProductFormPanel,
@@ -54,6 +54,23 @@ export const AdminProductsPage = () => {
   const categories = categoriesResponse?.items || categoriesResponse || [];
   const products = productsResponse?.items || [];
   const totalPages = productsResponse?.pages || 1;
+
+  useEffect(() => {
+    const isCurrentPageResponse = productsResponse?.page === currentPage;
+
+    if (!isCurrentPageResponse || currentPage <= totalPages) {
+      return;
+    }
+
+    setQueryParameters(
+      {
+        page: totalPages === 1 ? null : totalPages,
+      },
+      {
+        replace: true,
+      },
+    );
+  }, [currentPage, productsResponse, setQueryParameters, totalPages]);
 
   const productFormInitialValues = useMemo(
     () => createProductFormInitialValues(editingProduct),
