@@ -31,7 +31,8 @@ export const CatalogPage = () => {
     useListCategoriesQuery();
 
   const {
-    currentData: productsResponse,
+    data: displayedProductsResponse,
+    currentData: currentProductsResponse,
     isLoading: isProductsLoading,
     isFetching: isProductsFetching,
   } = useListProductsQuery(
@@ -79,8 +80,8 @@ export const CatalogPage = () => {
       queryParameterUpdates.page = 1;
     }
 
-    if (productsResponse) {
-      const maximumPageNumber = Math.max(productsResponse.pages, 1);
+    if (currentProductsResponse) {
+      const maximumPageNumber = Math.max(currentProductsResponse.pages, 1);
 
       if (pageNumber > maximumPageNumber) {
         queryParameterUpdates.page = maximumPageNumber;
@@ -97,13 +98,18 @@ export const CatalogPage = () => {
     categories,
     categoryParameterValue,
     categorySlug,
+    currentProductsResponse,
     pageNumber,
     pageParameterValue,
-    productsResponse,
     setQueryParameters,
     sortParameterValue,
     sortValue,
   ]);
+
+  const isInitialProductsLoading =
+    isProductsLoading && !displayedProductsResponse;
+  const isProductsRefreshing =
+    isProductsFetching && Boolean(displayedProductsResponse);
 
   return (
     <div className={styles.catalogLayout}>
@@ -154,17 +160,27 @@ export const CatalogPage = () => {
           />
         </div>
 
-        {(isProductsLoading || isProductsFetching) && (
-          <div className={styles.loaderWrapper}>
-            <Loader label="Загружаем товары…" />
-          </div>
-        )}
+        <div className={styles.productResults} aria-busy={isProductsFetching}>
+          {isInitialProductsLoading ? (
+            <div className={styles.initialLoaderWrapper}>
+              <Loader label="Загружаем товары…" />
+            </div>
+          ) : (
+            <ProductGrid products={displayedProductsResponse?.items} />
+          )}
 
-        {!isProductsLoading && !isProductsFetching && (
-          <ProductGrid products={productsResponse?.items} />
-        )}
+          {isProductsRefreshing && (
+            <div
+              className={styles.refreshIndicator}
+              role="status"
+              aria-live="polite"
+            >
+              <Loader label="Обновляем товары…" />
+            </div>
+          )}
+        </div>
 
-        {productsResponse?.pages > 1 && (
+        {displayedProductsResponse?.pages > 1 && (
           <div className={styles.pagination}>
             <button
               className={styles.paginationButton}
@@ -183,11 +199,11 @@ export const CatalogPage = () => {
               Назад
             </button>
             <span className={styles.paginationText}>
-              Стр. {pageNumber} из {productsResponse.pages}
+              Стр. {pageNumber} из {displayedProductsResponse.pages}
             </span>
             <button
               className={styles.paginationButton}
-              disabled={pageNumber >= productsResponse.pages}
+              disabled={pageNumber >= displayedProductsResponse.pages}
               onClick={() =>
                 setQueryParameters(
                   {

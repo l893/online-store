@@ -26,10 +26,31 @@
   background-color: #f9fafb;
 }
 
-.loaderWrapper {
+.productResults {
+  position: relative;
+  min-height: 20rem;
+}
+
+.initialLoaderWrapper {
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 1.5rem 0;
+  min-height: 20rem;
+}
+
+.refreshIndicator {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background-color: rgb(255 255 255 / 92%);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 6%),
+    0 4px 12px rgb(0 0 0 / 8%);
+  pointer-events: none;
 }
 
 .pagination {
