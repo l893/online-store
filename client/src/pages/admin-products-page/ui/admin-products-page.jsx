@@ -31,6 +31,7 @@ export const AdminProductsPage = () => {
 
   const {
     data: productsResponse,
+    isLoading: isProductsLoading,
     isFetching: isProductsFetching,
     refetch: refetchProducts,
   } = useAdminListProductsQuery({
@@ -54,6 +55,13 @@ export const AdminProductsPage = () => {
   const categories = categoriesResponse?.items || categoriesResponse || [];
   const products = productsResponse?.items || [];
   const totalPages = productsResponse?.pages || 1;
+  const isProductMutationPending =
+    isCreatingProduct || isUpdatingProduct || isDeletingProduct;
+  const isInitialProductsLoading = isProductsLoading && !productsResponse;
+  const isProductsBackgroundRefreshing =
+    isProductsFetching && Boolean(productsResponse);
+  const isProductsStatusVisible =
+    isProductMutationPending || isProductsBackgroundRefreshing;
 
   useEffect(() => {
     const isCurrentPageResponse = productsResponse?.page === currentPage;
@@ -171,26 +179,49 @@ export const AdminProductsPage = () => {
           onProductsRefresh={handleProductsRefresh}
         />
 
-        {(isCreatingProduct || isUpdatingProduct || isDeletingProduct) && (
-          <div className={styles.operationLoader}>
-            <Loader label="Выполняется операция…" />
-          </div>
-        )}
+        <div
+          className={styles.productsResults}
+          aria-busy={isProductsFetching || isProductMutationPending}
+        >
+          {isInitialProductsLoading ? (
+            <div className={styles.initialProductsLoader}>
+              <Loader label="Загружаем товары…" />
+            </div>
+          ) : (
+            <>
+              <AdminProductsTable
+                products={products}
+                onEditProduct={handleEditButtonClick}
+                onDeleteProduct={handleDeleteButtonClick}
+              />
 
-        <AdminProductsTable
-          products={products}
-          onEditProduct={handleEditButtonClick}
-          onDeleteProduct={handleDeleteButtonClick}
-        />
+              {totalPages > 1 && (
+                <AdminProductsPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPreviousPage={handlePreviousPageButtonClick}
+                  onNextPage={handleNextPageButtonClick}
+                />
+              )}
+            </>
+          )}
 
-        {totalPages > 1 && (
-          <AdminProductsPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPreviousPage={handlePreviousPageButtonClick}
-            onNextPage={handleNextPageButtonClick}
-          />
-        )}
+          {isProductsStatusVisible && (
+            <div
+              className={styles.productsStatusIndicator}
+              role="status"
+              aria-live="polite"
+            >
+              <Loader
+                label={
+                  isProductMutationPending
+                    ? 'Выполняется операция…'
+                    : 'Обновляем товары…'
+                }
+              />
+            </div>
+          )}
+        </div>
 
         <ConfirmDialog
           open={Boolean(productIdPendingDeletion)}

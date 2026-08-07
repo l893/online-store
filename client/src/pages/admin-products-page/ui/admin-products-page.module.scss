@@ -15,8 +15,34 @@
   gap: 1rem;
 }
 
-.operationLoader {
-  margin-top: 0.75rem;
+.productsResults {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 18rem;
+}
+
+.initialProductsLoader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 18rem;
+}
+
+.productsStatusIndicator {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background-color: rgb(255 255 255 / 92%);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 6%),
+    0 4px 12px rgb(0 0 0 / 8%);
+  pointer-events: none;
 }
 
 @media (min-width: 768px) {
