@@ -9,12 +9,15 @@ export const CartItem = ({
   cartItem,
   onCartItemQuantityChange,
   onCartItemRemove,
+  areQuantityControlsDisabled = false,
 }) => {
   const cartItemImageUrl = cartItem.image || PRODUCT_IMAGE_PLACEHOLDER_URL;
   const availableStock = Math.max(0, Number(cartItem.stock) || 0);
   const isProductUnavailable = availableStock === 0;
-  const isDecreaseQuantityButtonDisabled = cartItem.qty <= 1;
-  const isIncreaseQuantityButtonDisabled = cartItem.qty >= availableStock;
+  const isDecreaseQuantityButtonDisabled =
+    areQuantityControlsDisabled || cartItem.qty <= 1;
+  const isIncreaseQuantityButtonDisabled =
+    areQuantityControlsDisabled || cartItem.qty >= availableStock;
 
   function handleQuantityInputChange(event) {
     const parsedQuantity = Number.parseInt(event.target.value || '1', 10);
@@ -61,6 +64,7 @@ export const CartItem = ({
             fullWidth={false}
             type="number"
             value={cartItem.qty}
+            disabled={areQuantityControlsDisabled}
             onChange={handleQuantityInputChange}
             slotProps={{
               htmlInput: {

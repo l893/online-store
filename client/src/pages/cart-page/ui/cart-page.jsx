@@ -17,6 +17,7 @@ export const CartPage = () => {
     totalQuantity,
     totalSum,
     isCartLoading,
+    isCartAvailabilityChecking,
     isCartAvailabilityError,
     isCartAvailabilityConfirmed,
     isCheckoutDisabledByAvailability,
@@ -55,13 +56,12 @@ export const CartPage = () => {
         <h1 className={styles.title}>Корзина</h1>
       </div>
 
-      <div className={styles.itemsSection}>
+      <div
+        className={styles.itemsSection}
+        aria-busy={isCartAvailabilityChecking}
+      >
         {isCartLoading ? (
           <Loader label="Проверяем наличие товаров…" />
-        ) : isCartAvailabilityError ? (
-          <div className={styles.emptyMessage}>
-            Не удалось проверить наличие товаров
-          </div>
         ) : cartItems.length === 0 ? (
           <div className={styles.emptyMessage}>Корзина пуста</div>
         ) : (
@@ -71,9 +71,22 @@ export const CartPage = () => {
               cartItem={cartItem}
               onCartItemQuantityChange={handleCartItemQuantityChange}
               onCartItemRemove={handleCartItemRemove}
+              areQuantityControlsDisabled={!isCartAvailabilityConfirmed}
             />
           ))
         )}
+
+        {isCartAvailabilityChecking &&
+          !isCartLoading &&
+          cartItems.length > 0 && (
+            <div
+              className={styles.availabilityIndicator}
+              role="status"
+              aria-live="polite"
+            >
+              <Loader label="Проверяем наличие…" />
+            </div>
+          )}
       </div>
 
       <div className={styles.summarySection}>

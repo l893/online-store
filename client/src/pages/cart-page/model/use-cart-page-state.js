@@ -11,12 +11,12 @@ import {
 } from '../../../features/cart';
 
 function getCartAvailabilityMessage({
-  isCartLoading,
+  isCartAvailabilityChecking,
   isCartAvailabilityError,
   unavailableCartItems,
   excessiveQuantityCartItems,
 }) {
-  if (isCartLoading) {
+  if (isCartAvailabilityChecking) {
     return 'Проверяем наличие товаров…';
   }
 
@@ -62,7 +62,7 @@ export function useCartPageState({ isAuthenticated, storedCartItems = [] }) {
   );
 
   const {
-    data: productsAvailability,
+    currentData: productsAvailability,
     isLoading: isProductsAvailabilityLoading,
     isFetching: isProductsAvailabilityFetching,
     isError: isProductsAvailabilityError,
@@ -81,10 +81,12 @@ export function useCartPageState({ isAuthenticated, storedCartItems = [] }) {
     replaceCart,
   });
 
-  const cartItems = applyProductDetailsToCartItems(
-    storedCartItems,
-    productsAvailability?.items,
-  );
+  const cartItems = productsAvailability?.items
+    ? applyProductDetailsToCartItems(
+        storedCartItems,
+        productsAvailability.items,
+      )
+    : storedCartItems;
 
   const haveStoredProductDetailsChanged =
     Boolean(productsAvailability?.items) &&
@@ -108,10 +110,23 @@ export function useCartPageState({ isAuthenticated, storedCartItems = [] }) {
     dispatch(setCartItems(cartItems));
   }, [cartItems, dispatch, haveStoredProductDetailsChanged]);
 
+  const serverCartItems = Array.isArray(serverCart?.items)
+    ? serverCart.items
+    : [];
+
+  const isInitialServerCartHydrationPending =
+    isAuthenticated &&
+    !isServerCartLoading &&
+    storedCartItems.length === 0 &&
+    serverCartItems.length > 0;
+
   const isCartLoading =
-    (isAuthenticated && isServerCartLoading) ||
-    isProductsAvailabilityLoading ||
-    isProductsAvailabilityFetching;
+    isAuthenticated &&
+    (isServerCartLoading || isInitialServerCartHydrationPending);
+
+  const isCartAvailabilityChecking =
+    productIds.length > 0 &&
+    (isProductsAvailabilityLoading || isProductsAvailabilityFetching);
 
   const unavailableCartItems = cartItems.filter(
     (cartItem) => cartItem.stock <= 0,
@@ -124,11 +139,14 @@ export function useCartPageState({ isAuthenticated, storedCartItems = [] }) {
     unavailableCartItems.length > 0 || excessiveQuantityCartItems.length > 0;
   const isCartAvailabilityError = isProductsAvailabilityError;
   const isCartAvailabilityConfirmed =
-    !isCartLoading && !isCartAvailabilityError;
+    !isCartLoading &&
+    !isCartAvailabilityChecking &&
+    !isCartAvailabilityError &&
+    (productIds.length === 0 || Boolean(productsAvailability?.items));
   const isCheckoutDisabledByAvailability =
     !isCartAvailabilityConfirmed || hasCartAvailabilityIssues;
   const cartAvailabilityMessage = getCartAvailabilityMessage({
-    isCartLoading,
+    isCartAvailabilityChecking,
     isCartAvailabilityError,
     unavailableCartItems,
     excessiveQuantityCartItems,
@@ -141,6 +159,7 @@ export function useCartPageState({ isAuthenticated, storedCartItems = [] }) {
     totalQuantity,
     totalSum,
     isCartLoading,
+    isCartAvailabilityChecking,
     isCartAvailabilityError,
     isCartAvailabilityConfirmed,
     isCheckoutDisabledByAvailability,
