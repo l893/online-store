@@ -4,6 +4,7 @@ import { useAuthBootstrap } from '../model/use-auth-bootstrap';
 import { useAuthSessionSynchronization } from '../model/use-auth-session-synchronization';
 import { useScrollManagement } from '../model/use-scroll-management';
 import { ApplicationRoutes } from '../routes/application-routes';
+import { BackToTopButton } from './back-to-top-button';
 import '../styles/icons.scss';
 import styles from './app.module.scss';
 
@@ -30,6 +31,8 @@ export const App = () => {
       <main className={styles.mainContent}>
         <ApplicationRoutes />
       </main>
+
+      <BackToTopButton />
     </div>
   );
 };
