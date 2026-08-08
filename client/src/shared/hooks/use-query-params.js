@@ -11,7 +11,7 @@ export function useQueryParams() {
   );
 
   const setQueryParameters = useCallback(
-    (queryParameterUpdates, { replace = true } = {}) => {
+    (queryParameterUpdates, { replace = true, navigationState } = {}) => {
       const nextQueryParameters = new URLSearchParams(searchString);
 
       Object.entries(queryParameterUpdates).forEach(
@@ -41,6 +41,7 @@ export function useQueryParams() {
         },
         {
           replace,
+          state: navigationState,
         },
       );
     },

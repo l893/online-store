@@ -111,6 +111,20 @@ export const CatalogPage = () => {
   const isProductsRefreshing =
     isProductsFetching && Boolean(displayedProductsResponse);
 
+  function handlePageChange(nextPageNumber) {
+    setQueryParameters(
+      {
+        page: nextPageNumber,
+      },
+      {
+        replace: false,
+        navigationState: {
+          shouldScrollToTop: true,
+        },
+      },
+    );
+  }
+
   return (
     <div className={styles.catalogLayout}>
       <div className={styles.searchSection}>
@@ -185,16 +199,7 @@ export const CatalogPage = () => {
             <button
               className={styles.paginationButton}
               disabled={pageNumber <= 1}
-              onClick={() =>
-                setQueryParameters(
-                  {
-                    page: pageNumber - 1,
-                  },
-                  {
-                    replace: false,
-                  },
-                )
-              }
+              onClick={() => handlePageChange(pageNumber - 1)}
             >
               Назад
             </button>
@@ -204,16 +209,7 @@ export const CatalogPage = () => {
             <button
               className={styles.paginationButton}
               disabled={pageNumber >= displayedProductsResponse.pages}
-              onClick={() =>
-                setQueryParameters(
-                  {
-                    page: pageNumber + 1,
-                  },
-                  {
-                    replace: false,
-                  },
-                )
-              }
+              onClick={() => handlePageChange(pageNumber + 1)}
             >
               Вперёд
             </button>

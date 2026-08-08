@@ -64,7 +64,10 @@ export function useScrollManagement() {
         scrollPositionsByLocationKeyRef.current.get(location.key) ?? 0;
 
       scrollWindowTo(targetScrollPosition);
-    } else if (previousLocation.pathname !== location.pathname) {
+    } else if (
+      location.state?.shouldScrollToTop ||
+      previousLocation.pathname !== location.pathname
+    ) {
       targetScrollPosition = 0;
       scrollWindowTo(targetScrollPosition);
     }
