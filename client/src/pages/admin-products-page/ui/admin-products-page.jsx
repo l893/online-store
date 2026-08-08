@@ -19,6 +19,7 @@ import styles from './admin-products-page.module.scss';
 export const AdminProductsPage = () => {
   const [queryParameters, setQueryParameters] = useQueryParams();
   const [editingProduct, setEditingProduct] = useState(null);
+  const [productFormResetRevision, setProductFormResetRevision] = useState(0);
   const [productIdPendingDeletion, setProductIdPendingDeletion] =
     useState(null);
 
@@ -43,11 +44,19 @@ export const AdminProductsPage = () => {
 
   const [
     createProduct,
-    { isLoading: isCreatingProduct, error: createProductError },
+    {
+      isLoading: isCreatingProduct,
+      error: createProductError,
+      reset: resetCreateProductMutation,
+    },
   ] = useAdminCreateProductMutation();
   const [
     updateProduct,
-    { isLoading: isUpdatingProduct, error: updateProductError },
+    {
+      isLoading: isUpdatingProduct,
+      error: updateProductError,
+      reset: resetUpdateProductMutation,
+    },
   ] = useAdminUpdateProductMutation();
   const [deleteProduct, { isLoading: isDeletingProduct }] =
     useAdminDeleteProductMutation();
@@ -86,19 +95,36 @@ export const AdminProductsPage = () => {
   );
 
   async function handleCreate(productFormValues) {
+    resetProductMutationErrors();
+
     const productPayload = createProductPayload(productFormValues);
     await createProduct(productPayload).unwrap();
     setQueryParameters({ page: null });
-    setEditingProduct(null);
+    resetProductForm();
   }
 
   async function handleUpdate(productFormValues) {
+    resetProductMutationErrors();
+
     const productPayload = createProductPayload(productFormValues);
     await updateProduct({
       id: editingProduct._id,
       ...productPayload,
     }).unwrap();
+    resetProductForm();
+  }
+
+  function resetProductForm() {
     setEditingProduct(null);
+    setProductFormResetRevision(
+      (currentProductFormResetRevision) => currentProductFormResetRevision + 1,
+    );
+    resetProductMutationErrors();
+  }
+
+  function resetProductMutationErrors() {
+    resetCreateProductMutation();
+    resetUpdateProductMutation();
   }
 
   async function handleDeleteConfirm() {
@@ -122,6 +148,7 @@ export const AdminProductsPage = () => {
   }
 
   function handleEditButtonClick(product) {
+    resetProductMutationErrors();
     setEditingProduct(product);
   }
 
@@ -166,6 +193,7 @@ export const AdminProductsPage = () => {
         <AdminProductFormPanel
           isEditing={Boolean(editingProduct)}
           initialValues={productFormInitialValues}
+          formResetRevision={productFormResetRevision}
           categories={categories}
           onSubmit={editingProduct ? handleUpdate : handleCreate}
           submissionError={createProductError || updateProductError}

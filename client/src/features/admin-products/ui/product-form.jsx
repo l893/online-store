@@ -16,6 +16,7 @@ import styles from './product-form.module.scss';
 
 export const ProductForm = ({
   initial,
+  formResetRevision,
   onSubmit,
   submitText = 'Сохранить',
   categories = [],
@@ -56,15 +57,7 @@ export const ProductForm = ({
   useEffect(() => {
     reset(initial || {});
     setSelectedCategoryId(initial?.categoryId || '');
-  }, [initial, reset]);
-
-  // когда пользователь выбирает категорию — кладём categoryId в форму
-  useEffect(() => {
-    setValue('categoryId', selectedCategoryId, {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-  }, [selectedCategoryId, setValue]);
+  }, [formResetRevision, initial, reset]);
 
   const handleGenerateSlugButtonClick = () => {
     const generatedSlug = slugifyRu(title || '');
@@ -78,7 +71,13 @@ export const ProductForm = ({
   };
 
   const handleCategoryChange = (event) => {
-    setSelectedCategoryId(event.target.value);
+    const nextCategoryId = event.target.value;
+
+    setSelectedCategoryId(nextCategoryId);
+    setValue('categoryId', nextCategoryId, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
   };
 
   return (

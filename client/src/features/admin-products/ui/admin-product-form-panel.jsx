@@ -5,6 +5,7 @@ import styles from './admin-product-form-panel.module.scss';
 export const AdminProductFormPanel = ({
   isEditing,
   initialValues,
+  formResetRevision,
   categories = [],
   onSubmit,
   submissionError,
@@ -17,6 +18,7 @@ export const AdminProductFormPanel = ({
 
       <ProductForm
         initial={initialValues}
+        formResetRevision={formResetRevision}
         categories={categories}
         onSubmit={onSubmit}
         submitText={isEditing ? 'Сохранить' : 'Добавить'}
