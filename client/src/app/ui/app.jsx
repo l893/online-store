@@ -1,13 +1,14 @@
-import { ScrollToTop } from '../../shared/lib';
 import { Loader } from '../../shared/ui';
 import { ApplicationHeader } from '../../widgets/application-header';
 import { useAuthBootstrap } from '../model/use-auth-bootstrap';
 import { useAuthSessionSynchronization } from '../model/use-auth-session-synchronization';
+import { useScrollManagement } from '../model/use-scroll-management';
 import { ApplicationRoutes } from '../routes/application-routes';
 import '../styles/icons.scss';
 import styles from './app.module.scss';
 
 export const App = () => {
+  useScrollManagement();
   useAuthSessionSynchronization();
 
   const isAuthBootstrapped = useAuthBootstrap();
@@ -23,15 +24,12 @@ export const App = () => {
   }
 
   return (
-    <>
-      <ScrollToTop />
-      <div className={styles.appShell}>
-        <ApplicationHeader />
+    <div className={styles.appShell}>
+      <ApplicationHeader />
 
-        <main className={styles.mainContent}>
-          <ApplicationRoutes />
-        </main>
-      </div>
-    </>
+      <main className={styles.mainContent}>
+        <ApplicationRoutes />
+      </main>
+    </div>
   );
 };

@@ -10,4 +10,3 @@ export {
   PRODUCT_IMAGE_PLACEHOLDER_URL,
   replaceBrokenProductImageWithPlaceholder,
 } from './product-image';
-export { ScrollToTop } from './scroll-to-top';
