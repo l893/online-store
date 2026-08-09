@@ -9,6 +9,21 @@ const {
 const Product = require('./product.model');
 const Category = require('../categories/category.model');
 
+const PRODUCT_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function isValidProductSlug(productSlug) {
+  return (
+    typeof productSlug === 'string' && PRODUCT_SLUG_PATTERN.test(productSlug)
+  );
+}
+
+function sendInvalidProductSlugResponse(response) {
+  return response.status(400).json({
+    code: 'PRODUCT_SLUG_INVALID',
+    message: 'Invalid product slug',
+  });
+}
+
 function sendProductSlugConflictResponse(response) {
   return response.status(409).json({
     code: 'PRODUCT_SLUG_CONFLICT',
@@ -85,6 +100,11 @@ router.post('/', async (req, res, next) => {
     } = req.body || {};
     if (!title || !slug || !price)
       return res.status(400).json({ message: 'title, slug, price required' });
+
+    if (!isValidProductSlug(slug)) {
+      return sendInvalidProductSlugResponse(res);
+    }
+
     const exists = await Product.findOne({ slug });
     if (exists) {
       return sendProductSlugConflictResponse(res);
@@ -113,6 +133,7 @@ router.post('/', async (req, res, next) => {
 router.patch('/:id', async (req, res, next) => {
   try {
     const patch = { ...(req.body || {}) };
+    const hasSlug = Object.prototype.hasOwnProperty.call(patch, 'slug');
     const hasCategoryId = Object.prototype.hasOwnProperty.call(
       patch,
       'categoryId',
@@ -123,7 +144,11 @@ router.patch('/:id', async (req, res, next) => {
       delete patch.categoryId;
     }
 
-    if (patch.slug) {
+    if (hasSlug && !isValidProductSlug(patch.slug)) {
+      return sendInvalidProductSlugResponse(res);
+    }
+
+    if (hasSlug) {
       const duplicateProduct = await Product.findOne({
         _id: { $ne: req.params.id },
         slug: patch.slug,

@@ -1,8 +1,16 @@
 import * as yup from 'yup';
 
+const PRODUCT_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 export const productFormSchema = yup.object({
   title: yup.string().required('Введите название'),
-  slug: yup.string().required('Введите slug'),
+  slug: yup
+    .string()
+    .required('Введите slug')
+    .matches(
+      PRODUCT_SLUG_PATTERN,
+      'Используйте строчные латинские буквы, цифры и дефисы',
+    ),
   price: yup
     .number()
     .typeError('Введите число')
