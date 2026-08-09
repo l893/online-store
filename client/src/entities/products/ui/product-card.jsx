@@ -19,7 +19,11 @@ export const ProductCard = ({
 
   return (
     <div className={styles.productCard}>
-      <div className={styles.imageWrapper}>
+      <Link
+        to={`/product/${product.slug}`}
+        className={styles.imageWrapper}
+        aria-label={`Открыть товар «${product.title}»`}
+      >
         <img
           src={productImageUrl}
           alt={product.title}
@@ -27,7 +31,7 @@ export const ProductCard = ({
           loading="lazy"
           onError={replaceBrokenProductImageWithPlaceholder}
         />
-      </div>
+      </Link>
 
       <div className={styles.content}>
         <Link to={`/product/${product.slug}`} className={styles.titleLink}>
