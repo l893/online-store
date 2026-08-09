@@ -10,6 +10,9 @@ export const AdminProductFormPanel = ({
   onSubmit,
   submissionError,
 }) => {
+  const isProductSlugConflict =
+    submissionError?.data?.code === 'PRODUCT_SLUG_CONFLICT';
+
   return (
     <div className={styles.card}>
       <h2 className={styles.sectionTitle}>
@@ -22,9 +25,10 @@ export const AdminProductFormPanel = ({
         categories={categories}
         onSubmit={onSubmit}
         submitText={isEditing ? 'Сохранить' : 'Добавить'}
+        hasSlugConflict={isProductSlugConflict}
       />
 
-      {submissionError && (
+      {submissionError && !isProductSlugConflict && (
         <div className={styles.formError}>{parseApiError(submissionError)}</div>
       )}
     </div>

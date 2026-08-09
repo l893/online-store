@@ -20,11 +20,14 @@ export const ProductForm = ({
   onSubmit,
   submitText = 'Сохранить',
   categories = [],
+  hasSlugConflict = false,
 }) => {
   const {
     register,
     handleSubmit,
     reset,
+    setError,
+    clearErrors,
     setValue,
     watch,
     formState: { errors, isSubmitting },
@@ -40,6 +43,20 @@ export const ProductForm = ({
   );
 
   const title = watch('title');
+
+  const { onChange: handleRegisteredSlugChange, ...slugFieldRegistration } =
+    register('slug');
+
+  useEffect(() => {
+    if (!hasSlugConflict) {
+      return;
+    }
+
+    setError('slug', {
+      type: 'server',
+      message: 'Slug уже занят',
+    });
+  }, [hasSlugConflict, setError]);
 
   const handleFormSubmit = async (data) => {
     try {
@@ -63,11 +80,23 @@ export const ProductForm = ({
     const generatedSlug = slugifyRu(title || '');
 
     if (generatedSlug) {
+      if (errors.slug?.type === 'server') {
+        clearErrors('slug');
+      }
+
       setValue('slug', generatedSlug, {
         shouldValidate: true,
         shouldDirty: true,
       });
     }
+  };
+
+  const handleSlugChange = (event) => {
+    if (errors.slug?.type === 'server') {
+      clearErrors('slug');
+    }
+
+    handleRegisteredSlugChange(event);
   };
 
   const handleCategoryChange = (event) => {
@@ -101,7 +130,8 @@ export const ProductForm = ({
           <Input
             placeholder="Slug (для URL)"
             autoComplete="off"
-            {...register('slug')}
+            {...slugFieldRegistration}
+            onChange={handleSlugChange}
           />
           {errors.slug && (
             <div className={styles.fieldError}>{errors.slug.message}</div>
