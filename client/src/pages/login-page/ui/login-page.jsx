@@ -21,9 +21,15 @@ const schema = yup.object({
 
 export const LoginPage = () => {
   const [login, { isLoading, error }] = useLoginMutation();
-  const nav = useNavigate();
-  const loc = useLocation();
-  const from = loc.state?.from?.pathname || '/';
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const redirectLocation = location.state?.from;
+  const redirectPath = redirectLocation
+    ? `${redirectLocation.pathname}${redirectLocation.search || ''}${
+        redirectLocation.hash || ''
+      }`
+    : '/';
 
   const {
     register,
@@ -34,7 +40,9 @@ export const LoginPage = () => {
   const onSubmit = async (data) => {
     try {
       await login(data).unwrap();
-      nav(from, { replace: true });
+      navigate(redirectPath, {
+        replace: true,
+      });
     } catch {
       // Ошибка отображается ниже через RTK Query mutation state.
     }
