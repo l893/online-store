@@ -43,7 +43,6 @@ export const CartItem = ({
 
       <div className={styles.content}>
         <div className={styles.title}>{cartItem.title}</div>
-        <div className={styles.productId}>id: {cartItem.productId}</div>
       </div>
 
       {isProductUnavailable ? (

@@ -37,7 +37,6 @@ export const ProductCard = ({
         <Link to={`/product/${product.slug}`} className={styles.titleLink}>
           {product.title}
         </Link>
-        <div className={styles.productId}>id: {product._id}</div>
         <div className={styles.price}>{product.price} ₽</div>
       </div>
 

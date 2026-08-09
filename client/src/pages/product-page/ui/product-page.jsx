@@ -83,10 +83,7 @@ export const ProductPage = () => {
         </div>
 
         <div className={styles.content}>
-          <div>
-            <h1 className={styles.title}>{product.title}</h1>
-            <p className={styles.productId}>id товара: {product._id}</p>
-          </div>
+          <h1 className={styles.title}>{product.title}</h1>
 
           <div className={styles.productMeta}>
             <div>
