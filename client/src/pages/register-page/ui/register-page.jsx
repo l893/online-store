@@ -10,8 +10,13 @@ import {
 import { Input } from '../../../shared/ui';
 
 const schema = yup.object({
-  email: yup.string().required('Введите email').email('Некорректный email'),
-  name: yup.string().nullable(),
+  email: yup
+    .string()
+    .trim()
+    .lowercase()
+    .required('Введите email')
+    .email('Некорректный email'),
+  name: yup.string().trim().nullable(),
   password: yup.string().required('Введите пароль').min(6, 'Мин. 6 символов'),
   passcheck: yup
     .string()

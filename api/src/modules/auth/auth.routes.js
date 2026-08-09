@@ -12,6 +12,22 @@ const REFRESH_TOKEN_COOKIE_NAME = 'refreshToken';
 const REFRESH_COOKIE_PATH = '/api/auth';
 const REFRESH_TOKEN_LIFETIME_MILLISECONDS = 30 * 24 * 60 * 60 * 1000;
 
+function normalizeEmailAddress(emailAddress) {
+  return typeof emailAddress === 'string'
+    ? emailAddress.trim().toLowerCase()
+    : '';
+}
+
+function normalizeUserName(userName) {
+  if (typeof userName !== 'string') {
+    return undefined;
+  }
+
+  const normalizedUserName = userName.trim();
+
+  return normalizedUserName || undefined;
+}
+
 function getRefreshCookieOptions() {
   const isProduction = process.env.NODE_ENV === 'production';
 
@@ -116,14 +132,18 @@ async function establishAuthenticatedSession({
 router.post('/register', async (request, response, nextMiddleware) => {
   try {
     const { email, password, name } = request.body || {};
+    const normalizedEmail = normalizeEmailAddress(email);
+    const normalizedName = normalizeUserName(name);
 
-    if (!email || !password) {
+    if (!normalizedEmail || typeof password !== 'string' || !password) {
       return response.status(400).json({
         message: 'email & password required',
       });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({
+      email: normalizedEmail,
+    });
 
     if (existingUser) {
       return sendEmailConflictResponse(response);
@@ -131,9 +151,9 @@ router.post('/register', async (request, response, nextMiddleware) => {
 
     const passwordHash = await bcrypt.hash(password, 11);
     const userDocument = await User.create({
-      email,
+      email: normalizedEmail,
       passwordHash,
-      name,
+      name: normalizedName,
       roles: ['user'],
     });
 
@@ -154,7 +174,17 @@ router.post('/register', async (request, response, nextMiddleware) => {
 router.post('/login', async (request, response, nextMiddleware) => {
   try {
     const { email, password } = request.body || {};
-    const userDocument = await User.findOne({ email });
+    const normalizedEmail = normalizeEmailAddress(email);
+
+    if (!normalizedEmail || typeof password !== 'string' || !password) {
+      return response.status(401).json({
+        message: 'Invalid credentials',
+      });
+    }
+
+    const userDocument = await User.findOne({
+      email: normalizedEmail,
+    });
 
     if (!userDocument) {
       return response.status(401).json({
