@@ -46,11 +46,19 @@ app.use('/api/admin/products', require('./modules/products/admin.routes'));
 app.use((req, res) => res.status(404).json({ message: 'Not found' }));
 
 // errors
-app.use((err, req, res, next) => {
-  console.error(err);
-  res
-    .status(err.status || 500)
-    .json({ message: err.message || 'Server error' });
+app.use((error, request, response, nextMiddleware) => {
+  console.error(error);
+
+  const errorStatus = Number(error.status);
+  const statusCode =
+    Number.isInteger(errorStatus) && errorStatus >= 400 && errorStatus <= 599
+      ? errorStatus
+      : 500;
+  const isServerError = statusCode >= 500;
+
+  response.status(statusCode).json({
+    message: isServerError ? 'Server error' : error.message || 'Request failed',
+  });
 });
 
 mongoose
