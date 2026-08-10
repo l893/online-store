@@ -3,8 +3,10 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
+  AUTH_EMAIL_MAX_LENGTH,
   AuthenticationForm,
   AuthenticationFormFieldError,
+  isAuthenticationPasswordWithinByteLengthLimit,
   useLoginMutation,
 } from '../../../features/auth';
 import { Input } from '../../../shared/ui';
@@ -15,8 +17,17 @@ const schema = yup.object({
     .trim()
     .lowercase()
     .required('Введите email')
-    .email('Некорректный email'),
-  password: yup.string().required('Введите пароль').min(6, 'Мин. 6 символов'),
+    .email('Некорректный email')
+    .max(AUTH_EMAIL_MAX_LENGTH, `Макс. ${AUTH_EMAIL_MAX_LENGTH} символов`),
+  password: yup
+    .string()
+    .required('Введите пароль')
+    .min(6, 'Мин. 6 символов')
+    .test(
+      'password-byte-length',
+      'Пароль слишком длинный',
+      isAuthenticationPasswordWithinByteLengthLimit,
+    ),
 });
 
 export const LoginPage = () => {

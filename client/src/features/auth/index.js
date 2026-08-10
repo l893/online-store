@@ -15,6 +15,14 @@ export {
   subscribeToAuthSessionChanges,
 } from './lib/auth-session-events';
 
+// Authentication input limits
+export {
+  AUTH_EMAIL_MAX_LENGTH,
+  AUTH_NAME_MAX_LENGTH,
+  AUTH_PASSWORD_MAX_BYTE_LENGTH,
+  isAuthenticationPasswordWithinByteLengthLimit,
+} from './lib/auth-input-limits';
+
 // Authenticated session events
 export {
   authenticatedSessionCleared,

@@ -11,6 +11,24 @@ const {
 const REFRESH_TOKEN_COOKIE_NAME = 'refreshToken';
 const REFRESH_COOKIE_PATH = '/api/auth';
 const REFRESH_TOKEN_LIFETIME_MILLISECONDS = 30 * 24 * 60 * 60 * 1000;
+const AUTH_EMAIL_MAX_LENGTH = 254;
+const AUTH_NAME_MAX_LENGTH = 100;
+const AUTH_PASSWORD_MAX_BYTE_LENGTH = 72;
+
+function isAuthenticationPasswordWithinByteLengthLimit(passwordValue) {
+  return (
+    typeof passwordValue === 'string' &&
+    Buffer.byteLength(passwordValue, 'utf8') <= AUTH_PASSWORD_MAX_BYTE_LENGTH
+  );
+}
+
+function isRegistrationInputTooLong({ emailAddress, userName, password }) {
+  return (
+    emailAddress.length > AUTH_EMAIL_MAX_LENGTH ||
+    (userName?.length || 0) > AUTH_NAME_MAX_LENGTH ||
+    !isAuthenticationPasswordWithinByteLengthLimit(password)
+  );
+}
 
 function normalizeEmailAddress(emailAddress) {
   return typeof emailAddress === 'string'
@@ -141,6 +159,19 @@ router.post('/register', async (request, response, nextMiddleware) => {
       });
     }
 
+    if (
+      isRegistrationInputTooLong({
+        emailAddress: normalizedEmail,
+        userName: normalizedName,
+        password,
+      })
+    ) {
+      return response.status(400).json({
+        code: 'AUTH_INPUT_TOO_LONG',
+        message: 'Authentication input exceeds allowed length',
+      });
+    }
+
     const existingUser = await User.findOne({
       email: normalizedEmail,
     });
@@ -176,7 +207,13 @@ router.post('/login', async (request, response, nextMiddleware) => {
     const { email, password } = request.body || {};
     const normalizedEmail = normalizeEmailAddress(email);
 
-    if (!normalizedEmail || typeof password !== 'string' || !password) {
+    if (
+      !normalizedEmail ||
+      typeof password !== 'string' ||
+      !password ||
+      normalizedEmail.length > AUTH_EMAIL_MAX_LENGTH ||
+      !isAuthenticationPasswordWithinByteLengthLimit(password)
+    ) {
       return response.status(401).json({
         message: 'Invalid credentials',
       });

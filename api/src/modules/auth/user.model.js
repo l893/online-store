@@ -9,9 +9,14 @@ const userSchema = new Schema(
       index: true,
       trim: true,
       lowercase: true,
+      maxlength: 254,
     },
     passwordHash: { type: String, required: true },
-    name: { type: String, trim: true },
+    name: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+    },
     roles: { type: [String], default: ['user'] }, // 'user' | 'admin'
   },
   { timestamps: true },
