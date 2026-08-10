@@ -21,9 +21,12 @@ if (process.env.NODE_ENV !== 'production') {
   app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 }
 
-// rate-limit для auth (подключим позже к /auth/*)
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 300 });
-app.use(limiter);
+const generalApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+});
+
+app.use(generalApiLimiter);
 
 // базовый healthcheck (для докера/оркестратора)
 app.get('/api/health', (req, res) => res.json({ ok: true }));
@@ -32,9 +35,34 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/api/products', require('./modules/products/product.routes'));
 app.use('/api/categories', require('./modules/categories/category.routes'));
 
-// подключаем роуты и rate-limit
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
-app.use('/api/auth', authLimiter);
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  skipSuccessfulRequests: true,
+  message: {
+    message: 'Too many login attempts, try again later',
+  },
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: {
+    message: 'Too many registration attempts, try again later',
+  },
+});
+
+const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  message: {
+    message: 'Too many refresh attempts, try again later',
+  },
+});
+
+app.use('/api/auth/login', loginLimiter);
+app.use('/api/auth/register', registerLimiter);
+app.use('/api/auth/refresh', refreshLimiter);
 app.use('/api/auth', require('./modules/auth/auth.routes'));
 
 app.use('/api/cart', require('./modules/cart/cart.routes'));
