@@ -10,6 +10,15 @@ const Product = require('./product.model');
 const Category = require('../categories/category.model');
 
 const PRODUCT_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const ALLOWED_PRODUCT_PATCH_FIELDS = new Set([
+  'title',
+  'slug',
+  'description',
+  'price',
+  'images',
+  'categoryId',
+  'stock',
+]);
 
 function isValidProductSlug(productSlug) {
   return (
@@ -28,6 +37,17 @@ function sendProductSlugConflictResponse(response) {
   return response.status(409).json({
     code: 'PRODUCT_SLUG_CONFLICT',
     message: 'Slug already exists',
+  });
+}
+
+function sendInvalidProductPatchFieldsResponse(
+  response,
+  unsupportedFieldNames,
+) {
+  return response.status(400).json({
+    code: 'PRODUCT_PATCH_FIELDS_INVALID',
+    message: 'Unsupported product fields',
+    fields: unsupportedFieldNames,
   });
 }
 
@@ -132,7 +152,36 @@ router.post('/', async (req, res, next) => {
 // PATCH /api/admin/products/:id
 router.patch('/:id', async (req, res, next) => {
   try {
-    const patch = { ...(req.body || {}) };
+    const requestBody = req.body;
+
+    if (
+      !requestBody ||
+      typeof requestBody !== 'object' ||
+      Array.isArray(requestBody)
+    ) {
+      return res.status(400).json({
+        code: 'PRODUCT_PATCH_INVALID',
+        message: 'Product patch must be an object',
+      });
+    }
+
+    const patchFieldNames = Object.keys(requestBody);
+    const unsupportedFieldNames = patchFieldNames.filter(
+      (fieldName) => !ALLOWED_PRODUCT_PATCH_FIELDS.has(fieldName),
+    );
+
+    if (unsupportedFieldNames.length > 0) {
+      return sendInvalidProductPatchFieldsResponse(res, unsupportedFieldNames);
+    }
+
+    if (patchFieldNames.length === 0) {
+      return res.status(400).json({
+        code: 'PRODUCT_PATCH_EMPTY',
+        message: 'Product patch is empty',
+      });
+    }
+
+    const patch = { ...requestBody };
     const hasSlug = Object.prototype.hasOwnProperty.call(patch, 'slug');
     const hasCategoryId = Object.prototype.hasOwnProperty.call(
       patch,
