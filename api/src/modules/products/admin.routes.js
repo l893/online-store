@@ -6,6 +6,9 @@ const {
 const {
   isMongoDuplicateKeyError,
 } = require('../../shared/is-mongo-duplicate-key-error');
+const {
+  getProductFieldsExceedingLengthLimits,
+} = require('./product-input-limits');
 const Product = require('./product.model');
 const Category = require('../categories/category.model');
 
@@ -48,6 +51,14 @@ function sendInvalidProductPatchFieldsResponse(
     code: 'PRODUCT_PATCH_FIELDS_INVALID',
     message: 'Unsupported product fields',
     fields: unsupportedFieldNames,
+  });
+}
+
+function sendProductInputTooLongResponse(response, fieldNames) {
+  return response.status(400).json({
+    code: 'PRODUCT_INPUT_TOO_LONG',
+    message: 'Product input exceeds allowed length',
+    fields: fieldNames,
   });
 }
 
@@ -121,6 +132,17 @@ router.post('/', async (req, res, next) => {
     if (!title || !slug || !price)
       return res.status(400).json({ message: 'title, slug, price required' });
 
+    const fieldsExceedingLengthLimits = getProductFieldsExceedingLengthLimits({
+      title,
+      slug,
+      description,
+      images,
+    });
+
+    if (fieldsExceedingLengthLimits.length > 0) {
+      return sendProductInputTooLongResponse(res, fieldsExceedingLengthLimits);
+    }
+
     if (!isValidProductSlug(slug)) {
       return sendInvalidProductSlugResponse(res);
     }
@@ -181,6 +203,13 @@ router.patch('/:id', async (req, res, next) => {
       });
     }
 
+    const fieldsExceedingLengthLimits =
+      getProductFieldsExceedingLengthLimits(requestBody);
+
+    if (fieldsExceedingLengthLimits.length > 0) {
+      return sendProductInputTooLongResponse(res, fieldsExceedingLengthLimits);
+    }
+
     const patch = { ...requestBody };
     const hasSlug = Object.prototype.hasOwnProperty.call(patch, 'slug');
     const hasCategoryId = Object.prototype.hasOwnProperty.call(
@@ -212,7 +241,10 @@ router.patch('/:id', async (req, res, next) => {
       shouldUnsetCategoryId
         ? { $set: patch, $unset: { categoryId: 1 } }
         : { $set: patch },
-      { new: true },
+      {
+        new: true,
+        runValidators: true,
+      },
     );
     if (!updated) return res.status(404).json({ message: 'Product not found' });
     res.json(updated);
