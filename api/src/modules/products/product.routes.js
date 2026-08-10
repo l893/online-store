@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { isValidObjectId } = require('mongoose');
 const {
   createProductSearchFilter,
+  isProductSearchQueryTooLong,
 } = require('../../shared/create-product-search-filter');
 const Category = require('../categories/category.model');
 const Product = require('./product.model');
@@ -17,6 +18,13 @@ router.get('/', async (req, res, next) => {
       page = 1,
       limit = 12,
     } = req.query;
+
+    if (isProductSearchQueryTooLong(search)) {
+      return res.status(400).json({
+        code: 'PRODUCT_SEARCH_QUERY_TOO_LONG',
+        message: 'Search query exceeds allowed length',
+      });
+    }
 
     const currentPage = Math.max(1, parseInt(page, 10) || 1);
     const pageLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 12));

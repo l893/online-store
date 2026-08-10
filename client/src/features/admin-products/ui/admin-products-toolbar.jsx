@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDebouncedValue } from '../../../shared/hooks';
+import { PRODUCT_SEARCH_QUERY_MAX_LENGTH } from '../../../shared/lib';
 import { Button, Input } from '../../../shared/ui';
 import styles from './admin-products-toolbar.module.scss';
 
@@ -55,6 +56,9 @@ export const AdminProductsToolbar = ({
       <Input
         placeholder="Поиск по названию…"
         autoComplete="off"
+        inputProps={{
+          maxLength: PRODUCT_SEARCH_QUERY_MAX_LENGTH,
+        }}
         value={inputSearchQuery}
         onChange={handleSearchInputChange}
       />

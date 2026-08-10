@@ -1,8 +1,13 @@
 const { isValidObjectId } = require('mongoose');
 
 const PRODUCT_SEARCH_FIELD_NAMES = ['title', 'slug', 'description'];
+const PRODUCT_SEARCH_QUERY_MAX_LENGTH = 100;
 
 const PRODUCT_WORD_SEPARATOR_PATTERN = '[^a-zа-яё0-9]+';
+
+function isProductSearchQueryTooLong(searchValue) {
+  return String(searchValue ?? '').length > PRODUCT_SEARCH_QUERY_MAX_LENGTH;
+}
 
 function escapeRegularExpression(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -92,4 +97,5 @@ function createProductSearchFilter(
 
 module.exports = {
   createProductSearchFilter,
+  isProductSearchQueryTooLong,
 };

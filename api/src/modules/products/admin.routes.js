@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { requireAuth, requireRole } = require('../../shared/auth.middleware');
 const {
   createProductSearchFilter,
+  isProductSearchQueryTooLong,
 } = require('../../shared/create-product-search-filter');
 const {
   isMongoDuplicateKeyError,
@@ -68,6 +69,14 @@ router.use(requireAuth, requireRole('admin'));
 router.get('/', async (req, res, next) => {
   try {
     const { search = '', page = 1, limit = 20 } = req.query;
+
+    if (isProductSearchQueryTooLong(search)) {
+      return res.status(400).json({
+        code: 'PRODUCT_SEARCH_QUERY_TOO_LONG',
+        message: 'Search query exceeds allowed length',
+      });
+    }
+
     const filter = createProductSearchFilter(search, {
       includeExactIdentifierMatches: true,
     });

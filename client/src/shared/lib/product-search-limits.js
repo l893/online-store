@@ -1,0 +1,1 @@
+export const PRODUCT_SEARCH_QUERY_MAX_LENGTH = 100;

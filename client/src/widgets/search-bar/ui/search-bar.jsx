@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Input } from '../../../shared/ui';
 import { useDebouncedValue } from '../../../shared/hooks';
+import { PRODUCT_SEARCH_QUERY_MAX_LENGTH } from '../../../shared/lib';
 import styles from './search-bar.module.scss';
 
 export const SearchBar = ({ searchQuery = '', onSearchQueryChange }) => {
@@ -39,6 +40,9 @@ export const SearchBar = ({ searchQuery = '', onSearchQueryChange }) => {
       <Input
         placeholder="Поиск по названию…"
         autoComplete="off"
+        inputProps={{
+          maxLength: PRODUCT_SEARCH_QUERY_MAX_LENGTH,
+        }}
         value={inputSearchQuery}
         onChange={(event) => setInputSearchQuery(event.target.value)}
       />

@@ -10,3 +10,4 @@ export {
   PRODUCT_IMAGE_PLACEHOLDER_URL,
   replaceBrokenProductImageWithPlaceholder,
 } from './product-image';
+export { PRODUCT_SEARCH_QUERY_MAX_LENGTH } from './product-search-limits';
