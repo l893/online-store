@@ -105,6 +105,24 @@ export function useCartItemActions({
   async function handleCartItemRemove(productId) {
     const previousCartItems = cartItems;
 
+    const serverCartCachePatch = isAuthenticated
+      ? dispatch(
+          api.util.updateQueryData(
+            'getCart',
+            undefined,
+            (cachedCartResponse) => {
+              if (!Array.isArray(cachedCartResponse.items)) {
+                return;
+              }
+
+              cachedCartResponse.items = cachedCartResponse.items.filter(
+                (cartItem) => cartItem.productId !== productId,
+              );
+            },
+          ),
+        )
+      : null;
+
     dispatch(removeCartItem(productId));
 
     if (!isAuthenticated) {
@@ -114,6 +132,7 @@ export function useCartItemActions({
     try {
       await removeItemFromCart(productId).unwrap();
     } catch {
+      serverCartCachePatch?.undo();
       dispatch(setCartItems(previousCartItems));
 
       setCartActionDialog({
