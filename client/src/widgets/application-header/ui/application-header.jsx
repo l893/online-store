@@ -18,7 +18,7 @@ export const ApplicationHeader = () => {
   return (
     <header className={styles.header}>
       <Link to="/" className={styles.brandLink}>
-        Shop
+        Neon
       </Link>
 
       <nav className={styles.navigation}>
