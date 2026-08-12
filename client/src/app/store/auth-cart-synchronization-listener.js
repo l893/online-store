@@ -3,9 +3,9 @@ import {
   authenticatedSessionCleared,
   authenticatedSessionEstablished,
   publishAuthSessionChange,
-} from '../../features/auth';
-import { setCartItems } from '../../features/cart';
-import { api, authenticationSessionExpired } from '../../shared/lib';
+} from '@features/auth';
+import { setCartItems } from '@features/cart';
+import { api, authenticationSessionExpired } from '@shared/lib';
 import { synchronizeCartAfterAuthentication } from '../model/synchronize-cart-after-authentication';
 
 export const authCartSynchronizationListener = createListenerMiddleware();
