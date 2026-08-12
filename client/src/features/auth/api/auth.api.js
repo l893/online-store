@@ -3,7 +3,7 @@ import {
   invalidatePendingAccessTokenRefresh,
   removeStoredAccessToken,
   storeAccessToken,
-} from '../../../shared/lib';
+} from '@shared/lib';
 import { normalizeUser } from '../lib/normalize-user';
 import {
   authenticatedSessionCleared,
