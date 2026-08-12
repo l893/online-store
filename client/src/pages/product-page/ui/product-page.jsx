@@ -1,15 +1,12 @@
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useGetProductQuery } from '../../../entities/products';
-import {
-  addProductToCart,
-  createCartItemFromProduct,
-} from '../../../features/cart';
+import { useGetProductQuery } from '@entities/products';
+import { addProductToCart, createCartItemFromProduct } from '@features/cart';
 import {
   PRODUCT_IMAGE_PLACEHOLDER_URL,
   replaceBrokenProductImageWithPlaceholder,
-} from '../../../shared/lib';
-import { Button, Loader } from '../../../shared/ui';
+} from '@shared/lib';
+import { Button, Loader } from '@shared/ui';
 import styles from './product-page.module.scss';
 
 export const ProductPage = () => {
