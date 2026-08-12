@@ -1,4 +1,4 @@
-import { Button } from '../../../shared/ui';
+import { Button } from '@shared/ui';
 import styles from './sort-controls.module.scss';
 
 export const SortControls = ({ sortValue = 'price_asc', onSortChange }) => {
