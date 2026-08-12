@@ -1,4 +1,4 @@
-import { api } from '../../../shared/lib';
+import { api } from '@shared/lib';
 
 export const ordersApi = api.injectEndpoints({
   endpoints: (endpointBuilder) => ({
