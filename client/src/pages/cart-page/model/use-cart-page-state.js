@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { useGetProductsAvailabilityQuery } from '../../../entities/products';
+import { useGetProductsAvailabilityQuery } from '@entities/products';
 import {
   applyProductDetailsToCartItems,
   getCartTotals,
@@ -8,7 +8,7 @@ import {
   useGetCartQuery,
   useInitialCartSync,
   useReplaceCartMutation,
-} from '../../../features/cart';
+} from '@features/cart';
 
 function getCartAvailabilityMessage({
   isCartAvailabilityChecking,
