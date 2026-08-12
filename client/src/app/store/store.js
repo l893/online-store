@@ -1,13 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import { api } from '../../shared/lib';
-import { authReducer } from '../../features/auth';
+import { api } from '@shared/lib';
+import { authReducer } from '@features/auth';
 import {
   cartReducer,
   clearGuestCartItems,
   loadGuestCartItems,
   saveGuestCartItems,
-} from '../../features/cart';
+} from '@features/cart';
 import { authCartSynchronizationListener } from './auth-cart-synchronization-listener';
 
 const preloadedGuestCartItems = loadGuestCartItems();
