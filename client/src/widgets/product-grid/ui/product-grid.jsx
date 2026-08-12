@@ -1,9 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { ProductCard } from '../../../entities/products';
-import {
-  addProductToCart,
-  createCartItemFromProduct,
-} from '../../../features/cart';
+import { ProductCard } from '@entities/products';
+import { addProductToCart, createCartItemFromProduct } from '@features/cart';
 import styles from './product-grid.module.scss';
 
 export const ProductGrid = ({ products = [] }) => {
