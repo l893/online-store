@@ -1,6 +1,6 @@
-import { productsApi } from '../../entities/products';
-import { mergeCartItems, setCartItems } from '../../features/cart';
-import { api } from '../../shared/lib';
+import { productsApi } from '@entities/products';
+import { mergeCartItems, setCartItems } from '@features/cart';
+import { api } from '@shared/lib';
 
 export async function synchronizeCartAfterAuthentication({
   dispatch,
