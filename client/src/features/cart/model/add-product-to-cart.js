@@ -1,4 +1,4 @@
-import { api } from '../../../shared/lib';
+import { api } from '@shared/lib';
 import { cartApi } from '../api/cart.api';
 import { addCartItem, setCartItems } from './cart.slice';
 
