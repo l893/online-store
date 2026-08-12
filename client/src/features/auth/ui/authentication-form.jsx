@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { parseApiError } from '../../../shared/lib';
-import { Button } from '../../../shared/ui';
+import { parseApiError } from '@shared/lib';
+import { Button } from '@shared/ui';
 import styles from './authentication-form.module.scss';
 
 export const AuthenticationForm = ({
