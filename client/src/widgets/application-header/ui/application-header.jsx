@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { useLogoutMutation } from '../../../features/auth';
+import { useLogoutMutation } from '@features/auth';
 import styles from './application-header.module.scss';
 
 export const ApplicationHeader = () => {
