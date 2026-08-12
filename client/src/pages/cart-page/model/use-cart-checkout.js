@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { clearCart, setCartItems } from '../../../features/cart';
+import { clearCart, setCartItems } from '@features/cart';
 import {
   useConfirmCheckoutMutation,
   useCreateOrderMutation,
-} from '../../../features/orders';
-import { api } from '../../../shared/lib';
+} from '@features/orders';
+import { api } from '@shared/lib';
 
 function getStockConflictItems(error, cartItems) {
   const errorCode = error?.data?.code;
