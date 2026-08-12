@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
-import { RequireAuth, RequireRole } from '../../features/auth';
+import { RequireAuth, RequireRole } from '@features/auth';
 import {
   AdminProductsPage,
   CartPage,
@@ -8,7 +8,7 @@ import {
   NotFoundPage,
   ProductPage,
   RegisterPage,
-} from '../../pages';
+} from '@pages';
 
 export const ApplicationRoutes = () => {
   return (
