@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { useDebouncedValue } from '../../../shared/hooks';
-import { PRODUCT_SEARCH_QUERY_MAX_LENGTH } from '../../../shared/lib';
-import { Button, Input } from '../../../shared/ui';
+import { useDebouncedValue } from '@shared/hooks';
+import { PRODUCT_SEARCH_QUERY_MAX_LENGTH } from '@shared/lib';
+import { Button, Input } from '@shared/ui';
 import styles from './admin-products-toolbar.module.scss';
 
 const ADMIN_PRODUCTS_SEARCH_DELAY_MILLISECONDS = 500;
