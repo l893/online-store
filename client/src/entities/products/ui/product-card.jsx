@@ -1,8 +1,8 @@
 import {
   PRODUCT_IMAGE_PLACEHOLDER_URL,
   replaceBrokenProductImageWithPlaceholder,
-} from '../../../shared/lib';
-import { Button } from '../../../shared/ui';
+} from '@shared/lib';
+import { Button } from '@shared/ui';
 import { Link } from 'react-router-dom';
 import styles from './product-card.module.scss';
 
