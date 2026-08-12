@@ -1,5 +1,5 @@
-import { Loader } from '../../shared/ui';
-import { ApplicationHeader } from '../../widgets/application-header';
+import { Loader } from '@shared/ui';
+import { ApplicationHeader } from '@widgets/application-header';
 import { useAuthBootstrap } from '../model/use-auth-bootstrap';
 import { useAuthSessionSynchronization } from '../model/use-auth-session-synchronization';
 import { useScrollManagement } from '../model/use-scroll-management';
