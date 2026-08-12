@@ -1,4 +1,4 @@
-import { Button } from '../../../shared/ui';
+import { Button } from '@shared/ui';
 import styles from './admin-products-pagination.module.scss';
 
 export const AdminProductsPagination = ({
