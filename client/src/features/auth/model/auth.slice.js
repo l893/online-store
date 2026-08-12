@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { authenticationSessionExpired } from '../../../shared/lib';
+import { authenticationSessionExpired } from '@shared/lib';
 
 const initialAuthState = {
   user: null,
