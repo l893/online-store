@@ -1,4 +1,4 @@
-import { parseApiError } from '../../../shared/lib';
+import { parseApiError } from '@shared/lib';
 import { ProductForm } from './product-form';
 import styles from './admin-product-form-panel.module.scss';
 
