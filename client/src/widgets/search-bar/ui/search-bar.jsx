@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Input } from '../../../shared/ui';
-import { useDebouncedValue } from '../../../shared/hooks';
-import { PRODUCT_SEARCH_QUERY_MAX_LENGTH } from '../../../shared/lib';
+import { Input } from '@shared/ui';
+import { useDebouncedValue } from '@shared/hooks';
+import { PRODUCT_SEARCH_QUERY_MAX_LENGTH } from '@shared/lib';
 import styles from './search-bar.module.scss';
 
 export const SearchBar = ({ searchQuery = '', onSearchQueryChange }) => {
