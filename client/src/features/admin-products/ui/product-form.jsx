@@ -8,7 +8,7 @@ import {
   MenuItem,
   Select,
 } from '@mui/material';
-import { Button, Input } from '../../../shared/ui';
+import { Button, Input } from '@shared/ui';
 import { SUCCESSFUL_ADD_ITEM_CONFIRMATION_MILLISECONDS } from '../config/product-form.constants';
 import { productFormSchema } from '../config/product-form-schema';
 import { slugifyRu } from '../lib/slugify-ru';
