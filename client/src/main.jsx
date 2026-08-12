@@ -2,12 +2,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { Provider } from 'react-redux';
-import { store } from './app/store/store';
+import { store } from '@app/store/store';
 import { BrowserRouter } from 'react-router-dom';
-import './app/styles/normalize.css';
-import './app/styles/global.css';
-import { App } from './app/ui/app';
-import { theme } from './app/config/theme';
+import '@app/styles/normalize.css';
+import '@app/styles/global.css';
+import { App } from '@app/ui/app';
+import { theme } from '@app/config/theme';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
