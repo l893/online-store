@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { api } from '../../../shared/lib';
+import { api } from '@shared/lib';
 import { useRemoveItemFromCartMutation } from '../api/cart.api';
 import {
   changeCartItemQuantity,
