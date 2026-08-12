@@ -1,8 +1,8 @@
 import {
   PRODUCT_IMAGE_PLACEHOLDER_URL,
   replaceBrokenProductImageWithPlaceholder,
-} from '../../../shared/lib';
-import { Button, Input } from '../../../shared/ui';
+} from '@shared/lib';
+import { Button, Input } from '@shared/ui';
 import styles from './cart-item.module.scss';
 
 export const CartItem = ({
