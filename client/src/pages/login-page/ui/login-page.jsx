@@ -8,8 +8,8 @@ import {
   AuthenticationFormFieldError,
   isAuthenticationPasswordWithinByteLengthLimit,
   useLoginMutation,
-} from '../../../features/auth';
-import { Input } from '../../../shared/ui';
+} from '@features/auth';
+import { Input } from '@shared/ui';
 
 const schema = yup.object({
   email: yup
