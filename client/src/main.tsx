@@ -11,6 +11,7 @@ import '@app/styles/normalize.css';
 import '@app/styles/global.css';
 
 import { App } from '@app/ui/app';
+import { ErrorBoundary } from '@app/ui/error-boundary';
 
 const rootElement = document.getElementById('root');
 
@@ -22,11 +23,13 @@ createRoot(rootElement).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Provider store={store}>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </Provider>
+      <ErrorBoundary>
+        <Provider store={store}>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </Provider>
+      </ErrorBoundary>
     </ThemeProvider>
   </StrictMode>,
 );

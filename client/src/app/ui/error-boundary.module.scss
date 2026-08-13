@@ -1,0 +1,25 @@
+.errorBoundary {
+  box-sizing: border-box;
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 1.5rem 1rem;
+}
+
+.content {
+  width: 100%;
+  max-width: 32rem;
+  padding: 2rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.75rem;
+  background-color: #ffffff;
+  text-align: center;
+}
+
+.title {
+  margin: 0 0 1rem;
+}
+
+.description {
+  margin: 0 0 1.5rem;
+}
