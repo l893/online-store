@@ -1,6 +1,10 @@
 import { createAction } from '@reduxjs/toolkit';
 
-function prepareAuthSessionChangeEvent() {
+interface AuthSessionChangePreparedAction {
+  readonly payload: string;
+}
+
+function prepareAuthSessionChangeEvent(): AuthSessionChangePreparedAction {
   return {
     payload: crypto.randomUUID(),
   };

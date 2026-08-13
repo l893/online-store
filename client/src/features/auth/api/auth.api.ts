@@ -1,3 +1,5 @@
+import type { Dispatch, UnknownAction } from '@reduxjs/toolkit';
+
 import {
   api,
   invalidatePendingAccessTokenRefresh,
@@ -10,8 +12,19 @@ import {
   authenticatedSessionEstablished,
 } from '../model/auth-session.events';
 import { setCredentials, logout as logoutAction } from '../model/auth.slice';
+import type {
+  AuthenticationResponse,
+  LoginRequest,
+  LogoutResponse,
+  RegisterRequest,
+} from './auth.types';
 
-function clearStoredAuthenticationData() {
+interface CompleteAuthenticationOptions {
+  readonly response: AuthenticationResponse;
+  readonly dispatch: Dispatch<UnknownAction>;
+}
+
+function clearStoredAuthenticationData(): void {
   removeStoredAccessToken();
 
   try {
@@ -21,7 +34,10 @@ function clearStoredAuthenticationData() {
   }
 }
 
-function completeAuthentication({ response, dispatch }) {
+function completeAuthentication({
+  response,
+  dispatch,
+}: CompleteAuthenticationOptions): void {
   const normalizedUser = normalizeUser(response.user);
 
   invalidatePendingAccessTokenRefresh();
@@ -39,26 +55,28 @@ function completeAuthentication({ response, dispatch }) {
 
 export const authApi = api.injectEndpoints({
   endpoints: (endpointBuilder) => ({
-    register: endpointBuilder.mutation({
-      query: (request) => ({
-        url: '/auth/register',
-        method: 'POST',
-        body: request,
-      }),
-      async onQueryStarted(request, { dispatch, queryFulfilled }) {
-        try {
-          const { data: response } = await queryFulfilled;
+    register: endpointBuilder.mutation<AuthenticationResponse, RegisterRequest>(
+      {
+        query: (request) => ({
+          url: '/auth/register',
+          method: 'POST',
+          body: request,
+        }),
+        async onQueryStarted(request, { dispatch, queryFulfilled }) {
+          try {
+            const { data: response } = await queryFulfilled;
 
-          completeAuthentication({
-            response,
-            dispatch,
-          });
-        } catch {
-          // Ошибка доступна через RTK Query mutation state.
-        }
+            completeAuthentication({
+              response,
+              dispatch,
+            });
+          } catch {
+            // Ошибка доступна через RTK Query mutation state.
+          }
+        },
       },
-    }),
-    login: endpointBuilder.mutation({
+    ),
+    login: endpointBuilder.mutation<AuthenticationResponse, LoginRequest>({
       query: (request) => ({
         url: '/auth/login',
         method: 'POST',
@@ -77,7 +95,7 @@ export const authApi = api.injectEndpoints({
         }
       },
     }),
-    refresh: endpointBuilder.mutation({
+    refresh: endpointBuilder.mutation<AuthenticationResponse, void>({
       query: () => ({ url: '/auth/refresh', method: 'POST' }),
       async onQueryStarted(request, { dispatch, queryFulfilled }) {
         try {
@@ -98,7 +116,7 @@ export const authApi = api.injectEndpoints({
         }
       },
     }),
-    logout: endpointBuilder.mutation({
+    logout: endpointBuilder.mutation<LogoutResponse, void>({
       query: () => ({ url: '/auth/logout', method: 'POST' }),
       async onQueryStarted(request, { dispatch, queryFulfilled }) {
         invalidatePendingAccessTokenRefresh();

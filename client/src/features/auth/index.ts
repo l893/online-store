@@ -1,5 +1,7 @@
 // Store
 export { default as authReducer } from './model/auth.slice';
+export { selectAuthenticatedUser } from './model/auth.slice';
+export type { AuthenticatedUser } from './model/auth.types';
 
 // RTK Query
 export {
@@ -8,6 +10,7 @@ export {
   useRefreshMutation,
   useLogoutMutation,
 } from './api/auth.api';
+export type { LoginRequest, RegisterRequest } from './api/auth.types';
 
 // Cross-tab session synchronization
 export {

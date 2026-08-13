@@ -1,7 +1,23 @@
+import type { FormEventHandler, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+
 import { parseApiError } from '@shared/lib';
 import { Button } from '@shared/ui';
+
 import styles from './authentication-form.module.scss';
+
+interface AuthenticationFormProps {
+  readonly title: string;
+  readonly children: ReactNode;
+  readonly onSubmit: FormEventHandler<HTMLFormElement>;
+  readonly isSubmitting: boolean;
+  readonly submissionError?: unknown;
+  readonly submitButtonLabel: string;
+  readonly submittingButtonLabel: string;
+  readonly footerText: string;
+  readonly footerLinkText: string;
+  readonly footerLinkPath: string;
+}
 
 export const AuthenticationForm = ({
   title,
@@ -14,7 +30,7 @@ export const AuthenticationForm = ({
   footerText,
   footerLinkText,
   footerLinkPath,
-}) => {
+}: AuthenticationFormProps) => {
   return (
     <div className={styles.authCard}>
       <h1 className={styles.title}>{title}</h1>
@@ -22,7 +38,7 @@ export const AuthenticationForm = ({
       <form className={styles.form} onSubmit={onSubmit}>
         {children}
 
-        {submissionError && (
+        {Boolean(submissionError) && (
           <div className={styles.formError}>
             {parseApiError(submissionError)}
           </div>
@@ -43,7 +59,13 @@ export const AuthenticationForm = ({
   );
 };
 
-export const AuthenticationFormFieldError = ({ message }) => {
+interface AuthenticationFormFieldErrorProps {
+  readonly message?: string;
+}
+
+export const AuthenticationFormFieldError = ({
+  message,
+}: AuthenticationFormFieldErrorProps) => {
   if (!message) {
     return null;
   }
