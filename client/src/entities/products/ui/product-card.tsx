@@ -1,19 +1,28 @@
+import { Link } from 'react-router-dom';
+
 import {
   PRODUCT_IMAGE_PLACEHOLDER_URL,
   replaceBrokenProductImageWithPlaceholder,
 } from '@shared/lib';
 import { Button } from '@shared/ui';
-import { Link } from 'react-router-dom';
+
+import type { Product } from '../model/product.types';
 import styles from './product-card.module.scss';
+
+interface ProductCardProps {
+  readonly product: Product;
+  readonly isAddToCartDisabled?: boolean;
+  readonly onAddToCart: (product: Product) => void;
+}
 
 export const ProductCard = ({
   product,
   isAddToCartDisabled = false,
   onAddToCart,
-}) => {
+}: ProductCardProps) => {
   const productImageUrl = product.images?.[0] || PRODUCT_IMAGE_PLACEHOLDER_URL;
 
-  function handleAddToCartButtonClick() {
+  function handleAddToCartButtonClick(): void {
     onAddToCart(product);
   }
 
