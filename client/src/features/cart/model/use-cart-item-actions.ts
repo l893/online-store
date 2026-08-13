@@ -1,23 +1,52 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { api } from '@shared/lib';
-import { useRemoveItemFromCartMutation } from '../api/cart.api';
+
+import { cartApi, useRemoveItemFromCartMutation } from '../api/cart.api';
+import type { ReplaceCartTrigger } from '../api/cart.api';
+import { getCartMutationErrorDetails } from '../lib/get-cart-mutation-error-details';
 import {
   changeCartItemQuantity,
   removeCartItem,
   setCartItems,
 } from './cart.slice';
+import type { CartItem } from './cart.types';
+import type { CartOrchestrationDispatch } from './cart-orchestration.types';
+
+interface CartActionDialog {
+  readonly title: string;
+  readonly description: string;
+}
+
+interface UseCartItemActionsOptions {
+  readonly isAuthenticated: boolean;
+  readonly cartItems?: CartItem[];
+  readonly replaceCart: ReplaceCartTrigger;
+}
+
+interface UseCartItemActionsResult {
+  readonly cartActionDialog: CartActionDialog | null;
+  readonly handleCartItemQuantityChange: (
+    productId: string,
+    quantity: number,
+  ) => Promise<void>;
+  readonly handleCartItemRemove: (productId: string) => Promise<void>;
+  readonly handleCartActionDialogClose: () => void;
+}
 
 export function useCartItemActions({
   isAuthenticated,
   cartItems = [],
   replaceCart,
-}) {
-  const dispatch = useDispatch();
-  const [cartActionDialog, setCartActionDialog] = useState(null);
+}: UseCartItemActionsOptions): UseCartItemActionsResult {
+  const dispatch = useDispatch<CartOrchestrationDispatch>();
+  const [cartActionDialog, setCartActionDialog] =
+    useState<CartActionDialog | null>(null);
   const [removeItemFromCart] = useRemoveItemFromCartMutation();
 
-  async function handleCartItemQuantityChange(productId, quantity) {
+  async function handleCartItemQuantityChange(
+    productId: string,
+    quantity: number,
+  ): Promise<void> {
     const currentCartItem = cartItems.find(
       (cartItem) => cartItem.productId === productId,
     );
@@ -65,12 +94,10 @@ export function useCartItemActions({
 
     try {
       await replaceCart(nextCartItems).unwrap();
-    } catch (error) {
-      const isInsufficientStockError =
-        error?.data?.code === 'INSUFFICIENT_STOCK';
-      const availableStock = Number(error?.data?.availableStock);
-      const hasValidAvailableStock =
-        Number.isFinite(availableStock) && availableStock >= 0;
+    } catch (error: unknown) {
+      const { isInsufficientStockError, availableStock } =
+        getCartMutationErrorDetails(error);
+      const hasValidAvailableStock = availableStock !== null;
 
       const restoredCartItems =
         isInsufficientStockError && hasValidAvailableStock
@@ -87,7 +114,7 @@ export function useCartItemActions({
       dispatch(setCartItems(restoredCartItems));
 
       if (isInsufficientStockError) {
-        dispatch(api.util.invalidateTags(['Product']));
+        dispatch(cartApi.util.invalidateTags(['Product']));
       }
 
       setCartActionDialog({
@@ -102,12 +129,12 @@ export function useCartItemActions({
     }
   }
 
-  async function handleCartItemRemove(productId) {
+  async function handleCartItemRemove(productId: string): Promise<void> {
     const previousCartItems = cartItems;
 
     const serverCartCachePatch = isAuthenticated
       ? dispatch(
-          api.util.updateQueryData(
+          cartApi.util.updateQueryData(
             'getCart',
             undefined,
             (cachedCartResponse) => {
@@ -142,7 +169,7 @@ export function useCartItemActions({
     }
   }
 
-  function handleCartActionDialogClose() {
+  function handleCartActionDialogClose(): void {
     setCartActionDialog(null);
   }
 

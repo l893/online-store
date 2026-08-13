@@ -33,3 +33,5 @@ export const {
   useReplaceCartMutation,
   useRemoveItemFromCartMutation,
 } = cartApi;
+
+export type ReplaceCartTrigger = ReturnType<typeof useReplaceCartMutation>[0];

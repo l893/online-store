@@ -15,6 +15,7 @@ export {
   useLazyGetCartQuery,
   useReplaceCartMutation,
 } from './api/cart.api';
+export type { ReplaceCartTrigger } from './api/cart.api';
 export type { CartResponse } from './api/cart.types';
 
 export { createCartItemFromProduct } from './lib/create-cart-item-from-product';

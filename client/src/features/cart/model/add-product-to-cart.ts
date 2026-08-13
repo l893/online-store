@@ -1,8 +1,18 @@
-import { api } from '@shared/lib';
 import { cartApi } from '../api/cart.api';
+import { getCartMutationErrorDetails } from '../lib/get-cart-mutation-error-details';
 import { addCartItem, setCartItems } from './cart.slice';
+import type { CartItemDraft } from './cart.types';
+import type { CartOrchestrationThunk } from './cart-orchestration.types';
 
-export function addProductToCart({ cartItem, isAuthenticated }) {
+interface AddProductToCartOptions {
+  readonly cartItem: CartItemDraft;
+  readonly isAuthenticated: boolean;
+}
+
+export function addProductToCart({
+  cartItem,
+  isAuthenticated,
+}: AddProductToCartOptions): CartOrchestrationThunk<Promise<void>> {
   return async (dispatch, getState) => {
     const availableStock = Math.max(0, Number(cartItem.stock) || 0);
     const previousCartItems = getState().cart.items;
@@ -42,12 +52,10 @@ export function addProductToCart({ cartItem, isAuthenticated }) {
       await dispatch(
         cartApi.endpoints.replaceCart.initiate(updatedCartItems),
       ).unwrap();
-    } catch (error) {
-      const isInsufficientStockError =
-        error?.data?.code === 'INSUFFICIENT_STOCK';
-      const availableStock = Number(error?.data?.availableStock);
-      const hasAvailableStock =
-        Number.isFinite(availableStock) && availableStock >= 0;
+    } catch (error: unknown) {
+      const { isInsufficientStockError, availableStock: errorAvailableStock } =
+        getCartMutationErrorDetails(error);
+      const hasAvailableStock = errorAvailableStock !== null;
 
       const restoredCartItems =
         isInsufficientStockError && hasAvailableStock
@@ -55,7 +63,7 @@ export function addProductToCart({ cartItem, isAuthenticated }) {
               previousCartItem.productId === cartItem.productId
                 ? {
                     ...previousCartItem,
-                    stock: availableStock,
+                    stock: errorAvailableStock,
                   }
                 : previousCartItem,
             )
@@ -64,7 +72,7 @@ export function addProductToCart({ cartItem, isAuthenticated }) {
       dispatch(setCartItems(restoredCartItems));
 
       if (isInsufficientStockError) {
-        dispatch(api.util.invalidateTags(['Product']));
+        dispatch(cartApi.util.invalidateTags(['Product']));
       }
     }
   };

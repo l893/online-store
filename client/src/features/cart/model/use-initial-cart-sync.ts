@@ -1,14 +1,25 @@
 import { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
+
+import type { ReplaceCartTrigger } from '../api/cart.api';
+import type { CartResponse } from '../api/cart.types';
 import { getInitialCartSyncDecision } from '../lib/get-initial-cart-sync-decision';
 import { setCartItems } from './cart.slice';
+import type { CartItem } from './cart.types';
+
+interface UseInitialCartSyncOptions {
+  readonly isAuthenticated: boolean;
+  readonly localCartItems?: CartItem[];
+  readonly serverCart?: CartResponse;
+  readonly replaceCart: ReplaceCartTrigger;
+}
 
 export function useInitialCartSync({
   isAuthenticated,
   localCartItems = [],
   serverCart,
   replaceCart,
-}) {
+}: UseInitialCartSyncOptions): void {
   const dispatch = useDispatch();
   const hasInitialCartSyncStartedReference = useRef(false);
 
