@@ -1,6 +1,6 @@
 const ACCESS_TOKEN_STORAGE_KEY = 'accessToken';
 
-export function getStoredAccessToken() {
+export function getStoredAccessToken(): string | null {
   try {
     return localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
   } catch {
@@ -8,7 +8,7 @@ export function getStoredAccessToken() {
   }
 }
 
-export function storeAccessToken(accessToken) {
+export function storeAccessToken(accessToken: string | null | undefined): void {
   if (!accessToken) {
     removeStoredAccessToken();
     return;
@@ -21,7 +21,7 @@ export function storeAccessToken(accessToken) {
   }
 }
 
-export function removeStoredAccessToken() {
+export function removeStoredAccessToken(): void {
   try {
     localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
   } catch {

@@ -1,6 +1,10 @@
 import { createAction } from '@reduxjs/toolkit';
 
-function prepareAuthenticationSessionExpiredEvent() {
+interface AuthenticationSessionExpiredPreparedAction {
+  readonly payload: string;
+}
+
+function prepareAuthenticationSessionExpiredEvent(): AuthenticationSessionExpiredPreparedAction {
   return {
     payload: crypto.randomUUID(),
   };
