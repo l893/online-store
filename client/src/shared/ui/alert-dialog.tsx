@@ -7,13 +7,21 @@ import {
   DialogTitle,
 } from '@mui/material';
 
+export interface AlertDialogProps {
+  readonly open: boolean;
+  readonly title?: string;
+  readonly description?: string;
+  readonly onClose?: () => void;
+  readonly closeText?: string;
+}
+
 export const AlertDialog = ({
   open,
   title = 'Сообщение',
   description = '',
   onClose,
   closeText = 'OK',
-}) => {
+}: AlertDialogProps) => {
   const blurActiveElement = () => {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();

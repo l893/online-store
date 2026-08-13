@@ -1,7 +1,26 @@
 import { useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-export function useQueryParams() {
+export type QueryParameterValue = string | number | null | undefined;
+
+export type QueryParameterUpdates = Record<string, QueryParameterValue>;
+
+export interface SetQueryParametersOptions {
+  readonly replace?: boolean;
+  readonly navigationState?: unknown;
+}
+
+export type SetQueryParameters = (
+  queryParameterUpdates: QueryParameterUpdates,
+  options?: SetQueryParametersOptions,
+) => void;
+
+export type UseQueryParamsResult = readonly [
+  queryParameters: URLSearchParams,
+  setQueryParameters: SetQueryParameters,
+];
+
+export function useQueryParams(): UseQueryParamsResult {
   const { search: searchString, pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -11,7 +30,10 @@ export function useQueryParams() {
   );
 
   const setQueryParameters = useCallback(
-    (queryParameterUpdates, { replace = true, navigationState } = {}) => {
+    (
+      queryParameterUpdates: QueryParameterUpdates,
+      { replace = true, navigationState }: SetQueryParametersOptions = {},
+    ): void => {
       const nextQueryParameters = new URLSearchParams(searchString);
 
       Object.entries(queryParameterUpdates).forEach(

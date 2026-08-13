@@ -1,6 +1,11 @@
 import { CircularProgress, Typography } from '@mui/material';
 
-export const Loader = ({ className = '', label = 'Loading…' }) => {
+export interface LoaderProps {
+  readonly className?: string;
+  readonly label?: string;
+}
+
+export const Loader = ({ className = '', label = 'Loading…' }: LoaderProps) => {
   return (
     <span
       className={className}

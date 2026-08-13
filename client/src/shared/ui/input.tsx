@@ -1,4 +1,13 @@
+import type { InputHTMLAttributes } from 'react';
 import { TextField } from '@mui/material';
+import type { TextFieldProps } from '@mui/material';
+
+interface InputCompatibilityProps {
+  readonly inputProps?: InputHTMLAttributes<HTMLInputElement>;
+  readonly label?: string;
+}
+
+export type InputProps = TextFieldProps & InputCompatibilityProps;
 
 export const Input = ({
   className = '',
@@ -10,22 +19,23 @@ export const Input = ({
   placeholder,
   label,
   ...props
-}) => {
+}: InputProps) => {
+  const htmlInputSlotProps =
+    typeof slotProps?.htmlInput === 'function'
+      ? undefined
+      : slotProps?.htmlInput;
+
   const ariaLabel =
     inputProps?.['aria-label'] ||
-    slotProps?.htmlInput?.['aria-label'] ||
+    htmlInputSlotProps?.['aria-label'] ||
     label ||
     placeholder;
 
   const htmlInputProps = {
     ...inputProps,
-    ...slotProps?.htmlInput,
+    ...htmlInputSlotProps,
     ...(ariaLabel ? { 'aria-label': ariaLabel } : {}),
-    className: [
-      inputProps?.className,
-      slotProps?.htmlInput?.className,
-      className,
-    ]
+    className: [inputProps?.className, htmlInputSlotProps?.className, className]
       .filter(Boolean)
       .join(' '),
   };
