@@ -1,11 +1,14 @@
 import { api } from '@shared/lib';
 
+import type { CartItem } from '../model/cart.types';
+import type { CartResponse } from './cart.types';
+
 export const cartApi = api.injectEndpoints({
   endpoints: (endpointBuilder) => ({
-    getCart: endpointBuilder.query({
+    getCart: endpointBuilder.query<CartResponse, void>({
       query: () => '/cart',
     }),
-    replaceCart: endpointBuilder.mutation({
+    replaceCart: endpointBuilder.mutation<CartResponse, readonly CartItem[]>({
       query: (cartItems) => ({
         url: '/cart',
         method: 'PUT',
@@ -14,7 +17,7 @@ export const cartApi = api.injectEndpoints({
         },
       }),
     }),
-    removeItemFromCart: endpointBuilder.mutation({
+    removeItemFromCart: endpointBuilder.mutation<CartResponse, string>({
       query: (productId) => ({
         url: `/cart/item/${productId}`,
         method: 'DELETE',

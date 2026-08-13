@@ -3,12 +3,19 @@ export {
   clearCart,
   setCartItems,
 } from './model/cart.slice';
+export type {
+  CartItem,
+  CartItemDraft,
+  CartState,
+  CartTotals,
+} from './model/cart.types';
 
 export {
   useGetCartQuery,
   useLazyGetCartQuery,
   useReplaceCartMutation,
 } from './api/cart.api';
+export type { CartResponse } from './api/cart.types';
 
 export { createCartItemFromProduct } from './lib/create-cart-item-from-product';
 export { applyProductDetailsToCartItems } from './lib/apply-product-details-to-cart-items';

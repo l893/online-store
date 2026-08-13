@@ -1,4 +1,6 @@
-export function getCartTotals(cartItems = []) {
+import type { CartItem, CartTotals } from '../model/cart.types';
+
+export function getCartTotals(cartItems: readonly CartItem[] = []): CartTotals {
   let totalQuantity = 0;
   let totalSum = 0;
 

@@ -1,9 +1,17 @@
+import type { CartItem } from '../model/cart.types';
+
 const GUEST_CART_STORAGE_KEY = 'guestCart';
 const GUEST_CART_STORAGE_VERSION = 1;
 
-function normalizeStoredGuestCartItem(storedCartItem) {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function normalizeStoredGuestCartItem(
+  storedCartItem: unknown,
+): CartItem | null {
   if (
-    !storedCartItem ||
+    !isRecord(storedCartItem) ||
     typeof storedCartItem.productId !== 'string' ||
     !storedCartItem.productId
   ) {
@@ -26,7 +34,7 @@ function normalizeStoredGuestCartItem(storedCartItem) {
   };
 }
 
-export function clearGuestCartItems() {
+export function clearGuestCartItems(): void {
   try {
     localStorage.removeItem(GUEST_CART_STORAGE_KEY);
   } catch {
@@ -34,7 +42,7 @@ export function clearGuestCartItems() {
   }
 }
 
-export function loadGuestCartItems() {
+export function loadGuestCartItems(): CartItem[] {
   try {
     const serializedGuestCart = localStorage.getItem(GUEST_CART_STORAGE_KEY);
 
@@ -42,10 +50,11 @@ export function loadGuestCartItems() {
       return [];
     }
 
-    const storedGuestCart = JSON.parse(serializedGuestCart);
+    const storedGuestCart: unknown = JSON.parse(serializedGuestCart);
 
     if (
-      storedGuestCart?.version !== GUEST_CART_STORAGE_VERSION ||
+      !isRecord(storedGuestCart) ||
+      storedGuestCart.version !== GUEST_CART_STORAGE_VERSION ||
       !Array.isArray(storedGuestCart.items)
     ) {
       clearGuestCartItems();
@@ -53,15 +62,17 @@ export function loadGuestCartItems() {
     }
 
     return storedGuestCart.items
-      .map(normalizeStoredGuestCartItem)
-      .filter(Boolean);
+      .map((storedCartItem: unknown) =>
+        normalizeStoredGuestCartItem(storedCartItem),
+      )
+      .filter((cartItem): cartItem is CartItem => cartItem !== null);
   } catch {
     clearGuestCartItems();
     return [];
   }
 }
 
-export function saveGuestCartItems(guestCartItems) {
+export function saveGuestCartItems(guestCartItems: readonly CartItem[]): void {
   try {
     if (!Array.isArray(guestCartItems) || guestCartItems.length === 0) {
       clearGuestCartItems();

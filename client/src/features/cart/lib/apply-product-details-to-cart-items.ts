@@ -1,11 +1,15 @@
-function normalizeAvailableStock(stock) {
+import type { ProductAvailabilityItem } from '@entities/products';
+
+import type { CartItem } from '../model/cart.types';
+
+function normalizeAvailableStock(stock: number): number {
   return Math.max(0, Math.floor(Number(stock) || 0));
 }
 
 export function applyProductDetailsToCartItems(
-  cartItems,
-  productDetailsItems = [],
-) {
+  cartItems: readonly CartItem[],
+  productDetailsItems: readonly ProductAvailabilityItem[] = [],
+): CartItem[] {
   const productDetailsById = new Map(
     productDetailsItems.map((productDetailsItem) => [
       productDetailsItem.productId,

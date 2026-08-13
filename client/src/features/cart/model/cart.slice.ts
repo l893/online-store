@@ -1,6 +1,14 @@
 import { createSlice } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
 
-const initialCartState = {
+import type { CartItem, CartItemDraft, CartState } from './cart.types';
+
+interface ChangeCartItemQuantityPayload {
+  readonly productId: string;
+  readonly qty: number;
+}
+
+const initialCartState: CartState = {
   items: [],
 };
 
@@ -8,7 +16,7 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState: initialCartState,
   reducers: {
-    addCartItem: (state, action) => {
+    addCartItem: (state, action: PayloadAction<CartItemDraft>) => {
       const cartItem = action.payload;
       const availableStock = Math.max(0, Number(cartItem.stock) || 0);
 
@@ -41,7 +49,10 @@ const cartSlice = createSlice({
         });
       }
     },
-    changeCartItemQuantity: (state, action) => {
+    changeCartItemQuantity: (
+      state,
+      action: PayloadAction<ChangeCartItemQuantityPayload>,
+    ) => {
       const { productId, qty: quantity } = action.payload;
 
       const cartItem = state.items.find(
@@ -52,7 +63,7 @@ const cartSlice = createSlice({
         cartItem.qty = Math.max(1, quantity);
       }
     },
-    removeCartItem: (state, action) => {
+    removeCartItem: (state, action: PayloadAction<string>) => {
       const productId = action.payload;
 
       state.items = state.items.filter(
@@ -62,7 +73,10 @@ const cartSlice = createSlice({
     clearCart: (state) => {
       state.items = [];
     },
-    setCartItems: (state, action) => {
+    setCartItems: (
+      state,
+      action: PayloadAction<CartItem[] | null | undefined>,
+    ) => {
       state.items = action.payload || [];
     },
   },
