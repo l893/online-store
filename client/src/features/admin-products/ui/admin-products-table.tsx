@@ -1,11 +1,24 @@
+import type { MouseEvent } from 'react';
+
 import { Button } from '@shared/ui';
+
+import type { AdminProduct } from '../model/admin-product.types';
 import styles from './admin-products-table.module.scss';
+
+interface AdminProductsTableProps {
+  readonly products?: readonly AdminProduct[];
+  readonly onEditProduct: (product: AdminProduct) => void;
+  readonly onDeleteProduct: (
+    event: MouseEvent<HTMLButtonElement>,
+    productId: string,
+  ) => void;
+}
 
 export const AdminProductsTable = ({
   products = [],
   onEditProduct,
   onDeleteProduct,
-}) => {
+}: AdminProductsTableProps) => {
   return (
     <div className={styles.tableWrapper}>
       <table className={styles.productsTable}>

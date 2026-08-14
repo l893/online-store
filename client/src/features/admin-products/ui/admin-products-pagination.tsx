@@ -1,12 +1,20 @@
 import { Button } from '@shared/ui';
+
 import styles from './admin-products-pagination.module.scss';
+
+interface AdminProductsPaginationProps {
+  readonly currentPage: number;
+  readonly totalPages: number;
+  readonly onPreviousPage: () => void;
+  readonly onNextPage: () => void;
+}
 
 export const AdminProductsPagination = ({
   currentPage,
   totalPages,
   onPreviousPage,
   onNextPage,
-}) => {
+}: AdminProductsPaginationProps) => {
   return (
     <div className={styles.pagination}>
       <Button

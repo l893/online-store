@@ -17,6 +17,7 @@ export type {
 export type { AdminProduct } from './model/admin-product.types';
 export type {
   ProductFormInitialValues,
+  ProductFormSubmitHandler,
   ProductFormValues,
 } from './model/product-form.types';
 

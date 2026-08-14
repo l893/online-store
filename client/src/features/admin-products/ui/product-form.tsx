@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
+import type { DefaultValues } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   FormControl,
@@ -8,11 +10,44 @@ import {
   MenuItem,
   Select,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
+
+import type { Category } from '@entities/categories';
 import { Button, Input } from '@shared/ui';
+
 import { SUCCESSFUL_ADD_ITEM_CONFIRMATION_MILLISECONDS } from '../config/product-form.constants';
 import { productFormSchema } from '../config/product-form-schema';
 import { slugifyRu } from '../lib/slugify-ru';
+import type {
+  ProductFormInitialValues,
+  ProductFormInputValues,
+  ProductFormSubmitHandler,
+  ProductFormValues,
+} from '../model/product-form.types';
 import styles from './product-form.module.scss';
+
+interface ProductFormProps {
+  readonly initial: ProductFormInitialValues;
+  readonly formResetRevision: number;
+  readonly onSubmit: ProductFormSubmitHandler;
+  readonly submitText?: string;
+  readonly categories?: readonly Category[];
+  readonly hasSlugConflict?: boolean;
+}
+
+function createProductFormDefaultValues(
+  initialValues: ProductFormInitialValues,
+): DefaultValues<ProductFormInputValues> {
+  return {
+    title: initialValues.title,
+    slug: initialValues.slug,
+    description: initialValues.description,
+    price: initialValues.price === '' ? undefined : initialValues.price,
+    categoryId: initialValues.categoryId,
+    stock: initialValues.stock === '' ? undefined : initialValues.stock,
+    image: initialValues.image,
+  };
+}
 
 export const ProductForm = ({
   initial,
@@ -21,7 +56,7 @@ export const ProductForm = ({
   submitText = 'Сохранить',
   categories = [],
   hasSlugConflict = false,
-}) => {
+}: ProductFormProps) => {
   const {
     register,
     handleSubmit,
@@ -31,15 +66,15 @@ export const ProductForm = ({
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm({
+  } = useForm<ProductFormInputValues, undefined, ProductFormValues>({
     resolver: yupResolver(productFormSchema),
-    defaultValues: initial || {},
+    defaultValues: createProductFormDefaultValues(initial),
   });
 
   const [success, setSuccess] = useState(false);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState(
-    () => initial?.categoryId || '',
+    () => initial.categoryId || '',
   );
 
   const title = watch('title');
@@ -58,7 +93,7 @@ export const ProductForm = ({
     });
   }, [hasSlugConflict, setError]);
 
-  const handleFormSubmit = async (data) => {
+  const handleFormSubmit = async (data: ProductFormValues): Promise<void> => {
     try {
       await onSubmit(data);
       setSuccess(true);
@@ -72,11 +107,11 @@ export const ProductForm = ({
   };
 
   useEffect(() => {
-    reset(initial || {});
-    setSelectedCategoryId(initial?.categoryId || '');
+    reset(createProductFormDefaultValues(initial));
+    setSelectedCategoryId(initial.categoryId || '');
   }, [formResetRevision, initial, reset]);
 
-  const handleGenerateSlugButtonClick = () => {
+  const handleGenerateSlugButtonClick = (): void => {
     const generatedSlug = slugifyRu(title || '');
 
     if (generatedSlug) {
@@ -91,7 +126,7 @@ export const ProductForm = ({
     }
   };
 
-  const handleSlugChange = (event) => {
+  const handleSlugChange = (event: ChangeEvent<HTMLInputElement>): void => {
     if (errors.slug?.type === 'server') {
       clearErrors('slug');
     }
@@ -99,7 +134,7 @@ export const ProductForm = ({
     handleRegisteredSlugChange(event);
   };
 
-  const handleCategoryChange = (event) => {
+  const handleCategoryChange = (event: SelectChangeEvent<string>): void => {
     const nextCategoryId = event.target.value;
 
     setSelectedCategoryId(nextCategoryId);

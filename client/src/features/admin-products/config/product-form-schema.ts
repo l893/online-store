@@ -1,4 +1,6 @@
 import * as yup from 'yup';
+
+import type { ProductFormValues } from '../model/product-form.types';
 import {
   PRODUCT_DESCRIPTION_MAX_LENGTH,
   PRODUCT_IMAGE_URL_MAX_LENGTH,
@@ -51,4 +53,4 @@ export const productFormSchema = yup.object({
       `Макс. ${PRODUCT_DESCRIPTION_MAX_LENGTH} символов`,
     )
     .nullable(),
-});
+}) satisfies yup.ObjectSchema<ProductFormValues>;
