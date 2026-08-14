@@ -6,7 +6,7 @@
     "moduleResolution": "Bundler",
     "paths": {
       "@app/*": ["./src/app/*"],
-      "@pages": ["./src/pages/index.js"],
+      "@pages": ["./src/pages/index.ts"],
       "@pages/*": ["./src/pages/*"],
       "@widgets/*": ["./src/widgets/*"],
       "@features/*": ["./src/features/*"],
@@ -14,8 +14,7 @@
       "@shared/*": ["./src/shared/*"]
     },
     "jsx": "react-jsx",
-    "allowJs": true,
-    "checkJs": false,
+    "strict": true,
     "noEmit": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
