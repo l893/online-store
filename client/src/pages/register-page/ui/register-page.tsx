@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from 'react-router-dom';
+
 import {
   AUTH_EMAIL_MAX_LENGTH,
   AUTH_NAME_MAX_LENGTH,
@@ -10,6 +11,7 @@ import {
   isAuthenticationPasswordWithinByteLengthLimit,
   useRegisterMutation,
 } from '@features/auth';
+import type { RegisterRequest } from '@features/auth';
 import { Input } from '@shared/ui';
 
 const schema = yup.object({
@@ -40,23 +42,39 @@ const schema = yup.object({
     .oneOf([yup.ref('password')], 'Пароли не совпадают'),
 });
 
+type RegisterFormValues = yup.InferType<typeof schema>;
+
+interface RegisterFormInputValues {
+  readonly email: string;
+  readonly name: string | null | undefined;
+  readonly password: string;
+  readonly passcheck: string;
+}
+
 export const RegisterPage = () => {
   const [registerUser, { isLoading, error }] = useRegisterMutation();
-  const nav = useNavigate();
+  const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: yupResolver(schema) });
+  } = useForm<RegisterFormInputValues, undefined, RegisterFormValues>({
+    resolver: yupResolver(schema),
+  });
 
-  const onSubmit = async (data) => {
-    const payload = { ...data };
-    delete payload.passcheck;
+  const handleRegisterFormSubmit = async (
+    formValues: RegisterFormValues,
+  ): Promise<void> => {
+    const registerRequest: RegisterRequest = {
+      email: formValues.email,
+      password: formValues.password,
+      name: formValues.name,
+    };
 
     try {
-      await registerUser(payload).unwrap();
-      nav('/', { replace: true });
+      await registerUser(registerRequest).unwrap();
+      navigate('/', { replace: true });
     } catch {
       // Ошибка отображается ниже через RTK Query mutation state.
     }
@@ -65,7 +83,7 @@ export const RegisterPage = () => {
   return (
     <AuthenticationForm
       title="Регистрация"
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(handleRegisterFormSubmit)}
       isSubmitting={isLoading}
       submissionError={error}
       submitButtonLabel="Зарегистрироваться"

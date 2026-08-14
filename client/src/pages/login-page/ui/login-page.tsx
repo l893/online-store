@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useLocation, useNavigate } from 'react-router-dom';
+
 import {
   AUTH_EMAIL_MAX_LENGTH,
   AuthenticationForm,
@@ -9,6 +10,7 @@ import {
   isAuthenticationPasswordWithinByteLengthLimit,
   useLoginMutation,
 } from '@features/auth';
+import type { LoginRequest } from '@features/auth';
 import { Input } from '@shared/ui';
 
 const schema = yup.object({
@@ -30,12 +32,46 @@ const schema = yup.object({
     ),
 });
 
+type LoginFormValues = yup.InferType<typeof schema>;
+
+interface RedirectLocation {
+  readonly pathname: string;
+  readonly search: string;
+  readonly hash: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function getRedirectLocation(state: unknown): RedirectLocation | null {
+  if (!isRecord(state) || !isRecord(state.from)) {
+    return null;
+  }
+
+  const redirectLocation = state.from;
+
+  if (
+    typeof redirectLocation.pathname !== 'string' ||
+    typeof redirectLocation.search !== 'string' ||
+    typeof redirectLocation.hash !== 'string'
+  ) {
+    return null;
+  }
+
+  return {
+    pathname: redirectLocation.pathname,
+    search: redirectLocation.search,
+    hash: redirectLocation.hash,
+  };
+}
+
 export const LoginPage = () => {
   const [login, { isLoading, error }] = useLoginMutation();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const redirectLocation = location.state?.from;
+  const redirectLocation = getRedirectLocation(location.state);
   const redirectPath = redirectLocation
     ? `${redirectLocation.pathname}${redirectLocation.search || ''}${
         redirectLocation.hash || ''
@@ -46,11 +82,17 @@ export const LoginPage = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: yupResolver(schema) });
+  } = useForm<LoginFormValues>({
+    resolver: yupResolver(schema),
+  });
 
-  const onSubmit = async (data) => {
+  const handleLoginFormSubmit = async (
+    formValues: LoginFormValues,
+  ): Promise<void> => {
+    const loginRequest: LoginRequest = formValues;
+
     try {
-      await login(data).unwrap();
+      await login(loginRequest).unwrap();
       navigate(redirectPath, {
         replace: true,
       });
@@ -62,7 +104,7 @@ export const LoginPage = () => {
   return (
     <AuthenticationForm
       title="Вход"
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(handleLoginFormSubmit)}
       isSubmitting={isLoading}
       submissionError={error}
       submitButtonLabel="Войти"

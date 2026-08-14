@@ -1,26 +1,52 @@
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+
 import { useGetProductQuery } from '@entities/products';
-import { addProductToCart, createCartItemFromProduct } from '@features/cart';
+import { selectAuthenticatedUser } from '@features/auth';
+import {
+  addProductToCart,
+  createCartItemFromProduct,
+  selectCartItems,
+} from '@features/cart';
+import type { CartOrchestrationDispatch } from '@features/cart';
 import {
   PRODUCT_IMAGE_PLACEHOLDER_URL,
   replaceBrokenProductImageWithPlaceholder,
 } from '@shared/lib';
 import { Button, Loader } from '@shared/ui';
+
 import styles from './product-page.module.scss';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function getProductErrorMessage(error: unknown): string {
+  if (
+    isRecord(error) &&
+    isRecord(error.data) &&
+    typeof error.data.message === 'string' &&
+    error.data.message
+  ) {
+    return error.data.message;
+  }
+
+  return 'неизвестная ошибка';
+}
 
 export const ProductPage = () => {
   const { slug: productSlug } = useParams();
-  const dispatch = useDispatch();
-  const cartItems = useSelector((state) => state.cart.items);
-  const isAuthenticated = useSelector((state) => Boolean(state.auth.user));
+  const dispatch = useDispatch<CartOrchestrationDispatch>();
+  const cartItems = useSelector(selectCartItems);
+  const authenticatedUser = useSelector(selectAuthenticatedUser);
+  const isAuthenticated = Boolean(authenticatedUser);
 
   const {
     data: product,
     isLoading: isProductLoading,
     isError: isProductError,
     error: productError,
-  } = useGetProductQuery(productSlug, {
+  } = useGetProductQuery(productSlug ?? '', {
     skip: !productSlug,
   });
 
@@ -39,8 +65,7 @@ export const ProductPage = () => {
   if (isProductError) {
     return (
       <div className={styles.errorMessage}>
-        Ошибка при загрузке товара:{' '}
-        {productError?.data?.message || 'неизвестная ошибка'}
+        Ошибка при загрузке товара: {getProductErrorMessage(productError)}
       </div>
     );
   }
@@ -57,7 +82,7 @@ export const ProductPage = () => {
   const isAddToCartButtonDisabled =
     (currentCartItem?.qty || 0) >= availableStock;
 
-  const handleAddToCartButtonClick = () => {
+  const handleAddToCartButtonClick = (): void => {
     dispatch(
       addProductToCart({
         cartItem: createCartItemFromProduct(product),
