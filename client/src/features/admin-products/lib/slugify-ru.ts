@@ -1,4 +1,4 @@
-const CYRILLIC_TO_LATIN_MAP = {
+const CYRILLIC_TO_LATIN_MAP: Readonly<Partial<Record<string, string>>> = {
   а: 'a',
   б: 'b',
   в: 'v',
@@ -67,12 +67,10 @@ const CYRILLIC_TO_LATIN_MAP = {
   Я: 'ya',
 };
 
-export function slugifyRu(value = '') {
+export function slugifyRu(value = ''): string {
   const replacedValue = value
     .split('')
-    .map(
-      (character) => CYRILLIC_TO_LATIN_MAP[character] ?? character,
-    )
+    .map((character) => CYRILLIC_TO_LATIN_MAP[character] ?? character)
     .join('');
 
   return replacedValue

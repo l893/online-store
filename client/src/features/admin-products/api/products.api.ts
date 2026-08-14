@@ -1,24 +1,55 @@
 import { api } from '@shared/lib';
 
+import type {
+  AdminCreateProductResponse,
+  AdminDeleteProductResponse,
+  AdminProductPayload,
+  AdminProductsListQuery,
+  AdminProductsListResponse,
+  AdminUpdateProductRequest,
+  AdminUpdateProductResponse,
+} from './products.types';
+
+interface AdminProductTag {
+  readonly type: 'AdminProduct';
+  readonly id: string;
+}
+
+function createAdminProductTag(id: string): AdminProductTag {
+  return {
+    type: 'AdminProduct',
+    id,
+  };
+}
+
 export const adminProductsApi = api.injectEndpoints({
   endpoints: (endpointBuilder) => ({
-    adminListProducts: endpointBuilder.query({
-      query: ({ search = '', page = 1, limit = 20 } = {}) => ({
-        url: '/admin/products',
-        params: { search, page, limit },
-      }),
+    adminListProducts: endpointBuilder.query<
+      AdminProductsListResponse,
+      AdminProductsListQuery | void
+    >({
+      query: (queryParameters) => {
+        const { search = '', page = 1, limit = 20 } = queryParameters ?? {};
+
+        return {
+          url: '/admin/products',
+          params: { search, page, limit },
+        };
+      },
       providesTags: (productsResponse) =>
         productsResponse?.items
           ? [
-              ...productsResponse.items.map((product) => ({
-                type: 'AdminProduct',
-                id: product._id,
-              })),
-              { type: 'AdminProduct', id: 'LIST' },
+              ...productsResponse.items.map((product) =>
+                createAdminProductTag(product._id),
+              ),
+              createAdminProductTag('LIST'),
             ]
-          : [{ type: 'AdminProduct', id: 'LIST' }],
+          : [createAdminProductTag('LIST')],
     }),
-    adminCreateProduct: endpointBuilder.mutation({
+    adminCreateProduct: endpointBuilder.mutation<
+      AdminCreateProductResponse,
+      AdminProductPayload
+    >({
       query: (productPayload) => ({
         url: '/admin/products',
         method: 'POST',
@@ -32,7 +63,10 @@ export const adminProductsApi = api.injectEndpoints({
         'Product',
       ],
     }),
-    adminUpdateProduct: endpointBuilder.mutation({
+    adminUpdateProduct: endpointBuilder.mutation<
+      AdminUpdateProductResponse,
+      AdminUpdateProductRequest
+    >({
       query: ({ id: productId, ...productChanges }) => ({
         url: `/admin/products/${productId}`,
         method: 'PATCH',
@@ -50,7 +84,10 @@ export const adminProductsApi = api.injectEndpoints({
         'Product',
       ],
     }),
-    adminDeleteProduct: endpointBuilder.mutation({
+    adminDeleteProduct: endpointBuilder.mutation<
+      AdminDeleteProductResponse,
+      string
+    >({
       query: (productId) => ({
         url: `/admin/products/${productId}`,
         method: 'DELETE',

@@ -4,6 +4,21 @@ export {
   useAdminUpdateProductMutation,
   useAdminDeleteProductMutation,
 } from './api/products.api';
+export type {
+  AdminCreateProductResponse,
+  AdminDeleteProductResponse,
+  AdminProductPayload,
+  AdminProductsListQuery,
+  AdminProductsListResponse,
+  AdminUpdateProductRequest,
+  AdminUpdateProductResponse,
+} from './api/products.types';
+
+export type { AdminProduct } from './model/admin-product.types';
+export type {
+  ProductFormInitialValues,
+  ProductFormValues,
+} from './model/product-form.types';
 
 export { createProductFormInitialValues } from './lib/create-product-form-initial-values';
 export { createProductPayload } from './lib/create-product-payload';

@@ -1,4 +1,9 @@
-export function createProductFormInitialValues(product) {
+import type { AdminProduct } from '../model/admin-product.types';
+import type { ProductFormInitialValues } from '../model/product-form.types';
+
+export function createProductFormInitialValues(
+  product?: AdminProduct | null,
+): ProductFormInitialValues {
   if (!product) {
     return {
       title: '',
