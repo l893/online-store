@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "analyze": "vite build --mode analyze",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json",
     "preview": "vite preview --port 5173",
@@ -35,6 +36,7 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
     "prettier": "^3.5.3",
+    "rollup-plugin-visualizer": "^7.1.1",
     "typescript": "^6.0.0",
     "typescript-eslint": "^8.67.0",
     "vite": "^6.3.5"
