@@ -1,15 +1,24 @@
 import { api } from '@shared/lib';
 
+import type {
+  ConfirmCheckoutRequest,
+  ConfirmCheckoutResponse,
+  CreateOrderResponse,
+} from './orders.types';
+
 export const ordersApi = api.injectEndpoints({
   endpoints: (endpointBuilder) => ({
-    createOrder: endpointBuilder.mutation({
-      query: (request) => ({
+    createOrder: endpointBuilder.mutation<CreateOrderResponse, void>({
+      query: () => ({
         url: '/orders',
         method: 'POST',
-        body: request ?? {},
+        body: {},
       }),
     }),
-    confirmCheckout: endpointBuilder.mutation({
+    confirmCheckout: endpointBuilder.mutation<
+      ConfirmCheckoutResponse,
+      ConfirmCheckoutRequest
+    >({
       query: ({ orderId }) => ({
         url: '/orders/checkout/confirm',
         method: 'POST',
