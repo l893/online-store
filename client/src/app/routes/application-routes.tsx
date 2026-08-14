@@ -1,4 +1,6 @@
+import type { ReactElement } from 'react';
 import { Route, Routes } from 'react-router-dom';
+
 import { RequireAuth, RequireRole } from '@features/auth';
 import {
   AdminProductsPage,
@@ -10,7 +12,7 @@ import {
   RegisterPage,
 } from '@pages';
 
-export const ApplicationRoutes = () => {
+export const ApplicationRoutes = (): ReactElement => {
   return (
     <Routes>
       <Route path="/" element={<CatalogPage />} />

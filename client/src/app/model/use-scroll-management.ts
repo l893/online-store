@@ -1,7 +1,18 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigationType } from 'react-router-dom';
 
-function scrollWindowTo(scrollPosition) {
+type RouterLocation = ReturnType<typeof useLocation>;
+
+function shouldScrollNavigationToTop(locationState: unknown): boolean {
+  return (
+    typeof locationState === 'object' &&
+    locationState !== null &&
+    'shouldScrollToTop' in locationState &&
+    locationState.shouldScrollToTop === true
+  );
+}
+
+function scrollWindowTo(scrollPosition: number): void {
   window.scrollTo({
     top: scrollPosition,
     left: 0,
@@ -9,13 +20,13 @@ function scrollWindowTo(scrollPosition) {
   });
 }
 
-export function useScrollManagement() {
+export function useScrollManagement(): void {
   const location = useLocation();
   const navigationType = useNavigationType();
 
-  const scrollPositionsByLocationKeyRef = useRef(new Map());
-  const currentLocationKeyRef = useRef(location.key);
-  const previousLocationRef = useRef(null);
+  const scrollPositionsByLocationKeyRef = useRef(new Map<string, number>());
+  const currentLocationKeyRef = useRef<string>(location.key);
+  const previousLocationRef = useRef<RouterLocation | null>(null);
 
   useEffect(() => {
     const previousScrollRestoration = window.history.scrollRestoration;
@@ -28,7 +39,7 @@ export function useScrollManagement() {
   }, []);
 
   useEffect(() => {
-    function saveCurrentScrollPosition() {
+    function saveCurrentScrollPosition(): void {
       scrollPositionsByLocationKeyRef.current.set(
         currentLocationKeyRef.current,
         window.scrollY,
@@ -65,7 +76,7 @@ export function useScrollManagement() {
 
       scrollWindowTo(targetScrollPosition);
     } else if (
-      location.state?.shouldScrollToTop ||
+      shouldScrollNavigationToTop(location.state) ||
       previousLocation.pathname !== location.pathname
     ) {
       targetScrollPosition = 0;

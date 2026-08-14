@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
+import type { ReactElement } from 'react';
+
 import styles from './back-to-top-button.module.scss';
 
 const BACK_TO_TOP_VISIBILITY_THRESHOLD = 600;
 
-export const BackToTopButton = () => {
+export const BackToTopButton = (): ReactElement | null => {
   const [isBackToTopButtonVisible, setIsBackToTopButtonVisible] =
     useState(false);
 
   useEffect(() => {
-    function updateBackToTopButtonVisibility() {
+    function updateBackToTopButtonVisibility(): void {
       setIsBackToTopButtonVisible(
         window.scrollY > BACK_TO_TOP_VISIBILITY_THRESHOLD,
       );
@@ -25,7 +27,7 @@ export const BackToTopButton = () => {
     };
   }, []);
 
-  function handleBackToTopButtonClick() {
+  function handleBackToTopButtonClick(): void {
     const prefersReducedMotion = window.matchMedia(
       '(prefers-reduced-motion: reduce)',
     ).matches;

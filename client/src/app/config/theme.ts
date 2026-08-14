@@ -1,6 +1,7 @@
 import { createTheme } from '@mui/material/styles';
+import type { ThemeOptions } from '@mui/material/styles';
 
-export const theme = createTheme({
+const themeOptions = {
   typography: {
     fontFamily: [
       'system-ui',
@@ -13,4 +14,6 @@ export const theme = createTheme({
   shape: {
     borderRadius: 12,
   },
-});
+} satisfies ThemeOptions;
+
+export const theme = createTheme(themeOptions);
