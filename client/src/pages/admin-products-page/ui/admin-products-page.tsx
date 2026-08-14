@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { MouseEvent } from 'react';
+
 import { useListCategoriesQuery } from '@entities/categories';
 import {
   AdminProductFormPanel,
@@ -12,16 +14,21 @@ import {
   useAdminUpdateProductMutation,
   useAdminDeleteProductMutation,
 } from '@features/admin-products';
+import type { AdminProduct, ProductFormValues } from '@features/admin-products';
 import { useQueryParams } from '@shared/hooks';
 import { ConfirmDialog, Loader } from '@shared/ui';
+
 import styles from './admin-products-page.module.scss';
 
 export const AdminProductsPage = () => {
   const [queryParameters, setQueryParameters] = useQueryParams();
-  const [editingProduct, setEditingProduct] = useState(null);
+  const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(
+    null,
+  );
   const [productFormResetRevision, setProductFormResetRevision] = useState(0);
-  const [productIdPendingDeletion, setProductIdPendingDeletion] =
-    useState(null);
+  const [productIdPendingDeletion, setProductIdPendingDeletion] = useState<
+    string | null
+  >(null);
 
   const searchQuery = queryParameters.get('search') || '';
   const pageParameterValue = Number(queryParameters.get('page') || 1);
@@ -61,9 +68,9 @@ export const AdminProductsPage = () => {
   const [deleteProduct, { isLoading: isDeletingProduct }] =
     useAdminDeleteProductMutation();
 
-  const categories = categoriesResponse?.items || categoriesResponse || [];
-  const products = productsResponse?.items || [];
-  const totalPages = productsResponse?.pages || 1;
+  const categories = categoriesResponse ?? [];
+  const products = productsResponse?.items ?? [];
+  const totalPages = productsResponse?.pages ?? 1;
   const isProductMutationPending =
     isCreatingProduct || isUpdatingProduct || isDeletingProduct;
   const isInitialProductsLoading = isProductsLoading && !productsResponse;
@@ -94,7 +101,9 @@ export const AdminProductsPage = () => {
     [editingProduct],
   );
 
-  async function handleCreate(productFormValues) {
+  async function handleCreate(
+    productFormValues: ProductFormValues,
+  ): Promise<void> {
     resetProductMutationErrors();
 
     const productPayload = createProductPayload(productFormValues);
@@ -103,7 +112,13 @@ export const AdminProductsPage = () => {
     resetProductForm();
   }
 
-  async function handleUpdate(productFormValues) {
+  async function handleUpdate(
+    productFormValues: ProductFormValues,
+  ): Promise<void> {
+    if (!editingProduct) {
+      return;
+    }
+
     resetProductMutationErrors();
 
     const productPayload = createProductPayload(productFormValues);
@@ -114,7 +129,7 @@ export const AdminProductsPage = () => {
     resetProductForm();
   }
 
-  function resetProductForm() {
+  function resetProductForm(): void {
     setEditingProduct(null);
     setProductFormResetRevision(
       (currentProductFormResetRevision) => currentProductFormResetRevision + 1,
@@ -122,12 +137,12 @@ export const AdminProductsPage = () => {
     resetProductMutationErrors();
   }
 
-  function resetProductMutationErrors() {
+  function resetProductMutationErrors(): void {
     resetCreateProductMutation();
     resetUpdateProductMutation();
   }
 
-  async function handleDeleteConfirm() {
+  async function handleDeleteConfirm(): Promise<void> {
     if (!productIdPendingDeletion) {
       return;
     }
@@ -136,28 +151,31 @@ export const AdminProductsPage = () => {
     setProductIdPendingDeletion(null);
   }
 
-  function handleSearchQueryChange(nextSearchQuery) {
+  function handleSearchQueryChange(nextSearchQuery: string): void {
     setQueryParameters({
       search: nextSearchQuery,
       page: null,
     });
   }
 
-  function handleProductsRefresh() {
+  function handleProductsRefresh(): void {
     refetchProducts();
   }
 
-  function handleEditButtonClick(product) {
+  function handleEditButtonClick(product: AdminProduct): void {
     resetProductMutationErrors();
     setEditingProduct(product);
   }
 
-  function handleDeleteButtonClick(event, productId) {
+  function handleDeleteButtonClick(
+    event: MouseEvent<HTMLButtonElement>,
+    productId: string,
+  ): void {
     event.currentTarget.blur();
     setProductIdPendingDeletion(productId);
   }
 
-  function handlePreviousPageButtonClick() {
+  function handlePreviousPageButtonClick(): void {
     const previousPage = Math.max(1, currentPage - 1);
 
     setQueryParameters(
@@ -170,7 +188,7 @@ export const AdminProductsPage = () => {
     );
   }
 
-  function handleNextPageButtonClick() {
+  function handleNextPageButtonClick(): void {
     const nextPage = Math.min(totalPages, currentPage + 1);
 
     setQueryParameters(
@@ -183,7 +201,7 @@ export const AdminProductsPage = () => {
     );
   }
 
-  function handleDeleteDialogCancel() {
+  function handleDeleteDialogCancel(): void {
     setProductIdPendingDeletion(null);
   }
 
