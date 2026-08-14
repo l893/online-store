@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
+
 import { useRefreshMutation } from '@features/auth';
 import { setCartItems, useLazyGetCartQuery } from '@features/cart';
 import { getStoredAccessToken } from '@shared/lib';
 
-export function useAuthBootstrap() {
-  const authenticatedSessionBootstrapPromiseReference = useRef(null);
+import { useAppDispatch } from '../store/hooks';
+
+export function useAuthBootstrap(): boolean {
+  const authenticatedSessionBootstrapPromiseReference =
+    useRef<Promise<void> | null>(null);
 
   const [isAuthBootstrapped, setIsAuthBootstrapped] = useState(false);
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [refresh] = useRefreshMutation();
   const [getCart] = useLazyGetCartQuery();

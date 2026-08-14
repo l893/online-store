@@ -11,6 +11,7 @@ export type {
 } from './model/cart.types';
 
 export {
+  cartApi,
   useGetCartQuery,
   useLazyGetCartQuery,
   useReplaceCartMutation,

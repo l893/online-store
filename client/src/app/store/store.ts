@@ -1,5 +1,7 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
+
 import { api } from '@shared/lib';
 import { authReducer } from '@features/auth';
 import {
@@ -8,26 +10,42 @@ import {
   loadGuestCartItems,
   saveGuestCartItems,
 } from '@features/cart';
+
 import { authCartSynchronizationListener } from './auth-cart-synchronization-listener';
+
+const rootReducer = combineReducers({
+  [api.reducerPath]: api.reducer,
+  auth: authReducer,
+  cart: cartReducer,
+});
+
+export type RootState = ReturnType<typeof rootReducer>;
+
+export type AppListenerDispatch = ThunkDispatch<
+  RootState,
+  unknown,
+  UnknownAction
+>;
 
 const preloadedGuestCartItems = loadGuestCartItems();
 
+const preloadedState = {
+  cart: {
+    items: preloadedGuestCartItems,
+  },
+} satisfies Partial<RootState>;
+
 export const store = configureStore({
-  reducer: {
-    [api.reducerPath]: api.reducer,
-    auth: authReducer,
-    cart: cartReducer,
-  },
-  preloadedState: {
-    cart: {
-      items: preloadedGuestCartItems,
-    },
-  },
+  reducer: rootReducer,
+  preloadedState,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
       .prepend(authCartSynchronizationListener.middleware)
       .concat(api.middleware),
 });
+
+export type AppStore = typeof store;
+export type AppDispatch = AppStore['dispatch'];
 
 let previousCartItems = store.getState().cart.items;
 let wasAuthenticated = Boolean(store.getState().auth.user);

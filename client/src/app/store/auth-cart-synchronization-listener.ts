@@ -1,4 +1,5 @@
 import { createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
+
 import {
   authenticatedSessionCleared,
   authenticatedSessionEstablished,
@@ -6,9 +7,14 @@ import {
 } from '@features/auth';
 import { setCartItems } from '@features/cart';
 import { api, authenticationSessionExpired } from '@shared/lib';
-import { synchronizeCartAfterAuthentication } from '../model/synchronize-cart-after-authentication';
 
-export const authCartSynchronizationListener = createListenerMiddleware();
+import { synchronizeCartAfterAuthentication } from '../model/synchronize-cart-after-authentication';
+import type { AppListenerDispatch, RootState } from './store';
+
+export const authCartSynchronizationListener = createListenerMiddleware<
+  RootState,
+  AppListenerDispatch
+>();
 
 authCartSynchronizationListener.startListening({
   matcher: isAnyOf(
@@ -53,6 +59,8 @@ authCartSynchronizationListener.startListening({
       return;
     }
 
-    publishAuthSessionChange(authSessionAction.payload);
+    if (authenticatedSessionEstablished.match(authSessionAction)) {
+      publishAuthSessionChange(authSessionAction.payload);
+    }
   },
 });

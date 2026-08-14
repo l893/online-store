@@ -1,16 +1,23 @@
 import { productsApi } from '@entities/products';
-import { mergeCartItems, setCartItems } from '@features/cart';
-import { api } from '@shared/lib';
+import { cartApi, mergeCartItems, setCartItems } from '@features/cart';
+
+import type { AppListenerDispatch, RootState } from '../store/store';
+
+interface SynchronizeCartAfterAuthenticationOptions {
+  readonly dispatch: AppListenerDispatch;
+  readonly getState: () => RootState;
+  readonly signal: AbortSignal;
+}
 
 export async function synchronizeCartAfterAuthentication({
   dispatch,
   getState,
   signal,
-}) {
+}: SynchronizeCartAfterAuthenticationOptions): Promise<void> {
   const localCartItems = getState().cart.items || [];
 
   const serverCartResponse = await dispatch(
-    api.endpoints.getCart.initiate(undefined, {
+    cartApi.endpoints.getCart.initiate(undefined, {
       forceRefetch: true,
       subscribe: false,
     }),
@@ -67,7 +74,7 @@ export async function synchronizeCartAfterAuthentication({
     }
 
     const updatedCartResponse = await dispatch(
-      api.endpoints.replaceCart.initiate(mergedCartItems),
+      cartApi.endpoints.replaceCart.initiate(mergedCartItems),
     ).unwrap();
 
     if (signal.aborted) {
@@ -79,9 +86,13 @@ export async function synchronizeCartAfterAuthentication({
       : [];
 
     dispatch(
-      api.util.updateQueryData('getCart', undefined, (cachedCartResponse) => {
-        Object.assign(cachedCartResponse, updatedCartResponse);
-      }),
+      cartApi.util.updateQueryData(
+        'getCart',
+        undefined,
+        (cachedCartResponse) => {
+          Object.assign(cachedCartResponse, updatedCartResponse);
+        },
+      ),
     );
 
     dispatch(setCartItems(updatedServerCartItems));
