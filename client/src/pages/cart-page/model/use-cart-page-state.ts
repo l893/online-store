@@ -1,21 +1,32 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+
 import { useGetProductsAvailabilityQuery } from '@entities/products';
 import {
   applyProductDetailsToCartItems,
+  type CartItem,
+  type CartOrchestrationDispatch,
   getCartTotals,
+  type ReplaceCartTrigger,
   setCartItems,
   useGetCartQuery,
   useInitialCartSync,
   useReplaceCartMutation,
 } from '@features/cart';
 
+interface CartAvailabilityMessageOptions {
+  readonly isCartAvailabilityChecking: boolean;
+  readonly isCartAvailabilityError: boolean;
+  readonly unavailableCartItems: readonly CartItem[];
+  readonly excessiveQuantityCartItems: readonly CartItem[];
+}
+
 function getCartAvailabilityMessage({
   isCartAvailabilityChecking,
   isCartAvailabilityError,
   unavailableCartItems,
   excessiveQuantityCartItems,
-}) {
+}: CartAvailabilityMessageOptions): string {
   if (isCartAvailabilityChecking) {
     return 'Проверяем наличие товаров…';
   }
@@ -50,8 +61,29 @@ function getCartAvailabilityMessage({
   return '';
 }
 
-export function useCartPageState({ isAuthenticated, storedCartItems = [] }) {
-  const dispatch = useDispatch();
+interface UseCartPageStateOptions {
+  readonly isAuthenticated: boolean;
+  readonly storedCartItems?: readonly CartItem[];
+}
+
+interface UseCartPageStateResult {
+  readonly cartItems: readonly CartItem[];
+  readonly replaceCart: ReplaceCartTrigger;
+  readonly totalQuantity: number;
+  readonly totalSum: number;
+  readonly isCartLoading: boolean;
+  readonly isCartAvailabilityChecking: boolean;
+  readonly isCartAvailabilityError: boolean;
+  readonly isCartAvailabilityConfirmed: boolean;
+  readonly isCheckoutDisabledByAvailability: boolean;
+  readonly cartAvailabilityMessage: string;
+}
+
+export function useCartPageState({
+  isAuthenticated,
+  storedCartItems = [],
+}: UseCartPageStateOptions): UseCartPageStateResult {
+  const dispatch = useDispatch<CartOrchestrationDispatch>();
   const productIds = storedCartItems.map((cartItem) => cartItem.productId);
 
   const { data: serverCart, isLoading: isServerCartLoading } = useGetCartQuery(
@@ -107,7 +139,7 @@ export function useCartPageState({ isAuthenticated, storedCartItems = [] }) {
       return;
     }
 
-    dispatch(setCartItems(cartItems));
+    dispatch(setCartItems([...cartItems]));
   }, [cartItems, dispatch, haveStoredProductDetailsChanged]);
 
   const serverCartItems = Array.isArray(serverCart?.items)

@@ -9,7 +9,7 @@ import type { CartItem } from './cart.types';
 
 interface UseInitialCartSyncOptions {
   readonly isAuthenticated: boolean;
-  readonly localCartItems?: CartItem[];
+  readonly localCartItems?: readonly CartItem[];
   readonly serverCart?: CartResponse;
   readonly replaceCart: ReplaceCartTrigger;
 }

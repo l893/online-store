@@ -1,15 +1,19 @@
 import { useSelector } from 'react-redux';
-import { useCartItemActions } from '@features/cart';
+
+import { selectAuthenticatedUser } from '@features/auth';
+import { selectCartItems, useCartItemActions } from '@features/cart';
 import { AlertDialog, Loader } from '@shared/ui';
 import { CartItem } from '@widgets/cart-item';
 import { CartSummary } from '@widgets/cart-summary';
+
 import { useCartCheckout } from '../model/use-cart-checkout';
 import { useCartPageState } from '../model/use-cart-page-state';
+
 import styles from './cart-page.module.scss';
 
 export const CartPage = () => {
-  const user = useSelector((state) => state.auth.user);
-  const storedCartItems = useSelector((state) => state.cart.items);
+  const user = useSelector(selectAuthenticatedUser);
+  const storedCartItems = useSelector(selectCartItems);
 
   const {
     cartItems,

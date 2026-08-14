@@ -19,7 +19,7 @@ interface CartActionDialog {
 
 interface UseCartItemActionsOptions {
   readonly isAuthenticated: boolean;
-  readonly cartItems?: CartItem[];
+  readonly cartItems?: readonly CartItem[];
   readonly replaceCart: ReplaceCartTrigger;
 }
 
@@ -111,7 +111,7 @@ export function useCartItemActions({
             )
           : previousCartItems;
 
-      dispatch(setCartItems(restoredCartItems));
+      dispatch(setCartItems([...restoredCartItems]));
 
       if (isInsufficientStockError) {
         dispatch(cartApi.util.invalidateTags(['Product']));
@@ -160,7 +160,7 @@ export function useCartItemActions({
       await removeItemFromCart(productId).unwrap();
     } catch {
       serverCartCachePatch?.undo();
-      dispatch(setCartItems(previousCartItems));
+      dispatch(setCartItems([...previousCartItems]));
 
       setCartActionDialog({
         title: 'Не удалось удалить товар',

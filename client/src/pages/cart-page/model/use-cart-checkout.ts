@@ -1,71 +1,151 @@
 import { useState } from 'react';
+import type { MouseEvent } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { clearCart, setCartItems } from '@features/cart';
+
+import { cartApi, clearCart, setCartItems } from '@features/cart';
+import type {
+  CartItem,
+  CartOrchestrationDispatch,
+  ReplaceCartTrigger,
+} from '@features/cart';
 import {
   useConfirmCheckoutMutation,
   useCreateOrderMutation,
 } from '@features/orders';
-import { api } from '@shared/lib';
 
-function getStockConflictItems(error, cartItems) {
-  const errorCode = error?.data?.code;
+interface CheckoutDialog {
+  readonly title: string;
+  readonly description: string;
+  readonly shouldRedirectToLogin?: boolean;
+}
 
-  if (errorCode === 'ORDER_STOCK_CONFLICT') {
-    return Array.isArray(error.data.items) ? error.data.items : [];
+interface StockConflictItem {
+  readonly productId: string;
+  readonly title: string;
+  readonly requestedQuantity: number;
+  readonly availableStock: number;
+}
+
+interface UseCartCheckoutOptions {
+  readonly isAuthenticated: boolean;
+  readonly isCartAvailabilityConfirmed: boolean;
+  readonly cartItems?: readonly CartItem[];
+  readonly replaceCart: ReplaceCartTrigger;
+}
+
+interface UseCartCheckoutResult {
+  readonly checkoutDialog: CheckoutDialog | null;
+  readonly isCheckoutLoading: boolean;
+  readonly handleCheckout: (
+    event?: MouseEvent<HTMLButtonElement>,
+  ) => Promise<void>;
+  readonly handleCheckoutDialogClose: () => void;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function normalizeStockConflictItem(value: unknown): StockConflictItem | null {
+  if (
+    !isRecord(value) ||
+    typeof value.productId !== 'string' ||
+    !value.productId
+  ) {
+    return null;
   }
 
-  if (errorCode !== 'INSUFFICIENT_STOCK') {
+  return {
+    productId: value.productId,
+    title:
+      typeof value.title === 'string' && value.title
+        ? value.title
+        : 'Неизвестный товар',
+    requestedQuantity: Math.max(1, Number(value.requestedQuantity) || 1),
+    availableStock: Math.max(0, Number(value.availableStock) || 0),
+  };
+}
+
+function getStockConflictItems(
+  error: unknown,
+  cartItems: readonly CartItem[],
+): StockConflictItem[] {
+  if (!isRecord(error) || !isRecord(error.data)) {
+    return [];
+  }
+
+  const errorData = error.data;
+  const errorCode = errorData.code;
+
+  if (errorCode === 'ORDER_STOCK_CONFLICT') {
+    if (!Array.isArray(errorData.items)) {
+      return [];
+    }
+
+    return errorData.items
+      .map((stockConflictItem: unknown) =>
+        normalizeStockConflictItem(stockConflictItem),
+      )
+      .filter(
+        (stockConflictItem): stockConflictItem is StockConflictItem =>
+          stockConflictItem !== null,
+      );
+  }
+
+  if (
+    errorCode !== 'INSUFFICIENT_STOCK' ||
+    typeof errorData.productId !== 'string'
+  ) {
     return [];
   }
 
   const matchingCartItem = cartItems.find(
-    (cartItem) => cartItem.productId === error.data.productId,
+    (cartItem) => cartItem.productId === errorData.productId,
   );
 
   return [
     {
-      productId: error.data.productId,
+      productId: errorData.productId,
       title: matchingCartItem?.title || 'Неизвестный товар',
-      requestedQuantity: error.data.requestedQuantity,
-      availableStock: error.data.availableStock,
+      requestedQuantity: Math.max(1, Number(errorData.requestedQuantity) || 1),
+      availableStock: Math.max(0, Number(errorData.availableStock) || 0),
     },
   ];
 }
 
-function applyStockConflictsToCartItems(cartItems, stockConflictItems) {
-  const productStockById = new Map(
+function applyStockConflictsToCartItems(
+  cartItems: readonly CartItem[],
+  stockConflictItems: readonly StockConflictItem[],
+): CartItem[] {
+  const productStockById = new Map<string, number>(
     stockConflictItems.map((stockConflictItem) => [
       stockConflictItem.productId,
-      Math.max(0, Number(stockConflictItem.availableStock) || 0),
+      stockConflictItem.availableStock,
     ]),
   );
 
   return cartItems.map((cartItem) => {
-    if (!productStockById.has(cartItem.productId)) {
+    const availableStock = productStockById.get(cartItem.productId);
+
+    if (availableStock === undefined) {
       return cartItem;
     }
 
     return {
       ...cartItem,
-      stock: productStockById.get(cartItem.productId),
+      stock: availableStock,
     };
   });
 }
 
-function createStockConflictDescription(stockConflictItems) {
+function createStockConflictDescription(
+  stockConflictItems: readonly StockConflictItem[],
+): string {
   const stockConflictMessages = stockConflictItems.map((stockConflictItem) => {
     const title = stockConflictItem.title || 'Неизвестный товар';
-    const requestedQuantity = Math.max(
-      1,
-      Number(stockConflictItem.requestedQuantity) || 1,
-    );
-    const availableStock = Math.max(
-      0,
-      Number(stockConflictItem.availableStock) || 0,
-    );
 
-    return `«${title}»: в корзине ${requestedQuantity}, доступно ${availableStock}`;
+    return `«${title}»: в корзине ${stockConflictItem.requestedQuantity}, доступно ${stockConflictItem.availableStock}`;
   });
 
   return `${stockConflictMessages.join(
@@ -78,12 +158,14 @@ export function useCartCheckout({
   isCartAvailabilityConfirmed,
   cartItems = [],
   replaceCart,
-}) {
-  const dispatch = useDispatch();
+}: UseCartCheckoutOptions): UseCartCheckoutResult {
+  const dispatch = useDispatch<CartOrchestrationDispatch>();
   const navigate = useNavigate();
 
   const [isCheckoutSubmitting, setIsCheckoutSubmitting] = useState(false);
-  const [checkoutDialog, setCheckoutDialog] = useState(null);
+  const [checkoutDialog, setCheckoutDialog] = useState<CheckoutDialog | null>(
+    null,
+  );
 
   const [createOrder, { isLoading: isCreatingOrder }] =
     useCreateOrderMutation();
@@ -93,7 +175,9 @@ export function useCartCheckout({
   const isCheckoutLoading =
     isCheckoutSubmitting || isCreatingOrder || isConfirmingCheckout;
 
-  async function handleCheckout(event) {
+  async function handleCheckout(
+    event?: MouseEvent<HTMLButtonElement>,
+  ): Promise<void> {
     event?.currentTarget?.blur();
 
     if (!isCartAvailabilityConfirmed) {
@@ -155,19 +239,23 @@ export function useCartCheckout({
       await confirmCheckout({ orderId }).unwrap();
 
       dispatch(
-        api.util.updateQueryData('getCart', undefined, (cachedCartResponse) => {
-          cachedCartResponse.items = [];
-        }),
+        cartApi.util.updateQueryData(
+          'getCart',
+          undefined,
+          (cachedCartResponse) => {
+            cachedCartResponse.items = [];
+          },
+        ),
       );
 
       dispatch(clearCart());
-      dispatch(api.util.invalidateTags(['Product']));
+      dispatch(cartApi.util.invalidateTags(['Product']));
 
       setCheckoutDialog({
         title: 'Оплата подтверждена',
         description: `Заказ: ${orderId}`,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       const stockConflictItems = getStockConflictItems(error, cartItems);
 
       if (stockConflictItems.length > 0) {
@@ -177,7 +265,7 @@ export function useCartCheckout({
           ),
         );
 
-        dispatch(api.util.invalidateTags(['Product']));
+        dispatch(cartApi.util.invalidateTags(['Product']));
 
         setCheckoutDialog({
           title: 'Остаток товаров изменился',
@@ -196,7 +284,7 @@ export function useCartCheckout({
     }
   }
 
-  function handleCheckoutDialogClose() {
+  function handleCheckoutDialogClose(): void {
     const shouldRedirectToLogin = checkoutDialog?.shouldRedirectToLogin;
 
     setCheckoutDialog(null);
