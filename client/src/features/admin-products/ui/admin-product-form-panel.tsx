@@ -1,9 +1,13 @@
+import { useState } from 'react';
+
 import type { Category } from '@entities/categories';
 import { parseApiError } from '@shared/lib';
 
+import { SUCCESSFUL_ADD_ITEM_CONFIRMATION_MILLISECONDS } from '../config/product-form.constants';
 import type {
   ProductFormInitialValues,
   ProductFormSubmitHandler,
+  ProductFormValues,
 } from '../model/product-form.types';
 import { ProductForm } from './product-form';
 import styles from './admin-product-form-panel.module.scss';
@@ -37,7 +41,21 @@ export const AdminProductFormPanel = ({
   onSubmit,
   submissionError,
 }: AdminProductFormPanelProps) => {
+  const [isSuccessMessageVisible, setIsSuccessMessageVisible] = useState(false);
+
   const isProductSlugConflict = isProductSlugConflictError(submissionError);
+
+  async function handleProductFormSubmit(
+    productFormValues: ProductFormValues,
+  ): Promise<void> {
+    await onSubmit(productFormValues);
+    setIsSuccessMessageVisible(true);
+
+    window.setTimeout(
+      () => setIsSuccessMessageVisible(false),
+      SUCCESSFUL_ADD_ITEM_CONFIRMATION_MILLISECONDS,
+    );
+  }
 
   return (
     <div className={styles.card}>
@@ -46,13 +64,17 @@ export const AdminProductFormPanel = ({
       </h2>
 
       <ProductForm
+        key={formResetRevision}
         initial={initialValues}
-        formResetRevision={formResetRevision}
         categories={categories}
-        onSubmit={onSubmit}
+        onSubmit={handleProductFormSubmit}
         submitText={isEditing ? 'Сохранить' : 'Добавить'}
         hasSlugConflict={isProductSlugConflict}
       />
+
+      {isSuccessMessageVisible && (
+        <div className={styles.successMessage}>Товар сохранён ✅</div>
+      )}
 
       {Boolean(submissionError) && !isProductSlugConflict && (
         <div className={styles.formError}>{parseApiError(submissionError)}</div>

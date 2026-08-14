@@ -15,7 +15,6 @@ import type { SelectChangeEvent } from '@mui/material';
 import type { Category } from '@entities/categories';
 import { Button, Input } from '@shared/ui';
 
-import { SUCCESSFUL_ADD_ITEM_CONFIRMATION_MILLISECONDS } from '../config/product-form.constants';
 import { productFormSchema } from '../config/product-form-schema';
 import { slugifyRu } from '../lib/slugify-ru';
 import type {
@@ -28,7 +27,6 @@ import styles from './product-form.module.scss';
 
 interface ProductFormProps {
   readonly initial: ProductFormInitialValues;
-  readonly formResetRevision: number;
   readonly onSubmit: ProductFormSubmitHandler;
   readonly submitText?: string;
   readonly categories?: readonly Category[];
@@ -51,7 +49,6 @@ function createProductFormDefaultValues(
 
 export const ProductForm = ({
   initial,
-  formResetRevision,
   onSubmit,
   submitText = 'Сохранить',
   categories = [],
@@ -70,8 +67,6 @@ export const ProductForm = ({
     resolver: yupResolver(productFormSchema),
     defaultValues: createProductFormDefaultValues(initial),
   });
-
-  const [success, setSuccess] = useState(false);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState(
     () => initial.categoryId || '',
@@ -96,11 +91,6 @@ export const ProductForm = ({
   const handleFormSubmit = async (data: ProductFormValues): Promise<void> => {
     try {
       await onSubmit(data);
-      setSuccess(true);
-      setTimeout(
-        () => setSuccess(false),
-        SUCCESSFUL_ADD_ITEM_CONFIRMATION_MILLISECONDS,
-      );
     } catch {
       // Не обрабатываем здесь — ошибки уже идут из onSubmit или формы
     }
@@ -109,7 +99,7 @@ export const ProductForm = ({
   useEffect(() => {
     reset(createProductFormDefaultValues(initial));
     setSelectedCategoryId(initial.categoryId || '');
-  }, [formResetRevision, initial, reset]);
+  }, [initial, reset]);
 
   const handleGenerateSlugButtonClick = (): void => {
     const generatedSlug = slugifyRu(title || '');
@@ -259,10 +249,6 @@ export const ProductForm = ({
       <Button disabled={isSubmitting} className={styles.submitButton}>
         {submitText}
       </Button>
-
-      {success && (
-        <div className={styles.successMessage}>Товар сохранён ✅</div>
-      )}
     </form>
   );
 };
