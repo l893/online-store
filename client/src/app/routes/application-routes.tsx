@@ -1,36 +1,73 @@
+import { lazy, Suspense } from 'react';
 import type { ReactElement } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { RequireAuth, RequireRole } from '@features/auth';
-import {
-  AdminProductsPage,
-  CartPage,
-  CatalogPage,
-  LoginPage,
-  NotFoundPage,
-  ProductPage,
-  RegisterPage,
-} from '@pages';
+import { Loader } from '@shared/ui';
+
+const CatalogPage = lazy(() =>
+  import('@pages/catalog-page').then(({ CatalogPage }) => ({
+    default: CatalogPage,
+  })),
+);
+
+const ProductPage = lazy(() =>
+  import('@pages/product-page').then(({ ProductPage }) => ({
+    default: ProductPage,
+  })),
+);
+
+const CartPage = lazy(() =>
+  import('@pages/cart-page').then(({ CartPage }) => ({
+    default: CartPage,
+  })),
+);
+
+const LoginPage = lazy(() =>
+  import('@pages/login-page').then(({ LoginPage }) => ({
+    default: LoginPage,
+  })),
+);
+
+const RegisterPage = lazy(() =>
+  import('@pages/register-page').then(({ RegisterPage }) => ({
+    default: RegisterPage,
+  })),
+);
+
+const AdminProductsPage = lazy(() =>
+  import('@pages/admin-products-page').then(({ AdminProductsPage }) => ({
+    default: AdminProductsPage,
+  })),
+);
+
+const NotFoundPage = lazy(() =>
+  import('@pages/not-found-page').then(({ NotFoundPage }) => ({
+    default: NotFoundPage,
+  })),
+);
 
 export const ApplicationRoutes = (): ReactElement => {
   return (
-    <Routes>
-      <Route path="/" element={<CatalogPage />} />
-      <Route path="/product/:slug" element={<ProductPage />} />
-      <Route path="/cart" element={<CartPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route
-        path="/admin/products"
-        element={
-          <RequireAuth>
-            <RequireRole role="admin">
-              <AdminProductsPage />
-            </RequireRole>
-          </RequireAuth>
-        }
-      />
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+    <Suspense fallback={<Loader label="Загружаем страницу…" />}>
+      <Routes>
+        <Route path="/" element={<CatalogPage />} />
+        <Route path="/product/:slug" element={<ProductPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/admin/products"
+          element={
+            <RequireAuth>
+              <RequireRole role="admin">
+                <AdminProductsPage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Suspense>
   );
 };
