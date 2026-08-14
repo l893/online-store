@@ -100,6 +100,8 @@ export const ProductPage = () => {
             alt={product.title}
             className={styles.productImage}
             loading="eager"
+            fetchPriority="high"
+            decoding="async"
             onError={replaceBrokenProductImageWithPlaceholder}
           />
         </div>

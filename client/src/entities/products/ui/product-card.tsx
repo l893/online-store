@@ -38,6 +38,7 @@ export const ProductCard = ({
           alt={product.title}
           className={styles.image}
           loading="lazy"
+          decoding="async"
           onError={replaceBrokenProductImageWithPlaceholder}
         />
       </Link>

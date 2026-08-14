@@ -53,6 +53,7 @@ export const CartItem = ({
           alt={cartItem.title}
           className={styles.image}
           loading="lazy"
+          decoding="async"
           onError={replaceBrokenProductImageWithPlaceholder}
         />
       </div>
