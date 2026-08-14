@@ -1,16 +1,30 @@
+import type { ChangeEvent } from 'react';
+
+import type { CartItem as CartItemData } from '@features/cart';
 import {
   PRODUCT_IMAGE_PLACEHOLDER_URL,
   replaceBrokenProductImageWithPlaceholder,
 } from '@shared/lib';
 import { Button, Input } from '@shared/ui';
+
 import styles from './cart-item.module.scss';
+
+interface CartItemProps {
+  readonly cartItem: CartItemData;
+  readonly onCartItemQuantityChange: (
+    productId: string,
+    quantity: number,
+  ) => void | Promise<void>;
+  readonly onCartItemRemove: (productId: string) => void | Promise<void>;
+  readonly areQuantityControlsDisabled?: boolean;
+}
 
 export const CartItem = ({
   cartItem,
   onCartItemQuantityChange,
   onCartItemRemove,
   areQuantityControlsDisabled = false,
-}) => {
+}: CartItemProps) => {
   const cartItemImageUrl = cartItem.image || PRODUCT_IMAGE_PLACEHOLDER_URL;
   const availableStock = Math.max(0, Number(cartItem.stock) || 0);
   const isProductUnavailable = availableStock === 0;
@@ -19,7 +33,9 @@ export const CartItem = ({
   const isIncreaseQuantityButtonDisabled =
     areQuantityControlsDisabled || cartItem.qty >= availableStock;
 
-  function handleQuantityInputChange(event) {
+  function handleQuantityInputChange(
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ): void {
     const parsedQuantity = Number.parseInt(event.target.value || '1', 10);
     const nextQuantity = Math.min(
       availableStock,

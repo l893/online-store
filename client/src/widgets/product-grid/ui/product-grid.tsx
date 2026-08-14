@@ -1,14 +1,28 @@
 import { useDispatch, useSelector } from 'react-redux';
+
 import { ProductCard } from '@entities/products';
-import { addProductToCart, createCartItemFromProduct } from '@features/cart';
+import type { Product } from '@entities/products';
+import { selectAuthenticatedUser } from '@features/auth';
+import {
+  addProductToCart,
+  createCartItemFromProduct,
+  selectCartItems,
+} from '@features/cart';
+import type { CartOrchestrationDispatch } from '@features/cart';
+
 import styles from './product-grid.module.scss';
 
-export const ProductGrid = ({ products = [] }) => {
-  const dispatch = useDispatch();
-  const cartItems = useSelector((state) => state.cart.items);
-  const isAuthenticated = useSelector((state) => Boolean(state.auth.user));
+interface ProductGridProps {
+  readonly products?: readonly Product[];
+}
 
-  function handleAddProductToCart(product) {
+export const ProductGrid = ({ products = [] }: ProductGridProps) => {
+  const dispatch = useDispatch<CartOrchestrationDispatch>();
+  const cartItems = useSelector(selectCartItems);
+  const authenticatedUser = useSelector(selectAuthenticatedUser);
+  const isAuthenticated = Boolean(authenticatedUser);
+
+  function handleAddProductToCart(product: Product): void {
     dispatch(
       addProductToCart({
         cartItem: createCartItemFromProduct(product),

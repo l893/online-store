@@ -1,11 +1,17 @@
 import { useListCategoriesQuery } from '@entities/categories';
 import { Loader } from '@shared/ui';
+
 import styles from './category-sidebar.module.scss';
+
+interface CategorySidebarProps {
+  readonly activeCategorySlug?: string;
+  readonly onCategorySlugChange: (categorySlug: string) => void;
+}
 
 export const CategorySidebar = ({
   activeCategorySlug,
   onCategorySlugChange,
-}) => {
+}: CategorySidebarProps) => {
   const { data: categories, isLoading: isCategoriesLoading } =
     useListCategoriesQuery();
 

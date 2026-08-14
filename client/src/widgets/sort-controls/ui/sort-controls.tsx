@@ -1,7 +1,17 @@
+import type { ProductSortValue } from '@entities/products';
 import { Button } from '@shared/ui';
+
 import styles from './sort-controls.module.scss';
 
-export const SortControls = ({ sortValue = 'price_asc', onSortChange }) => {
+interface SortControlsProps {
+  readonly sortValue?: ProductSortValue;
+  readonly onSortChange: (sortValue: ProductSortValue) => void;
+}
+
+export const SortControls = ({
+  sortValue = 'price_asc',
+  onSortChange,
+}: SortControlsProps) => {
   const isPriceAscendingActive = sortValue === 'price_asc';
   const isPriceDescendingActive = sortValue === 'price_desc';
 

@@ -3,6 +3,10 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 
 import type { CartItem, CartItemDraft, CartState } from './cart.types';
 
+interface CartFeatureState {
+  readonly cart: CartState;
+}
+
 interface ChangeCartItemQuantityPayload {
   readonly productId: string;
   readonly qty: number;
@@ -89,5 +93,9 @@ export const {
   clearCart,
   setCartItems,
 } = cartSlice.actions;
+
+export function selectCartItems(state: CartFeatureState): readonly CartItem[] {
+  return state.cart.items;
+}
 
 export default cartSlice.reducer;

@@ -1,16 +1,18 @@
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { useLogoutMutation } from '@features/auth';
+
+import { selectAuthenticatedUser, useLogoutMutation } from '@features/auth';
+
 import styles from './application-header.module.scss';
 
 export const ApplicationHeader = () => {
-  const user = useSelector((state) => state.auth.user);
+  const user = useSelector(selectAuthenticatedUser);
   const [logout] = useLogoutMutation();
   const navigate = useNavigate();
 
   const isAdmin = user?.roles?.includes('admin');
 
-  async function handleLogoutButtonClick() {
+  async function handleLogoutButtonClick(): Promise<void> {
     await logout();
     navigate('/', { replace: true });
   }

@@ -1,6 +1,7 @@
 export {
   default as cartReducer,
   clearCart,
+  selectCartItems,
   setCartItems,
 } from './model/cart.slice';
 export type {
@@ -29,5 +30,6 @@ export {
 export { getCartTotals } from './lib/get-cart-totals';
 export { mergeCartItems } from './lib/merge-cart-items';
 export { addProductToCart } from './model/add-product-to-cart';
+export type { CartOrchestrationDispatch } from './model/cart-orchestration.types';
 export { useCartItemActions } from './model/use-cart-item-actions';
 export { useInitialCartSync } from './model/use-initial-cart-sync';
