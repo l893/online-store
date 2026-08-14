@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
+
 import { useListCategoriesQuery } from '@entities/categories';
 import { useListProductsQuery } from '@entities/products';
 import { useQueryParams } from '@shared/hooks';
+import type { QueryParameterUpdates } from '@shared/hooks';
 import { Loader } from '@shared/ui';
 import { CategorySidebar } from '@widgets/category-sidebar';
 import { ProductGrid } from '@widgets/product-grid';
@@ -13,6 +15,7 @@ import {
   normalizeCatalogPageNumber,
   normalizeCatalogSortValue,
 } from '../model/catalog-query-parameters';
+
 import styles from './catalog-page.module.scss';
 
 export const CatalogPage = () => {
@@ -50,7 +53,7 @@ export const CatalogPage = () => {
   );
 
   useEffect(() => {
-    const queryParameterUpdates = {};
+    const queryParameterUpdates: QueryParameterUpdates = {};
 
     if (
       pageParameterValue !== null &&
@@ -110,8 +113,9 @@ export const CatalogPage = () => {
     isProductsLoading && !displayedProductsResponse;
   const isProductsRefreshing =
     isProductsFetching && Boolean(displayedProductsResponse);
+  const totalPages = displayedProductsResponse?.pages ?? 0;
 
-  function handlePageChange(nextPageNumber) {
+  function handlePageChange(nextPageNumber: number): void {
     setQueryParameters(
       {
         page: nextPageNumber,
@@ -194,7 +198,7 @@ export const CatalogPage = () => {
           )}
         </div>
 
-        {displayedProductsResponse?.pages > 1 && (
+        {totalPages > 1 && (
           <div className={styles.pagination}>
             <button
               className={styles.paginationButton}
@@ -204,11 +208,11 @@ export const CatalogPage = () => {
               Назад
             </button>
             <span className={styles.paginationText}>
-              Стр. {pageNumber} из {displayedProductsResponse.pages}
+              Стр. {pageNumber} из {totalPages}
             </span>
             <button
               className={styles.paginationButton}
-              disabled={pageNumber >= displayedProductsResponse.pages}
+              disabled={pageNumber >= totalPages}
               onClick={() => handlePageChange(pageNumber + 1)}
             >
               Вперёд
