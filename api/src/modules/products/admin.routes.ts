@@ -1,20 +1,18 @@
-const router = require('express').Router();
-const { requireAuth, requireRole } = require('../../shared/auth.middleware');
-const {
+import { Router } from 'express';
+import type { Response } from 'express';
+
+import { requireAuth, requireRole } from '../../shared/auth.middleware.js';
+import {
   createProductSearchFilter,
   isProductSearchQueryTooLong,
-} = require('../../shared/create-product-search-filter');
-const {
-  isMongoDuplicateKeyError,
-} = require('../../shared/is-mongo-duplicate-key-error');
-const {
-  getProductFieldsExceedingLengthLimits,
-} = require('./product-input-limits');
-const Product = require('./product.model');
-const Category = require('../categories/category.model');
+} from '../../shared/create-product-search-filter.js';
+import { isMongoDuplicateKeyError } from '../../shared/is-mongo-duplicate-key-error.js';
+import Category from '../categories/category.model.js';
+import { getProductFieldsExceedingLengthLimits } from './product-input-limits.js';
+import Product from './product.model.js';
 
 const PRODUCT_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const ALLOWED_PRODUCT_PATCH_FIELDS = new Set([
+const ALLOWED_PRODUCT_PATCH_FIELDS = new Set<string>([
   'title',
   'slug',
   'description',
@@ -24,20 +22,36 @@ const ALLOWED_PRODUCT_PATCH_FIELDS = new Set([
   'stock',
 ]);
 
-function isValidProductSlug(productSlug) {
+const router = Router();
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function getRequestBody(value: unknown): Record<string, unknown> {
+  return isRecord(value) ? value : {};
+}
+
+function getIntegerQueryValue(value: unknown, fallbackValue: number): number {
+  const parsedValue = Number.parseInt(String(value ?? ''), 10);
+
+  return Number.isInteger(parsedValue) ? parsedValue : fallbackValue;
+}
+
+function isValidProductSlug(productSlug: unknown): productSlug is string {
   return (
     typeof productSlug === 'string' && PRODUCT_SLUG_PATTERN.test(productSlug)
   );
 }
 
-function sendInvalidProductSlugResponse(response) {
+function sendInvalidProductSlugResponse(response: Response): Response {
   return response.status(400).json({
     code: 'PRODUCT_SLUG_INVALID',
     message: 'Invalid product slug',
   });
 }
 
-function sendProductSlugConflictResponse(response) {
+function sendProductSlugConflictResponse(response: Response): Response {
   return response.status(409).json({
     code: 'PRODUCT_SLUG_CONFLICT',
     message: 'Slug already exists',
@@ -45,9 +59,9 @@ function sendProductSlugConflictResponse(response) {
 }
 
 function sendInvalidProductPatchFieldsResponse(
-  response,
-  unsupportedFieldNames,
-) {
+  response: Response,
+  unsupportedFieldNames: readonly string[],
+): Response {
   return response.status(400).json({
     code: 'PRODUCT_PATCH_FIELDS_INVALID',
     message: 'Unsupported product fields',
@@ -55,7 +69,10 @@ function sendInvalidProductPatchFieldsResponse(
   });
 }
 
-function sendProductInputTooLongResponse(response, fieldNames) {
+function sendProductInputTooLongResponse(
+  response: Response,
+  fieldNames: readonly string[],
+): Response {
   return response.status(400).json({
     code: 'PRODUCT_INPUT_TOO_LONG',
     message: 'Product input exceeds allowed length',
@@ -66,12 +83,12 @@ function sendProductInputTooLongResponse(response, fieldNames) {
 router.use(requireAuth, requireRole('admin'));
 
 // GET /api/admin/products?search=&page=1&limit=20
-router.get('/', async (req, res, next) => {
+router.get('/', async (request, response, nextMiddleware) => {
   try {
-    const { search = '', page = 1, limit = 20 } = req.query;
+    const search = request.query.search ?? '';
 
     if (isProductSearchQueryTooLong(search)) {
-      return res.status(400).json({
+      return response.status(400).json({
         code: 'PRODUCT_SEARCH_QUERY_TOO_LONG',
         message: 'Search query exceeds allowed length',
       });
@@ -81,8 +98,14 @@ router.get('/', async (req, res, next) => {
       includeExactIdentifierMatches: true,
     });
 
-    const currentPage = Math.max(1, parseInt(page, 10) || 1);
-    const pageLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+    const currentPage = Math.max(
+      1,
+      getIntegerQueryValue(request.query.page, 1),
+    );
+    const pageLimit = Math.min(
+      100,
+      Math.max(1, getIntegerQueryValue(request.query.limit, 20)),
+    );
 
     const [items, total] = await Promise.all([
       Product.find(filter)
@@ -115,31 +138,30 @@ router.get('/', async (req, res, next) => {
         : '',
     }));
 
-    res.json({
+    response.json({
       items: productsWithCategoryName,
       total,
       page: currentPage,
       pages: Math.ceil(total / pageLimit),
     });
-  } catch (error) {
-    next(error);
+  } catch (error: unknown) {
+    nextMiddleware(error);
   }
 });
 
 // POST /api/admin/products
-router.post('/', async (req, res, next) => {
+router.post('/', async (request, response, nextMiddleware) => {
   try {
-    const {
-      title,
-      slug,
-      description,
-      price,
-      images = [],
-      categoryId,
-      stock = 0,
-    } = req.body || {};
-    if (!title || !slug || !price)
-      return res.status(400).json({ message: 'title, slug, price required' });
+    const requestBody = getRequestBody(request.body);
+    const { title, slug, description, price, categoryId } = requestBody;
+    const images = requestBody.images ?? [];
+    const stock = requestBody.stock ?? 0;
+
+    if (!title || !slug || !price) {
+      return response
+        .status(400)
+        .json({ message: 'title, slug, price required' });
+    }
 
     const fieldsExceedingLengthLimits = getProductFieldsExceedingLengthLimits({
       title,
@@ -149,16 +171,19 @@ router.post('/', async (req, res, next) => {
     });
 
     if (fieldsExceedingLengthLimits.length > 0) {
-      return sendProductInputTooLongResponse(res, fieldsExceedingLengthLimits);
+      return sendProductInputTooLongResponse(
+        response,
+        fieldsExceedingLengthLimits,
+      );
     }
 
     if (!isValidProductSlug(slug)) {
-      return sendInvalidProductSlugResponse(res);
+      return sendInvalidProductSlugResponse(response);
     }
 
     const exists = await Product.findOne({ slug });
     if (exists) {
-      return sendProductSlugConflictResponse(res);
+      return sendProductSlugConflictResponse(response);
     }
 
     const created = await Product.create({
@@ -170,27 +195,23 @@ router.post('/', async (req, res, next) => {
       ...(categoryId ? { categoryId } : {}),
       stock,
     });
-    res.status(201).json(created);
-  } catch (error) {
+    response.status(201).json(created);
+  } catch (error: unknown) {
     if (isMongoDuplicateKeyError(error, 'slug')) {
-      return sendProductSlugConflictResponse(res);
+      return sendProductSlugConflictResponse(response);
     }
 
-    next(error);
+    nextMiddleware(error);
   }
 });
 
 // PATCH /api/admin/products/:id
-router.patch('/:id', async (req, res, next) => {
+router.patch('/:id', async (request, response, nextMiddleware) => {
   try {
-    const requestBody = req.body;
+    const requestBody = request.body;
 
-    if (
-      !requestBody ||
-      typeof requestBody !== 'object' ||
-      Array.isArray(requestBody)
-    ) {
-      return res.status(400).json({
+    if (!isRecord(requestBody)) {
+      return response.status(400).json({
         code: 'PRODUCT_PATCH_INVALID',
         message: 'Product patch must be an object',
       });
@@ -202,11 +223,14 @@ router.patch('/:id', async (req, res, next) => {
     );
 
     if (unsupportedFieldNames.length > 0) {
-      return sendInvalidProductPatchFieldsResponse(res, unsupportedFieldNames);
+      return sendInvalidProductPatchFieldsResponse(
+        response,
+        unsupportedFieldNames,
+      );
     }
 
     if (patchFieldNames.length === 0) {
-      return res.status(400).json({
+      return response.status(400).json({
         code: 'PRODUCT_PATCH_EMPTY',
         message: 'Product patch is empty',
       });
@@ -216,7 +240,10 @@ router.patch('/:id', async (req, res, next) => {
       getProductFieldsExceedingLengthLimits(requestBody);
 
     if (fieldsExceedingLengthLimits.length > 0) {
-      return sendProductInputTooLongResponse(res, fieldsExceedingLengthLimits);
+      return sendProductInputTooLongResponse(
+        response,
+        fieldsExceedingLengthLimits,
+      );
     }
 
     const patch = { ...requestBody };
@@ -231,22 +258,25 @@ router.patch('/:id', async (req, res, next) => {
       delete patch.categoryId;
     }
 
-    if (hasSlug && !isValidProductSlug(patch.slug)) {
-      return sendInvalidProductSlugResponse(res);
-    }
-
     if (hasSlug) {
+      const productSlug = patch.slug;
+
+      if (!isValidProductSlug(productSlug)) {
+        return sendInvalidProductSlugResponse(response);
+      }
+
       const duplicateProduct = await Product.findOne({
-        _id: { $ne: req.params.id },
-        slug: patch.slug,
+        _id: { $ne: request.params.id },
+        slug: productSlug,
       });
 
       if (duplicateProduct) {
-        return sendProductSlugConflictResponse(res);
+        return sendProductSlugConflictResponse(response);
       }
     }
+
     const updated = await Product.findByIdAndUpdate(
-      req.params.id,
+      request.params.id,
       shouldUnsetCategoryId
         ? { $set: patch, $unset: { categoryId: 1 } }
         : { $set: patch },
@@ -255,27 +285,38 @@ router.patch('/:id', async (req, res, next) => {
         runValidators: true,
       },
     );
-    if (!updated) return res.status(404).json({ message: 'Product not found' });
-    res.json(updated);
-  } catch (error) {
-    if (isMongoDuplicateKeyError(error, 'slug')) {
-      return sendProductSlugConflictResponse(res);
+
+    if (!updated) {
+      return response.status(404).json({
+        message: 'Product not found',
+      });
     }
 
-    next(error);
+    response.json(updated);
+  } catch (error: unknown) {
+    if (isMongoDuplicateKeyError(error, 'slug')) {
+      return sendProductSlugConflictResponse(response);
+    }
+
+    nextMiddleware(error);
   }
 });
 
 // DELETE /api/admin/products/:id
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', async (request, response, nextMiddleware) => {
   try {
-    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-    if (!deletedProduct)
-      return res.status(404).json({ message: 'Product not found' });
-    res.json({ ok: true });
-  } catch (error) {
-    next(error);
+    const deletedProduct = await Product.findByIdAndDelete(request.params.id);
+
+    if (!deletedProduct) {
+      return response.status(404).json({
+        message: 'Product not found',
+      });
+    }
+
+    response.json({ ok: true });
+  } catch (error: unknown) {
+    nextMiddleware(error);
   }
 });
 
-module.exports = router;
+export default router;

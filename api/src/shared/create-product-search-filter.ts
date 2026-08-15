@@ -1,26 +1,36 @@
-const { isValidObjectId } = require('mongoose');
+import { isValidObjectId } from 'mongoose';
 
-const PRODUCT_SEARCH_FIELD_NAMES = ['title', 'slug', 'description'];
+const PRODUCT_SEARCH_FIELD_NAMES: readonly string[] = [
+  'title',
+  'slug',
+  'description',
+];
 const PRODUCT_SEARCH_QUERY_MAX_LENGTH = 100;
 
 const PRODUCT_WORD_SEPARATOR_PATTERN = '[^a-zа-яё0-9]+';
 
-function isProductSearchQueryTooLong(searchValue) {
+interface CreateProductSearchFilterOptions {
+  readonly includeExactIdentifierMatches?: boolean;
+}
+
+type ProductSearchFilter = Record<string, unknown>;
+
+export function isProductSearchQueryTooLong(searchValue: unknown): boolean {
   return String(searchValue ?? '').length > PRODUCT_SEARCH_QUERY_MAX_LENGTH;
 }
 
-function escapeRegularExpression(value) {
+function escapeRegularExpression(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function normalizeExactSearchValue(searchValue) {
+function normalizeExactSearchValue(searchValue: unknown): string {
   return String(searchValue ?? '')
     .trim()
     .toLowerCase()
     .replace(/[‐-‒–—−]/g, '-');
 }
 
-function createSearchTokens(searchValue) {
+function createSearchTokens(searchValue: unknown): string[] {
   const normalizedSearchValue = normalizeExactSearchValue(searchValue)
     .replace(/[-_]+/g, ' ')
     .replace(/\s+/g, ' ')
@@ -33,7 +43,7 @@ function createSearchTokens(searchValue) {
   return normalizedSearchValue.split(' ');
 }
 
-function createWordPrefixRegularExpression(searchToken) {
+function createWordPrefixRegularExpression(searchToken: string): RegExp {
   const escapedSearchToken = escapeRegularExpression(searchToken);
 
   return new RegExp(
@@ -42,7 +52,7 @@ function createWordPrefixRegularExpression(searchToken) {
   );
 }
 
-function createSearchTokenFilter(searchToken) {
+function createSearchTokenFilter(searchToken: string): ProductSearchFilter {
   const wordPrefixRegularExpression =
     createWordPrefixRegularExpression(searchToken);
 
@@ -53,10 +63,12 @@ function createSearchTokenFilter(searchToken) {
   };
 }
 
-function createProductSearchFilter(
-  searchValue,
-  { includeExactIdentifierMatches = false } = {},
-) {
+export function createProductSearchFilter(
+  searchValue: unknown,
+  {
+    includeExactIdentifierMatches = false,
+  }: CreateProductSearchFilterOptions = {},
+): ProductSearchFilter {
   const searchTokens = createSearchTokens(searchValue);
 
   if (searchTokens.length === 0) {
@@ -78,7 +90,7 @@ function createProductSearchFilter(
 
   const normalizedExactSearchValue = normalizeExactSearchValue(searchValue);
 
-  const exactIdentifierFilters = [
+  const exactIdentifierFilters: ProductSearchFilter[] = [
     {
       slug: normalizedExactSearchValue,
     },
@@ -94,8 +106,3 @@ function createProductSearchFilter(
     $or: [...exactIdentifierFilters, wordPrefixSearchFilter],
   };
 }
-
-module.exports = {
-  createProductSearchFilter,
-  isProductSearchQueryTooLong,
-};

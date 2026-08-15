@@ -1,35 +1,63 @@
-const router = require('express').Router();
-const { isValidObjectId } = require('mongoose');
-const {
+import { Router } from 'express';
+import { isValidObjectId } from 'mongoose';
+
+import {
   createProductSearchFilter,
   isProductSearchQueryTooLong,
-} = require('../../shared/create-product-search-filter');
-const Category = require('../categories/category.model');
-const Product = require('./product.model');
+} from '../../shared/create-product-search-filter.js';
+import Category from '../categories/category.model.js';
+import Product from './product.model.js';
+
+const router = Router();
 
 const MAX_PRODUCTS_AVAILABILITY_REQUEST_SIZE = 100;
 
-router.get('/', async (req, res, next) => {
+type ProductSortValue = 'price_asc' | 'price_desc';
+
+interface ProductListFilter extends Record<string, unknown> {
+  categoryId?: unknown;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function getIntegerQueryValue(value: unknown, fallbackValue: number): number {
+  const parsedValue = Number.parseInt(String(value ?? ''), 10);
+
+  return Number.isInteger(parsedValue) ? parsedValue : fallbackValue;
+}
+
+function getProductSortValue(value: unknown): ProductSortValue {
+  return value === 'price_desc' ? 'price_desc' : 'price_asc';
+}
+
+router.get('/', async (request, response, nextMiddleware) => {
   try {
-    const {
-      search = '',
-      category,
-      sort = 'price_asc',
-      page = 1,
-      limit = 12,
-    } = req.query;
+    const search = request.query.search ?? '';
+    const category =
+      typeof request.query.category === 'string'
+        ? request.query.category
+        : undefined;
+    const sort = getProductSortValue(request.query.sort);
 
     if (isProductSearchQueryTooLong(search)) {
-      return res.status(400).json({
+      return response.status(400).json({
         code: 'PRODUCT_SEARCH_QUERY_TOO_LONG',
         message: 'Search query exceeds allowed length',
       });
     }
 
-    const currentPage = Math.max(1, parseInt(page, 10) || 1);
-    const pageLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 12));
+    const currentPage = Math.max(
+      1,
+      getIntegerQueryValue(request.query.page, 1),
+    );
+    const pageLimit = Math.min(
+      100,
+      Math.max(1, getIntegerQueryValue(request.query.limit, 12)),
+    );
 
-    const filter = {
+    const filter: ProductListFilter = {
       ...createProductSearchFilter(search),
       stock: {
         $gt: 0,
@@ -48,7 +76,7 @@ router.get('/', async (req, res, next) => {
       } else if (isValidObjectId(category)) {
         filter.categoryId = category;
       } else {
-        return res.json({
+        return response.json({
           items: [],
           total: 0,
           page: currentPage,
@@ -57,7 +85,13 @@ router.get('/', async (req, res, next) => {
       }
     }
 
-    const sortMap = {
+    const sortMap: Record<
+      ProductSortValue,
+      {
+        readonly price: 1 | -1;
+        readonly _id: 1 | -1;
+      }
+    > = {
       price_asc: {
         price: 1,
         _id: 1,
@@ -68,7 +102,7 @@ router.get('/', async (req, res, next) => {
       },
     };
 
-    const sortOption = sortMap[sort] || sortMap.price_asc;
+    const sortOption = sortMap[sort];
 
     const [items, total] = await Promise.all([
       Product.find(filter)
@@ -78,20 +112,21 @@ router.get('/', async (req, res, next) => {
       Product.countDocuments(filter),
     ]);
 
-    res.json({
+    response.json({
       items,
       total,
       page: currentPage,
       pages: Math.ceil(total / pageLimit),
     });
-  } catch (error) {
-    next(error);
+  } catch (error: unknown) {
+    nextMiddleware(error);
   }
 });
 
-router.post('/availability', async (request, response, next) => {
+router.post('/availability', async (request, response, nextMiddleware) => {
   try {
-    const { productIds = [] } = request.body || {};
+    const requestBody = isRecord(request.body) ? request.body : {};
+    const productIds = requestBody.productIds ?? [];
 
     if (!Array.isArray(productIds)) {
       return response.status(400).json({
@@ -150,25 +185,30 @@ router.post('/availability', async (request, response, next) => {
         };
       }),
     });
-  } catch (error) {
-    next(error);
+  } catch (error: unknown) {
+    nextMiddleware(error);
   }
 });
 
-router.get('/:slug', async (req, res, next) => {
+router.get('/:slug', async (request, response, nextMiddleware) => {
   try {
     const product = await Product.findOne({
-      slug: req.params.slug,
+      slug: request.params.slug,
       stock: {
         $gt: 0,
       },
     });
 
-    if (!product) return res.status(404).json({ message: 'Product not found' });
-    res.json(product);
-  } catch (error) {
-    next(error);
+    if (!product) {
+      return response.status(404).json({
+        message: 'Product not found',
+      });
+    }
+
+    response.json(product);
+  } catch (error: unknown) {
+    nextMiddleware(error);
   }
 });
 
-module.exports = router;
+export default router;
