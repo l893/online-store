@@ -43,6 +43,93 @@ function getIntegerQueryValue(value: unknown, fallbackValue: number): number {
   return Number.isInteger(parsedValue) ? parsedValue : fallbackValue;
 }
 
+function hasOwnField(
+  value: Readonly<Record<string, unknown>>,
+  fieldName: string,
+): boolean {
+  return Object.prototype.hasOwnProperty.call(value, fieldName);
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+function isOptionalDescription(
+  value: unknown,
+): value is string | null | undefined {
+  return value === undefined || value === null || typeof value === 'string';
+}
+
+function isNonNegativeFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+
+function isValidProductImageUrl(value: unknown): value is string {
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  try {
+    const imageUrl = new URL(value);
+
+    return imageUrl.protocol === 'http:' || imageUrl.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+function isValidProductImages(value: unknown): value is string[] {
+  return (
+    Array.isArray(value) &&
+    value.length <= 1 &&
+    value.every(isValidProductImageUrl)
+  );
+}
+
+function getInvalidProductInputFieldNames(
+  productInput: Readonly<Record<string, unknown>>,
+  requireTitleAndPrice = false,
+): string[] {
+  const invalidFieldNames: string[] = [];
+
+  if (
+    (requireTitleAndPrice || hasOwnField(productInput, 'title')) &&
+    !isNonEmptyString(productInput.title)
+  ) {
+    invalidFieldNames.push('title');
+  }
+
+  if (
+    hasOwnField(productInput, 'description') &&
+    !isOptionalDescription(productInput.description)
+  ) {
+    invalidFieldNames.push('description');
+  }
+
+  if (
+    (requireTitleAndPrice || hasOwnField(productInput, 'price')) &&
+    !isNonNegativeFiniteNumber(productInput.price)
+  ) {
+    invalidFieldNames.push('price');
+  }
+
+  if (
+    hasOwnField(productInput, 'images') &&
+    !isValidProductImages(productInput.images)
+  ) {
+    invalidFieldNames.push('images');
+  }
+
+  if (
+    hasOwnField(productInput, 'stock') &&
+    !isNonNegativeFiniteNumber(productInput.stock)
+  ) {
+    invalidFieldNames.push('stock');
+  }
+
+  return invalidFieldNames;
+}
+
 function isValidProductSlug(productSlug: unknown): productSlug is string {
   return (
     typeof productSlug === 'string' && PRODUCT_SLUG_PATTERN.test(productSlug)
@@ -68,6 +155,17 @@ function sendInvalidProductCategoryIdResponse(response: Response): Response {
   return response.status(400).json({
     code: 'PRODUCT_CATEGORY_ID_INVALID',
     message: 'Invalid product category id',
+  });
+}
+
+function sendInvalidProductInputResponse(
+  response: Response,
+  fieldNames: readonly string[],
+): Response {
+  return response.status(400).json({
+    code: 'PRODUCT_INPUT_INVALID',
+    message: 'Invalid product input',
+    fields: fieldNames,
   });
 }
 
@@ -186,7 +284,7 @@ router.post('/', async (request, response, nextMiddleware) => {
     const images = requestBody.images ?? [];
     const stock = requestBody.stock ?? 0;
 
-    if (!title || !slug || !price) {
+    if (!title || !slug || price === undefined || price === null) {
       return response
         .status(400)
         .json({ message: 'title, slug, price required' });
@@ -203,6 +301,18 @@ router.post('/', async (request, response, nextMiddleware) => {
       return sendProductInputTooLongResponse(
         response,
         fieldsExceedingLengthLimits,
+      );
+    }
+
+    const invalidProductInputFieldNames = getInvalidProductInputFieldNames(
+      requestBody,
+      true,
+    );
+
+    if (invalidProductInputFieldNames.length > 0) {
+      return sendInvalidProductInputResponse(
+        response,
+        invalidProductInputFieldNames,
       );
     }
 
@@ -280,6 +390,16 @@ router.patch('/:id', async (request, response, nextMiddleware) => {
       return sendProductInputTooLongResponse(
         response,
         fieldsExceedingLengthLimits,
+      );
+    }
+
+    const invalidProductInputFieldNames =
+      getInvalidProductInputFieldNames(requestBody);
+
+    if (invalidProductInputFieldNames.length > 0) {
+      return sendInvalidProductInputResponse(
+        response,
+        invalidProductInputFieldNames,
       );
     }
 
