@@ -1,16 +1,76 @@
-const router = require('express').Router();
-const { requireAuth } = require('../../shared/auth.middleware');
-const Cart = require('../cart/cart.model');
-const { deleteUserCartDocument } = require('../cart/cart.service');
-const Product = require('../products/product.model');
-const Order = require('./order.model');
+import { Router } from 'express';
+import type { Types } from 'mongoose';
 
-function getAvailableProductStock(productDocument) {
+import {
+  getAuthenticatedUserId,
+  requireAuth,
+} from '../../shared/auth.middleware.js';
+import Cart from '../cart/cart.model.js';
+import { deleteUserCartDocument } from '../cart/cart.service.js';
+import Product from '../products/product.model.js';
+import Order from './order.model.js';
+
+interface OrderCartItem {
+  readonly productId?: unknown;
+  readonly title?: string | null;
+  readonly qty?: unknown;
+}
+
+interface RequestedOrderItem {
+  readonly productId: string;
+  readonly titleSnapshot?: string | null;
+  requestedQuantity: number;
+}
+
+interface ReservedStockItem {
+  readonly productId: Types.ObjectId;
+  readonly quantity: number;
+}
+
+interface RollbackOrderCheckoutOptions {
+  readonly orderId: Types.ObjectId;
+  readonly reservedStockItems: readonly ReservedStockItem[];
+}
+
+const router = Router();
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function getOrderId(requestBody: unknown): string | undefined {
+  if (!isRecord(requestBody)) {
+    return undefined;
+  }
+
+  return typeof requestBody.orderId === 'string' && requestBody.orderId
+    ? requestBody.orderId
+    : undefined;
+}
+
+function getRequiredMapValue<T>(
+  valuesById: ReadonlyMap<string, T>,
+  identifier: string,
+): T {
+  const value = valuesById.get(identifier);
+
+  if (value === undefined) {
+    throw new Error(`Required value not found for id: ${identifier}`);
+  }
+
+  return value;
+}
+
+function getAvailableProductStock(productDocument: {
+  readonly stock?: unknown;
+}): number {
   return Math.max(0, Math.floor(Number(productDocument.stock) || 0));
 }
 
-function createRequestedCartItems(cartItems) {
-  const requestedCartItemsByProductId = new Map();
+function createRequestedCartItems(
+  cartItems: readonly OrderCartItem[],
+): RequestedOrderItem[] {
+  const requestedCartItemsByProductId = new Map<string, RequestedOrderItem>();
 
   for (const cartItem of cartItems) {
     if (!cartItem?.productId) {
@@ -18,7 +78,7 @@ function createRequestedCartItems(cartItems) {
     }
 
     const productId = String(cartItem.productId);
-    const parsedQuantity = Number.parseInt(cartItem.qty, 10);
+    const parsedQuantity = Number.parseInt(String(cartItem.qty), 10);
     const requestedQuantity = Number.isInteger(parsedQuantity)
       ? Math.max(1, parsedQuantity)
       : 1;
@@ -40,11 +100,15 @@ function createRequestedCartItems(cartItems) {
   return Array.from(requestedCartItemsByProductId.values());
 }
 
-function normalizeOrderItemQuantity(orderItem) {
+function normalizeOrderItemQuantity(orderItem: {
+  readonly qty?: unknown;
+}): number {
   return Math.max(1, Math.floor(Number(orderItem.qty) || 1));
 }
 
-async function restoreReservedProductStock(reservedStockItems) {
+async function restoreReservedProductStock(
+  reservedStockItems: readonly ReservedStockItem[],
+): Promise<void> {
   if (reservedStockItems.length === 0) {
     return;
   }
@@ -65,7 +129,10 @@ async function restoreReservedProductStock(reservedStockItems) {
   );
 }
 
-async function rollbackOrderCheckout({ orderId, reservedStockItems }) {
+async function rollbackOrderCheckout({
+  orderId,
+  reservedStockItems,
+}: RollbackOrderCheckoutOptions): Promise<void> {
   await restoreReservedProductStock(reservedStockItems);
 
   await Order.updateOne(
@@ -84,10 +151,11 @@ async function rollbackOrderCheckout({ orderId, reservedStockItems }) {
 router.use(requireAuth);
 
 // POST /api/orders
-router.post('/', async (request, response, next) => {
+router.post('/', async (request, response, nextMiddleware) => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const cartDocument = await Cart.findOne({
-      userId: request.user.id,
+      userId,
     }).lean();
     const requestedCartItems = createRequestedCartItems(
       cartDocument?.items || [],
@@ -153,7 +221,8 @@ router.post('/', async (request, response, next) => {
     }
 
     const orderItems = requestedCartItems.map((requestedCartItem) => {
-      const productDocument = productDocumentsById.get(
+      const productDocument = getRequiredMapValue(
+        productDocumentsById,
         requestedCartItem.productId,
       );
 
@@ -171,29 +240,30 @@ router.post('/', async (request, response, next) => {
       0,
     );
     const orderDocument = await Order.create({
-      userId: request.user.id,
+      userId,
       items: orderItems,
       total,
       status: 'draft',
     });
 
     return response.json({
-      orderId: orderDocument._id,
+      orderId: orderDocument._id.toString(),
       total,
     });
-  } catch (error) {
-    next(error);
+  } catch (error: unknown) {
+    nextMiddleware(error);
   }
 });
 
 // POST /api/orders/checkout/confirm  { orderId }
-router.post('/checkout/confirm', async (request, response, next) => {
-  const reservedStockItems = [];
-  let claimedOrderDocument = null;
+router.post('/checkout/confirm', async (request, response, nextMiddleware) => {
+  const reservedStockItems: ReservedStockItem[] = [];
+  let claimedOrderId: Types.ObjectId | undefined;
   let isOrderPaid = false;
 
   try {
-    const { orderId } = request.body || {};
+    const userId = getAuthenticatedUserId(request);
+    const orderId = getOrderId(request.body);
 
     if (!orderId) {
       return response.status(400).json({
@@ -201,10 +271,10 @@ router.post('/checkout/confirm', async (request, response, next) => {
       });
     }
 
-    claimedOrderDocument = await Order.findOneAndUpdate(
+    const claimedOrderDocument = await Order.findOneAndUpdate(
       {
         _id: orderId,
-        userId: request.user.id,
+        userId,
         status: 'draft',
       },
       {
@@ -220,7 +290,7 @@ router.post('/checkout/confirm', async (request, response, next) => {
     if (!claimedOrderDocument) {
       const existingOrderDocument = await Order.findOne({
         _id: orderId,
-        userId: request.user.id,
+        userId,
       }).lean();
 
       if (!existingOrderDocument) {
@@ -230,7 +300,7 @@ router.post('/checkout/confirm', async (request, response, next) => {
       }
 
       if (existingOrderDocument.status === 'paid') {
-        await deleteUserCartDocument(request.user.id);
+        await deleteUserCartDocument(userId);
 
         return response.json({
           ok: true,
@@ -250,6 +320,8 @@ router.post('/checkout/confirm', async (request, response, next) => {
         message: 'Заказ нельзя подтвердить в текущем статусе',
       });
     }
+
+    claimedOrderId = claimedOrderDocument._id;
 
     for (const orderItem of claimedOrderDocument.items) {
       const requestedQuantity = normalizeOrderItemQuantity(orderItem);
@@ -281,7 +353,7 @@ router.post('/checkout/confirm', async (request, response, next) => {
           .lean();
 
         await rollbackOrderCheckout({
-          orderId: claimedOrderDocument._id,
+          orderId: claimedOrderId,
           reservedStockItems,
         });
 
@@ -312,7 +384,7 @@ router.post('/checkout/confirm', async (request, response, next) => {
 
     const paidOrderDocument = await Order.findOneAndUpdate(
       {
-        _id: claimedOrderDocument._id,
+        _id: claimedOrderId,
         status: 'processing',
       },
       {
@@ -327,7 +399,7 @@ router.post('/checkout/confirm', async (request, response, next) => {
 
     if (!paidOrderDocument) {
       await rollbackOrderCheckout({
-        orderId: claimedOrderDocument._id,
+        orderId: claimedOrderId,
         reservedStockItems,
       });
 
@@ -339,26 +411,27 @@ router.post('/checkout/confirm', async (request, response, next) => {
 
     isOrderPaid = true;
 
-    await deleteUserCartDocument(request.user.id);
+    await deleteUserCartDocument(userId);
 
     return response.json({
       ok: true,
       status: 'paid',
     });
-  } catch (error) {
-    if (claimedOrderDocument && !isOrderPaid) {
+  } catch (error: unknown) {
+    if (claimedOrderId && !isOrderPaid) {
       try {
         await rollbackOrderCheckout({
-          orderId: claimedOrderDocument._id,
+          orderId: claimedOrderId,
           reservedStockItems,
         });
-      } catch (rollbackError) {
-        return next(rollbackError);
+      } catch (rollbackError: unknown) {
+        nextMiddleware(rollbackError);
+        return;
       }
     }
 
-    next(error);
+    nextMiddleware(error);
   }
 });
 
-module.exports = router;
+export default router;

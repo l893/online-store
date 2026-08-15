@@ -1,16 +1,74 @@
-const router = require('express').Router();
-const { requireAuth } = require('../../shared/auth.middleware');
-const Cart = require('./cart.model');
-const Product = require('../products/product.model');
-const { deleteUserCartDocument } = require('./cart.service');
+import { Router } from 'express';
+import type { Types } from 'mongoose';
 
-function getAvailableProductStock(productDocument) {
+import {
+  getAuthenticatedUserId,
+  requireAuth,
+} from '../../shared/auth.middleware.js';
+import Product from '../products/product.model.js';
+import Cart from './cart.model.js';
+import { deleteUserCartDocument } from './cart.service.js';
+
+interface CartItemReference {
+  readonly productId?: unknown;
+}
+
+interface CartItemWithQuantity extends CartItemReference {
+  readonly qty?: unknown;
+}
+
+interface RequestedCartItem extends CartItemWithQuantity {}
+
+interface ProductSummaryDocument {
+  readonly _id: Types.ObjectId;
+  readonly title: string;
+  readonly price: number;
+  readonly images?: readonly (string | null | undefined)[] | null;
+  readonly stock?: number | null;
+}
+
+interface NormalizedCartItem {
+  readonly productId: Types.ObjectId;
+  readonly title: string;
+  readonly price: number;
+  readonly image: string;
+  readonly qty: number;
+}
+
+const router = Router();
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function getRequestedCartItems(requestBody: unknown): RequestedCartItem[] {
+  if (!isRecord(requestBody) || !Array.isArray(requestBody.items)) {
+    return [];
+  }
+
+  return requestBody.items.filter(isRecord).map((cartItem) => ({
+    productId: cartItem.productId,
+    qty: cartItem.qty,
+  }));
+}
+
+function normalizeRequestedQuantity(quantityValue: unknown): number {
+  const parsedQuantity = Number.parseInt(String(quantityValue), 10);
+
+  return Number.isInteger(parsedQuantity) ? Math.max(1, parsedQuantity) : 1;
+}
+
+function getAvailableProductStock(productDocument: {
+  readonly stock?: unknown;
+}): number {
   return Math.max(0, Math.floor(Number(productDocument.stock) || 0));
 }
 
-async function getProductDocumentsById(cartItems) {
+async function getProductDocumentsById<TCartItem extends CartItemReference>(
+  cartItems: readonly TCartItem[],
+) {
   const productIds = cartItems
-    .map((cartItem) => cartItem.productId)
+    .map((cartItem) => (cartItem.productId ? String(cartItem.productId) : ''))
     .filter(Boolean);
 
   const productDocuments = await Product.find({
@@ -29,7 +87,15 @@ async function getProductDocumentsById(cartItems) {
   );
 }
 
-function createCartResponse(cartDocument, productDocumentsById) {
+function createCartResponse<
+  TCartItem extends CartItemReference,
+  TCartDocument extends {
+    readonly items?: readonly TCartItem[] | null;
+  },
+>(
+  cartDocument: TCartDocument,
+  productDocumentsById: ReadonlyMap<string, ProductSummaryDocument>,
+) {
   return {
     ...cartDocument,
     items: (cartDocument.items || []).map((cartItem) => {
@@ -56,7 +122,12 @@ function createCartResponse(cartDocument, productDocumentsById) {
   };
 }
 
-function getCartItemQuantitiesByProductId(cartDocument) {
+function getCartItemQuantitiesByProductId<
+  TCartItem extends CartItemWithQuantity,
+  TCartDocument extends {
+    readonly items?: readonly TCartItem[] | null;
+  },
+>(cartDocument: TCartDocument | null | undefined): Map<string, number> {
   return new Map(
     (cartDocument?.items || []).map((cartItem) => [
       String(cartItem.productId),
@@ -68,15 +139,16 @@ function getCartItemQuantitiesByProductId(cartDocument) {
 router.use(requireAuth);
 
 // GET /api/cart
-router.get('/', async (request, response, next) => {
+router.get('/', async (request, response, nextMiddleware) => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const cartDocument = await Cart.findOne({
-      userId: request.user.id,
+      userId,
     }).lean();
 
     if (!cartDocument) {
       return response.json({
-        userId: request.user.id,
+        userId,
         items: [],
       });
     }
@@ -89,17 +161,18 @@ router.get('/', async (request, response, next) => {
       createCartResponse(cartDocument, productDocumentsById),
     );
   } catch (error) {
-    next(error);
+    nextMiddleware(error);
   }
 });
 
 // PUT /api/cart  { items:[{productId, qty}] }
-router.put('/', async (request, response, next) => {
+router.put('/', async (request, response, nextMiddleware) => {
   try {
-    const { items = [] } = request.body || {};
+    const userId = getAuthenticatedUserId(request);
+    const items = getRequestedCartItems(request.body);
 
     const existingCartDocument = await Cart.findOne({
-      userId: request.user.id,
+      userId,
     }).lean();
     const existingCartItemQuantitiesByProductId =
       getCartItemQuantitiesByProductId(existingCartDocument);
@@ -107,7 +180,7 @@ router.put('/', async (request, response, next) => {
     // нормализация: подтянем актуальные title/price с продуктов
     const productDocumentsById = await getProductDocumentsById(items);
 
-    const normalizedCartItems = [];
+    const normalizedCartItems: NormalizedCartItem[] = [];
 
     for (const requestedCartItem of items) {
       const productDocument = productDocumentsById.get(
@@ -118,13 +191,9 @@ router.put('/', async (request, response, next) => {
         continue;
       }
 
-      const parsedRequestedQuantity = Number.parseInt(
+      const requestedQuantity = normalizeRequestedQuantity(
         requestedCartItem.qty,
-        10,
       );
-      const requestedQuantity = Number.isInteger(parsedRequestedQuantity)
-        ? Math.max(1, parsedRequestedQuantity)
-        : 1;
       const availableStock = getAvailableProductStock(productDocument);
       const existingQuantity =
         existingCartItemQuantitiesByProductId.get(
@@ -153,17 +222,17 @@ router.put('/', async (request, response, next) => {
     }
 
     if (normalizedCartItems.length === 0) {
-      await deleteUserCartDocument(request.user.id);
+      await deleteUserCartDocument(userId);
 
       return response.json({
-        userId: request.user.id,
+        userId,
         items: [],
       });
     }
 
     const cartDocument = await Cart.findOneAndUpdate(
       {
-        userId: request.user.id,
+        userId,
       },
       {
         $set: {
@@ -181,37 +250,46 @@ router.put('/', async (request, response, next) => {
       createCartResponse(cartDocument, productDocumentsById),
     );
   } catch (error) {
-    next(error);
+    nextMiddleware(error);
   }
 });
 
 // Удаление товара из корзины
-router.delete('/item/:productId', async (request, response, next) => {
+router.delete('/item/:productId', async (request, response, nextMiddleware) => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const { productId } = request.params;
 
     // Найдём корзину пользователя
     const cartDocument = await Cart.findOne({
-      userId: request.user.id,
+      userId,
     });
 
     if (!cartDocument) {
       return response.json({
-        userId: request.user.id,
+        userId,
         items: [],
       });
     }
 
     // Удаляем товар из массива
-    cartDocument.items = cartDocument.items.filter(
-      (cartItem) => String(cartItem.productId) !== String(productId),
-    );
+    for (
+      let cartItemIndex = cartDocument.items.length - 1;
+      cartItemIndex >= 0;
+      cartItemIndex -= 1
+    ) {
+      const cartItem = cartDocument.items[cartItemIndex];
+
+      if (String(cartItem.productId) === String(productId)) {
+        cartDocument.items.splice(cartItemIndex, 1);
+      }
+    }
 
     if (cartDocument.items.length === 0) {
-      await deleteUserCartDocument(request.user.id);
+      await deleteUserCartDocument(userId);
 
       return response.json({
-        userId: request.user.id,
+        userId,
         items: [],
       });
     }
@@ -231,8 +309,8 @@ router.delete('/item/:productId', async (request, response, next) => {
       createCartResponse(updatedCartDocument, productDocumentsById),
     );
   } catch (error) {
-    next(error);
+    nextMiddleware(error);
   }
 });
 
-module.exports = router;
+export default router;

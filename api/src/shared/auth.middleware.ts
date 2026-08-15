@@ -1,6 +1,16 @@
-import type { RequestHandler } from 'express';
+import type { Request, RequestHandler } from 'express';
 
 import { verifyAccess } from './jwt.js';
+
+export function getAuthenticatedUserId(request: Request): string {
+  const userId = request.user?.id;
+
+  if (!userId) {
+    throw new Error('Authenticated user context missing');
+  }
+
+  return userId;
+}
 
 export const requireAuth: RequestHandler = (
   request,
