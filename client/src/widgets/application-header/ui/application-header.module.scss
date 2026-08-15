@@ -21,6 +21,10 @@
   gap: 1rem;
 }
 
+.menuButton {
+  display: none;
+}
+
 .navigationLink,
 .userName,
 .logoutButton {
@@ -40,6 +44,7 @@
 }
 
 .userName {
+  margin-left: auto;
   color: #374151;
   font-weight: 500;
 }
@@ -59,12 +64,69 @@
 
 @media (max-width: 640px) {
   .header {
-    align-items: flex-start;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .userName {
+    grid-column: 2;
+    max-width: 100%;
+    margin-left: 0;
+    overflow: hidden;
+    justify-self: end;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .menuButton {
+    display: inline-flex;
+    grid-column: 3;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    color: #111827;
+    font: inherit;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .menuButton:hover {
+    border-color: #f59e0b;
+    background-color: #fffbeb;
+  }
+
+  .menuButton:focus-visible {
+    outline: 3px solid rgb(245 158 11 / 25%);
+    outline-offset: 2px;
   }
 
   .navigation {
-    align-items: flex-start;
-    flex-wrap: wrap;
+    display: none;
+    grid-column: 1 / -1;
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .navigationOpen {
+    display: flex;
+  }
+
+  .navigationLink,
+  .logoutButton {
+    width: 100%;
+    min-height: 2.75rem;
+    justify-content: flex-start;
   }
 }
