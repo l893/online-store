@@ -1,12 +1,50 @@
-const router = require('express').Router();
-const bcrypt = require('bcrypt');
-const crypto = require('crypto');
-const User = require('./user.model');
-const RefreshToken = require('./refresh-token.model');
-const { signAccess, signRefresh, verifyRefresh } = require('../../shared/jwt');
-const {
-  isMongoDuplicateKeyError,
-} = require('../../shared/is-mongo-duplicate-key-error');
+import { randomUUID } from 'node:crypto';
+
+import bcrypt from 'bcrypt';
+import { Router } from 'express';
+import type { CookieOptions, Response } from 'express';
+
+import { signAccess, signRefresh, verifyRefresh } from '../../shared/jwt.js';
+import { isMongoDuplicateKeyError } from '../../shared/is-mongo-duplicate-key-error.js';
+import RefreshToken from './refresh-token.model.js';
+import User from './user.model.js';
+
+interface RegistrationLengthInput {
+  readonly emailAddress: string;
+  readonly userName?: string;
+  readonly password: string;
+}
+
+interface SessionUserDocument {
+  readonly _id: {
+    toString(): string;
+  };
+  readonly email: string;
+  readonly name?: string | null;
+  readonly roles: string[];
+}
+
+interface AuthenticationUserResponse {
+  readonly id: string;
+  readonly email: string;
+  readonly name?: string;
+  readonly roles: readonly string[];
+}
+
+interface AuthenticationRequestMetadata {
+  readonly headers: {
+    readonly 'user-agent'?: string;
+  };
+  readonly ip?: string;
+}
+
+interface EstablishAuthenticatedSessionOptions {
+  readonly userDocument: SessionUserDocument;
+  readonly request: AuthenticationRequestMetadata;
+  readonly response: Response;
+}
+
+const router = Router();
 
 const REFRESH_TOKEN_COOKIE_NAME = 'refreshToken';
 const REFRESH_COOKIE_PATH = '/api/auth';
@@ -15,14 +53,40 @@ const AUTH_EMAIL_MAX_LENGTH = 254;
 const AUTH_NAME_MAX_LENGTH = 100;
 const AUTH_PASSWORD_MAX_BYTE_LENGTH = 72;
 
-function isAuthenticationPasswordWithinByteLengthLimit(passwordValue) {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function getRequestBody(value: unknown): Record<string, unknown> {
+  return isRecord(value) ? value : {};
+}
+
+function getRefreshCookie(value: unknown): string | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const refreshCookie = value[REFRESH_TOKEN_COOKIE_NAME];
+
+  return typeof refreshCookie === 'string' && refreshCookie
+    ? refreshCookie
+    : undefined;
+}
+
+function isAuthenticationPasswordWithinByteLengthLimit(
+  passwordValue: unknown,
+): passwordValue is string {
   return (
     typeof passwordValue === 'string' &&
     Buffer.byteLength(passwordValue, 'utf8') <= AUTH_PASSWORD_MAX_BYTE_LENGTH
   );
 }
 
-function isRegistrationInputTooLong({ emailAddress, userName, password }) {
+function isRegistrationInputTooLong({
+  emailAddress,
+  userName,
+  password,
+}: RegistrationLengthInput): boolean {
   return (
     emailAddress.length > AUTH_EMAIL_MAX_LENGTH ||
     (userName?.length || 0) > AUTH_NAME_MAX_LENGTH ||
@@ -30,13 +94,13 @@ function isRegistrationInputTooLong({ emailAddress, userName, password }) {
   );
 }
 
-function normalizeEmailAddress(emailAddress) {
+function normalizeEmailAddress(emailAddress: unknown): string {
   return typeof emailAddress === 'string'
     ? emailAddress.trim().toLowerCase()
     : '';
 }
 
-function normalizeUserName(userName) {
+function normalizeUserName(userName: unknown): string | undefined {
   if (typeof userName !== 'string') {
     return undefined;
   }
@@ -46,7 +110,7 @@ function normalizeUserName(userName) {
   return normalizedUserName || undefined;
 }
 
-function getRefreshCookieOptions() {
+function getRefreshCookieOptions(): CookieOptions {
   const isProduction = process.env.NODE_ENV === 'production';
 
   return {
@@ -57,18 +121,18 @@ function getRefreshCookieOptions() {
   };
 }
 
-function setRefreshCookie(response, refreshToken) {
+function setRefreshCookie(response: Response, refreshToken: string): void {
   response.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
     ...getRefreshCookieOptions(),
     maxAge: REFRESH_TOKEN_LIFETIME_MILLISECONDS,
   });
 }
 
-function clearRefreshCookie(response) {
+function clearRefreshCookie(response: Response): void {
   response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, getRefreshCookieOptions());
 }
 
-function rejectRefreshRequest(response, message) {
+function rejectRefreshRequest(response: Response, message: string): Response {
   clearRefreshCookie(response);
 
   return response.status(401).json({
@@ -76,7 +140,7 @@ function rejectRefreshRequest(response, message) {
   });
 }
 
-async function revokeUserRefreshSessions(userId) {
+async function revokeUserRefreshSessions(userId: string): Promise<void> {
   await RefreshToken.updateMany(
     {
       userId,
@@ -90,8 +154,12 @@ async function revokeUserRefreshSessions(userId) {
   );
 }
 
-async function createRefreshToken(userId, userAgent, ipAddress) {
-  const refreshTokenIdentifier = crypto.randomUUID();
+async function createRefreshToken(
+  userId: string,
+  userAgent: string,
+  ipAddress: string | undefined,
+): Promise<string> {
+  const refreshTokenIdentifier = randomUUID();
   const refreshToken = signRefresh({
     sub: userId,
     jti: refreshTokenIdentifier,
@@ -108,16 +176,18 @@ async function createRefreshToken(userId, userAgent, ipAddress) {
   return refreshToken;
 }
 
-function createAuthenticatedUserResponse(userDocument) {
+function createAuthenticatedUserResponse(
+  userDocument: SessionUserDocument,
+): AuthenticationUserResponse {
   return {
-    id: userDocument._id,
+    id: userDocument._id.toString(),
     email: userDocument.email,
-    name: userDocument.name,
+    name: userDocument.name ?? undefined,
     roles: userDocument.roles,
   };
 }
 
-function sendEmailConflictResponse(response) {
+function sendEmailConflictResponse(response: Response): Response {
   return response.status(409).json({
     code: 'AUTH_EMAIL_CONFLICT',
     message: 'Email already registered',
@@ -128,13 +198,15 @@ async function establishAuthenticatedSession({
   userDocument,
   request,
   response,
-}) {
+}: EstablishAuthenticatedSessionOptions): Promise<Response> {
+  const userId = userDocument._id.toString();
+
   const accessToken = signAccess({
-    sub: userDocument._id.toString(),
+    sub: userId,
     roles: userDocument.roles,
   });
   const refreshToken = await createRefreshToken(
-    userDocument._id,
+    userId,
     request.headers['user-agent'] || '',
     request.ip,
   );
@@ -149,7 +221,7 @@ async function establishAuthenticatedSession({
 
 router.post('/register', async (request, response, nextMiddleware) => {
   try {
-    const { email, password, name } = request.body || {};
+    const { email, password, name } = getRequestBody(request.body);
     const normalizedEmail = normalizeEmailAddress(email);
     const normalizedName = normalizeUserName(name);
 
@@ -193,7 +265,7 @@ router.post('/register', async (request, response, nextMiddleware) => {
       request,
       response,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     if (isMongoDuplicateKeyError(error, 'email')) {
       return sendEmailConflictResponse(response);
     }
@@ -204,7 +276,7 @@ router.post('/register', async (request, response, nextMiddleware) => {
 
 router.post('/login', async (request, response, nextMiddleware) => {
   try {
-    const { email, password } = request.body || {};
+    const { email, password } = getRequestBody(request.body);
     const normalizedEmail = normalizeEmailAddress(email);
 
     if (
@@ -245,14 +317,14 @@ router.post('/login', async (request, response, nextMiddleware) => {
       request,
       response,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     nextMiddleware(error);
   }
 });
 
 router.post('/refresh', async (request, response, nextMiddleware) => {
   try {
-    const refreshCookie = request.cookies?.refreshToken;
+    const refreshCookie = getRefreshCookie(request.cookies);
 
     if (!refreshCookie) {
       return rejectRefreshRequest(response, 'No refresh cookie');
@@ -313,14 +385,14 @@ router.post('/refresh', async (request, response, nextMiddleware) => {
       request,
       response,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     nextMiddleware(error);
   }
 });
 
 router.post('/logout', async (request, response, nextMiddleware) => {
   try {
-    const refreshCookie = request.cookies?.refreshToken;
+    const refreshCookie = getRefreshCookie(request.cookies);
 
     if (refreshCookie) {
       try {
@@ -329,16 +401,19 @@ router.post('/logout', async (request, response, nextMiddleware) => {
         await RefreshToken.deleteMany({
           userId: refreshTokenPayload.sub,
         });
-      } catch (error) {
-        console.error('Logout cleanup error:', error.message);
+      } catch (error: unknown) {
+        console.error(
+          'Logout cleanup error:',
+          error instanceof Error ? error.message : 'Unknown error',
+        );
       }
     }
 
     clearRefreshCookie(response);
     response.json({ ok: true });
-  } catch (error) {
+  } catch (error: unknown) {
     nextMiddleware(error);
   }
 });
 
-module.exports = router;
+export default router;
