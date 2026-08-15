@@ -34,6 +34,7 @@ export {
 
 // Route guards
 export { RequireAuth } from './ui/require-auth';
+export { RequireGuest } from './ui/require-guest';
 export { RequireRole } from './ui/require-role';
 
 // Authentication UI

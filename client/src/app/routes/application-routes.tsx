@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import type { ReactElement } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
-import { RequireAuth, RequireRole } from '@features/auth';
+import { RequireAuth, RequireGuest, RequireRole } from '@features/auth';
 import { Loader } from '@shared/ui';
 
 const CatalogPage = lazy(() =>
@@ -54,8 +54,22 @@ export const ApplicationRoutes = (): ReactElement => {
         <Route path="/" element={<CatalogPage />} />
         <Route path="/product/:slug" element={<ProductPage />} />
         <Route path="/cart" element={<CartPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/login"
+          element={
+            <RequireGuest>
+              <LoginPage />
+            </RequireGuest>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <RequireGuest>
+              <RegisterPage />
+            </RequireGuest>
+          }
+        />
         <Route
           path="/admin/products"
           element={
