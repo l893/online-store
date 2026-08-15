@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import type { Response } from 'express';
+import { isValidObjectId } from 'mongoose';
 
 import { requireAuth, requireRole } from '../../shared/auth.middleware.js';
 import {
@@ -46,6 +47,28 @@ function isValidProductSlug(productSlug: unknown): productSlug is string {
   return (
     typeof productSlug === 'string' && PRODUCT_SLUG_PATTERN.test(productSlug)
   );
+}
+
+function isEmptyCategoryId(categoryId: unknown): boolean {
+  return categoryId === undefined || categoryId === null || categoryId === '';
+}
+
+function isValidCategoryId(categoryId: unknown): categoryId is string {
+  return typeof categoryId === 'string' && isValidObjectId(categoryId);
+}
+
+function sendInvalidProductIdResponse(response: Response): Response {
+  return response.status(400).json({
+    code: 'PRODUCT_ID_INVALID',
+    message: 'Invalid product id',
+  });
+}
+
+function sendInvalidProductCategoryIdResponse(response: Response): Response {
+  return response.status(400).json({
+    code: 'PRODUCT_CATEGORY_ID_INVALID',
+    message: 'Invalid product category id',
+  });
 }
 
 function sendInvalidProductSlugResponse(response: Response): Response {
@@ -187,6 +210,10 @@ router.post('/', async (request, response, nextMiddleware) => {
       return sendInvalidProductSlugResponse(response);
     }
 
+    if (!isEmptyCategoryId(categoryId) && !isValidCategoryId(categoryId)) {
+      return sendInvalidProductCategoryIdResponse(response);
+    }
+
     const exists = await Product.findOne({ slug });
     if (exists) {
       return sendProductSlugConflictResponse(response);
@@ -198,7 +225,7 @@ router.post('/', async (request, response, nextMiddleware) => {
       description,
       price,
       images,
-      ...(categoryId ? { categoryId } : {}),
+      ...(typeof categoryId === 'string' && categoryId ? { categoryId } : {}),
       stock,
     });
     response.status(201).json(createProductResponse(created));
@@ -214,6 +241,10 @@ router.post('/', async (request, response, nextMiddleware) => {
 // PATCH /api/admin/products/:id
 router.patch('/:id', async (request, response, nextMiddleware) => {
   try {
+    if (!isValidObjectId(request.params.id)) {
+      return sendInvalidProductIdResponse(response);
+    }
+
     const requestBody = request.body;
 
     if (!isRecord(requestBody)) {
@@ -258,7 +289,18 @@ router.patch('/:id', async (request, response, nextMiddleware) => {
       patch,
       'categoryId',
     );
-    const shouldUnsetCategoryId = hasCategoryId && !patch.categoryId;
+    const productCategoryId = patch.categoryId;
+
+    if (
+      hasCategoryId &&
+      !isEmptyCategoryId(productCategoryId) &&
+      !isValidCategoryId(productCategoryId)
+    ) {
+      return sendInvalidProductCategoryIdResponse(response);
+    }
+
+    const shouldUnsetCategoryId =
+      hasCategoryId && isEmptyCategoryId(productCategoryId);
 
     if (shouldUnsetCategoryId) {
       delete patch.categoryId;
@@ -311,6 +353,10 @@ router.patch('/:id', async (request, response, nextMiddleware) => {
 // DELETE /api/admin/products/:id
 router.delete('/:id', async (request, response, nextMiddleware) => {
   try {
+    if (!isValidObjectId(request.params.id)) {
+      return sendInvalidProductIdResponse(response);
+    }
+
     const deletedProduct = await Product.findByIdAndDelete(request.params.id);
 
     if (!deletedProduct) {

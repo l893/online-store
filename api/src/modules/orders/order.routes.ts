@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { isValidObjectId } from 'mongoose';
 import type { Types } from 'mongoose';
 
 import {
@@ -264,6 +265,13 @@ router.post('/checkout/confirm', async (request, response, nextMiddleware) => {
     if (!orderId) {
       return response.status(400).json({
         message: 'orderId required',
+      });
+    }
+
+    if (!isValidObjectId(orderId)) {
+      return response.status(400).json({
+        code: 'ORDER_ID_INVALID',
+        message: 'Invalid orderId',
       });
     }
 
