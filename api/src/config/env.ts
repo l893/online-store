@@ -1,9 +1,12 @@
-require('dotenv').config();
+import 'dotenv/config';
 
 const MINIMUM_JWT_SECRET_LENGTH = 32;
 const isProduction = process.env.NODE_ENV === 'production';
 
-function getJwtSecret(environmentVariableName, developmentFallback) {
+function getJwtSecret(
+  environmentVariableName: string,
+  developmentFallback: string,
+): string {
   const configuredSecret = process.env[environmentVariableName];
 
   if (!isProduction) {
@@ -23,8 +26,8 @@ function getJwtSecret(environmentVariableName, developmentFallback) {
   return configuredSecret;
 }
 
-const accessSecret = getJwtSecret('JWT_ACCESS_SECRET', 'dev_access');
-const refreshSecret = getJwtSecret('JWT_REFRESH_SECRET', 'dev_refresh');
+export const accessSecret = getJwtSecret('JWT_ACCESS_SECRET', 'dev_access');
+export const refreshSecret = getJwtSecret('JWT_REFRESH_SECRET', 'dev_refresh');
 
 if (isProduction && accessSecret === refreshSecret) {
   throw new Error(
@@ -32,11 +35,6 @@ if (isProduction && accessSecret === refreshSecret) {
   );
 }
 
-const cfg = {
-  port: process.env.PORT || 3000,
-  mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/shop',
-  accessSecret,
-  refreshSecret,
-};
-
-module.exports = cfg;
+export const port = process.env.PORT || 3000;
+export const mongoUri =
+  process.env.MONGODB_URI || 'mongodb://localhost:27017/shop';
