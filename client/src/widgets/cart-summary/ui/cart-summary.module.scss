@@ -1,5 +1,7 @@
 .summary {
-  min-width: 16.25rem;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
   padding: 1rem;
   border: 1px solid #e5e7eb;
   border-radius: 0.75rem;
@@ -36,4 +38,10 @@
 
 .checkoutButton {
   width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .summary {
+    min-width: 16.25rem;
+  }
 }

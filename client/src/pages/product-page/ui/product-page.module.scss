@@ -97,11 +97,18 @@
   }
 
   .imageWrapper {
+    box-sizing: border-box;
     flex-basis: auto;
     width: 100%;
   }
 
   .actions {
     width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .productDetailsCard {
+    padding: 1rem;
   }
 }
