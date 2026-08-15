@@ -1,4 +1,5 @@
-const { Schema, model } = require('mongoose');
+import { Schema, model } from 'mongoose';
+import type { InferSchemaType } from 'mongoose';
 
 const refreshTokenSchema = new Schema(
   {
@@ -9,7 +10,14 @@ const refreshTokenSchema = new Schema(
     userAgent: { type: String },
     ip: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-module.exports = model('RefreshToken', refreshTokenSchema);
+export type RefreshTokenRecord = InferSchemaType<typeof refreshTokenSchema>;
+
+const RefreshToken = model<RefreshTokenRecord>(
+  'RefreshToken',
+  refreshTokenSchema,
+);
+
+export default RefreshToken;

@@ -3,11 +3,13 @@ import { randomUUID } from 'node:crypto';
 import bcrypt from 'bcrypt';
 import { Router } from 'express';
 import type { CookieOptions, Response } from 'express';
+import type { HydratedDocument } from 'mongoose';
 
 import { signAccess, signRefresh, verifyRefresh } from '../../shared/jwt.js';
 import { isMongoDuplicateKeyError } from '../../shared/is-mongo-duplicate-key-error.js';
 import RefreshToken from './refresh-token.model.js';
 import User from './user.model.js';
+import type { UserRecord } from './user.model.js';
 
 interface RegistrationLengthInput {
   readonly emailAddress: string;
@@ -15,14 +17,7 @@ interface RegistrationLengthInput {
   readonly password: string;
 }
 
-interface SessionUserDocument {
-  readonly _id: {
-    toString(): string;
-  };
-  readonly email: string;
-  readonly name?: string | null;
-  readonly roles: string[];
-}
+type SessionUserDocument = HydratedDocument<UserRecord>;
 
 interface AuthenticationUserResponse {
   readonly id: string;

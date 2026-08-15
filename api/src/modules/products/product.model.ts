@@ -1,10 +1,12 @@
-const { Schema, model } = require('mongoose');
-const {
+import { Schema, model } from 'mongoose';
+import type { InferSchemaType } from 'mongoose';
+
+import {
   PRODUCT_DESCRIPTION_MAX_LENGTH,
   PRODUCT_IMAGE_URL_MAX_LENGTH,
   PRODUCT_SLUG_MAX_LENGTH,
   PRODUCT_TITLE_MAX_LENGTH,
-} = require('./product-input-limits');
+} from './product-input-limits.js';
 
 const productSchema = new Schema(
   {
@@ -38,4 +40,8 @@ const productSchema = new Schema(
   { timestamps: true },
 );
 
-module.exports = model('Product', productSchema);
+export type ProductRecord = InferSchemaType<typeof productSchema>;
+
+const Product = model<ProductRecord>('Product', productSchema);
+
+export default Product;
