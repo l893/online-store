@@ -7,7 +7,9 @@
     "dev": "nodemon src/app.js",
     "start": "node src/app.js",
     "seed": "node src/scripts/seed.js",
-    "cleanup:tokens": "node src/scripts/cleanup.js"
+    "cleanup:tokens": "node src/scripts/cleanup.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +28,13 @@
     "mongoose": "^8.19.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@types/compression": "^1.8.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^26.2.0",
+    "nodemon": "^3.1.10",
+    "typescript": "^6.0.3"
   }
 }
