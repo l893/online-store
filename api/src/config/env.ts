@@ -26,6 +26,20 @@ function getJwtSecret(
   return configuredSecret;
 }
 
+function getMongoUri(): string {
+  const configuredMongoUri = process.env.MONGODB_URI;
+
+  if (configuredMongoUri) {
+    return configuredMongoUri;
+  }
+
+  if (isProduction) {
+    throw new Error('MONGODB_URI is required in production');
+  }
+
+  return 'mongodb://localhost:27017/shop';
+}
+
 export const accessSecret = getJwtSecret('JWT_ACCESS_SECRET', 'dev_access');
 export const refreshSecret = getJwtSecret('JWT_REFRESH_SECRET', 'dev_refresh');
 
@@ -36,5 +50,4 @@ if (isProduction && accessSecret === refreshSecret) {
 }
 
 export const port = process.env.PORT || 3000;
-export const mongoUri =
-  process.env.MONGODB_URI || 'mongodb://localhost:27017/shop';
+export const mongoUri = getMongoUri();
