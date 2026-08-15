@@ -46,7 +46,9 @@ const REFRESH_COOKIE_PATH = '/api/auth';
 const REFRESH_TOKEN_LIFETIME_MILLISECONDS = 30 * 24 * 60 * 60 * 1000;
 const AUTH_EMAIL_MAX_LENGTH = 254;
 const AUTH_NAME_MAX_LENGTH = 100;
+const AUTH_PASSWORD_MIN_LENGTH = 6;
 const AUTH_PASSWORD_MAX_BYTE_LENGTH = 72;
+const AUTH_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -74,6 +76,31 @@ function isAuthenticationPasswordWithinByteLengthLimit(
   return (
     typeof passwordValue === 'string' &&
     Buffer.byteLength(passwordValue, 'utf8') <= AUTH_PASSWORD_MAX_BYTE_LENGTH
+  );
+}
+
+function isValidAuthenticationEmail(emailAddress: string): boolean {
+  return (
+    emailAddress.length <= AUTH_EMAIL_MAX_LENGTH &&
+    AUTH_EMAIL_PATTERN.test(emailAddress)
+  );
+}
+
+function isValidAuthenticationPassword(
+  passwordValue: unknown,
+): passwordValue is string {
+  return (
+    typeof passwordValue === 'string' &&
+    passwordValue.length >= AUTH_PASSWORD_MIN_LENGTH &&
+    isAuthenticationPasswordWithinByteLengthLimit(passwordValue)
+  );
+}
+
+function isValidRegistrationNameInput(
+  userName: unknown,
+): userName is string | null | undefined {
+  return (
+    userName === undefined || userName === null || typeof userName === 'string'
   );
 }
 
@@ -189,6 +216,17 @@ function sendEmailConflictResponse(response: Response): Response {
   });
 }
 
+function sendInvalidAuthenticationInputResponse(
+  response: Response,
+  fieldNames: readonly string[],
+): Response {
+  return response.status(400).json({
+    code: 'AUTH_INPUT_INVALID',
+    message: 'Invalid authentication input',
+    fields: fieldNames,
+  });
+}
+
 async function establishAuthenticatedSession({
   userDocument,
   request,
@@ -239,6 +277,27 @@ router.post('/register', async (request, response, nextMiddleware) => {
       });
     }
 
+    const invalidFieldNames: string[] = [];
+
+    if (!isValidAuthenticationEmail(normalizedEmail)) {
+      invalidFieldNames.push('email');
+    }
+
+    if (password.length < AUTH_PASSWORD_MIN_LENGTH) {
+      invalidFieldNames.push('password');
+    }
+
+    if (!isValidRegistrationNameInput(name)) {
+      invalidFieldNames.push('name');
+    }
+
+    if (invalidFieldNames.length > 0) {
+      return sendInvalidAuthenticationInputResponse(
+        response,
+        invalidFieldNames,
+      );
+    }
+
     const existingUser = await User.findOne({
       email: normalizedEmail,
     });
@@ -275,11 +334,8 @@ router.post('/login', async (request, response, nextMiddleware) => {
     const normalizedEmail = normalizeEmailAddress(email);
 
     if (
-      !normalizedEmail ||
-      typeof password !== 'string' ||
-      !password ||
-      normalizedEmail.length > AUTH_EMAIL_MAX_LENGTH ||
-      !isAuthenticationPasswordWithinByteLengthLimit(password)
+      !isValidAuthenticationEmail(normalizedEmail) ||
+      !isValidAuthenticationPassword(password)
     ) {
       return response.status(401).json({
         message: 'Invalid credentials',
