@@ -6,6 +6,7 @@ import {
   isProductSearchQueryTooLong,
 } from '../../shared/create-product-search-filter.js';
 import Category from '../categories/category.model.js';
+import { createProductResponse } from './product.dto.js';
 import Product from './product.model.js';
 
 const router = Router();
@@ -113,7 +114,9 @@ router.get('/', async (request, response, nextMiddleware) => {
     ]);
 
     response.json({
-      items,
+      items: items.map((productDocument) =>
+        createProductResponse(productDocument),
+      ),
       total,
       page: currentPage,
       pages: Math.ceil(total / pageLimit),
@@ -205,7 +208,7 @@ router.get('/:slug', async (request, response, nextMiddleware) => {
       });
     }
 
-    response.json(product);
+    response.json(createProductResponse(product));
   } catch (error: unknown) {
     nextMiddleware(error);
   }

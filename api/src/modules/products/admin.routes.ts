@@ -8,6 +8,10 @@ import {
 } from '../../shared/create-product-search-filter.js';
 import { isMongoDuplicateKeyError } from '../../shared/is-mongo-duplicate-key-error.js';
 import Category from '../categories/category.model.js';
+import {
+  createAdminProductResponse,
+  createProductResponse,
+} from './product.dto.js';
 import { getProductFieldsExceedingLengthLimits } from './product-input-limits.js';
 import Product from './product.model.js';
 
@@ -131,12 +135,14 @@ router.get('/', async (request, response, nextMiddleware) => {
     const categoryNameById = new Map(
       categories.map((category) => [String(category._id), category.name]),
     );
-    const productsWithCategoryName = items.map((product) => ({
-      ...product,
-      categoryName: product.categoryId
-        ? categoryNameById.get(String(product.categoryId)) || ''
-        : '',
-    }));
+    const productsWithCategoryName = items.map((product) =>
+      createAdminProductResponse(
+        product,
+        product.categoryId
+          ? categoryNameById.get(String(product.categoryId)) || ''
+          : '',
+      ),
+    );
 
     response.json({
       items: productsWithCategoryName,
@@ -195,7 +201,7 @@ router.post('/', async (request, response, nextMiddleware) => {
       ...(categoryId ? { categoryId } : {}),
       stock,
     });
-    response.status(201).json(created);
+    response.status(201).json(createProductResponse(created));
   } catch (error: unknown) {
     if (isMongoDuplicateKeyError(error, 'slug')) {
       return sendProductSlugConflictResponse(response);
@@ -292,7 +298,7 @@ router.patch('/:id', async (request, response, nextMiddleware) => {
       });
     }
 
-    response.json(updated);
+    response.json(createProductResponse(updated));
   } catch (error: unknown) {
     if (isMongoDuplicateKeyError(error, 'slug')) {
       return sendProductSlugConflictResponse(response);

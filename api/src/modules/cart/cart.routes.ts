@@ -30,6 +30,20 @@ type NormalizedCartItem = Required<
   Pick<CartItemRecord, 'productId' | 'title' | 'price' | 'image' | 'qty'>
 >;
 
+interface CartItemResponse {
+  readonly productId: string;
+  readonly title: string;
+  readonly price: number;
+  readonly image?: string;
+  readonly stock: number;
+  readonly qty: number;
+}
+
+interface CartResponse {
+  readonly userId: string;
+  readonly items: readonly CartItemResponse[];
+}
+
 const router = Router();
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -82,36 +96,29 @@ async function getProductDocumentsById<TCartItem extends CartItemReference>(
   );
 }
 
-function createCartResponse<
-  TCartItem extends CartItemReference,
-  TCartDocument extends {
-    readonly items?: readonly TCartItem[] | null;
-  },
->(
-  cartDocument: TCartDocument,
+function createCartResponse(
+  userId: string,
+  cartItems: readonly CartItemRecord[],
   productDocumentsById: ReadonlyMap<string, ProductSummaryDocument>,
-) {
+): CartResponse {
   return {
-    ...cartDocument,
-    items: (cartDocument.items || []).map((cartItem) => {
+    userId,
+    items: cartItems.map((cartItem) => {
       const productDocument = productDocumentsById.get(
         String(cartItem.productId),
       );
 
-      const currentProductDetails = productDocument
-        ? {
-            title: productDocument.title,
-            price: productDocument.price,
-            image: productDocument.images?.[0] || '',
-            stock: getAvailableProductStock(productDocument),
-          }
-        : {
-            stock: 0,
-          };
+      const image = productDocument
+        ? productDocument.images?.[0] || ''
+        : (cartItem.image ?? undefined);
 
       return {
-        ...cartItem,
-        ...currentProductDetails,
+        productId: String(cartItem.productId),
+        title: productDocument?.title ?? cartItem.title ?? '',
+        price: productDocument?.price ?? cartItem.price ?? 0,
+        ...(image === undefined ? {} : { image }),
+        stock: productDocument ? getAvailableProductStock(productDocument) : 0,
+        qty: Math.max(1, Number(cartItem.qty) || 1),
       };
     }),
   };
@@ -153,7 +160,7 @@ router.get('/', async (request, response, nextMiddleware) => {
     );
 
     return response.json(
-      createCartResponse(cartDocument, productDocumentsById),
+      createCartResponse(userId, cartDocument.items, productDocumentsById),
     );
   } catch (error) {
     nextMiddleware(error);
@@ -242,7 +249,7 @@ router.put('/', async (request, response, nextMiddleware) => {
     ).lean();
 
     return response.json(
-      createCartResponse(cartDocument, productDocumentsById),
+      createCartResponse(userId, cartDocument.items, productDocumentsById),
     );
   } catch (error) {
     nextMiddleware(error);
@@ -301,7 +308,11 @@ router.delete('/item/:productId', async (request, response, nextMiddleware) => {
     );
 
     return response.json(
-      createCartResponse(updatedCartDocument, productDocumentsById),
+      createCartResponse(
+        userId,
+        updatedCartDocument.items,
+        productDocumentsById,
+      ),
     );
   } catch (error) {
     nextMiddleware(error);
