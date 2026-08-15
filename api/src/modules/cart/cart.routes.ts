@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { isValidObjectId } from 'mongoose';
 import type { Types } from 'mongoose';
 
 import {
@@ -16,8 +17,20 @@ interface CartItemReference {
 }
 
 interface RequestedCartItem extends CartItemReference {
-  readonly qty?: unknown;
+  readonly productId: string;
+  readonly qty: number;
 }
+
+interface ValidatedCartRequest {
+  readonly isValid: true;
+  readonly items: readonly RequestedCartItem[];
+}
+
+interface InvalidCartRequest {
+  readonly isValid: false;
+}
+
+type CartRequestValidationResult = ValidatedCartRequest | InvalidCartRequest;
 
 type ProductSummaryDocument = Pick<
   ProductRecord,
@@ -50,21 +63,41 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function getRequestedCartItems(requestBody: unknown): RequestedCartItem[] {
+function validateCartRequest(
+  requestBody: unknown,
+): CartRequestValidationResult {
   if (!isRecord(requestBody) || !Array.isArray(requestBody.items)) {
-    return [];
+    return {
+      isValid: false,
+    };
   }
 
-  return requestBody.items.filter(isRecord).map((cartItem) => ({
-    productId: cartItem.productId,
-    qty: cartItem.qty,
-  }));
-}
+  const requestedCartItems: RequestedCartItem[] = [];
 
-function normalizeRequestedQuantity(quantityValue: unknown): number {
-  const parsedQuantity = Number.parseInt(String(quantityValue), 10);
+  for (const cartItem of requestBody.items) {
+    if (
+      !isRecord(cartItem) ||
+      typeof cartItem.productId !== 'string' ||
+      !isValidObjectId(cartItem.productId) ||
+      typeof cartItem.qty !== 'number' ||
+      !Number.isInteger(cartItem.qty) ||
+      cartItem.qty < 1
+    ) {
+      return {
+        isValid: false,
+      };
+    }
 
-  return Number.isInteger(parsedQuantity) ? Math.max(1, parsedQuantity) : 1;
+    requestedCartItems.push({
+      productId: cartItem.productId,
+      qty: cartItem.qty,
+    });
+  }
+
+  return {
+    isValid: true,
+    items: requestedCartItems,
+  };
 }
 
 function getAvailableProductStock(productDocument: {
@@ -171,7 +204,16 @@ router.get('/', async (request, response, nextMiddleware) => {
 router.put('/', async (request, response, nextMiddleware) => {
   try {
     const userId = getAuthenticatedUserId(request);
-    const items = getRequestedCartItems(request.body);
+    const cartRequestValidationResult = validateCartRequest(request.body);
+
+    if (!cartRequestValidationResult.isValid) {
+      return response.status(400).json({
+        code: 'CART_INPUT_INVALID',
+        message: 'Invalid cart input',
+      });
+    }
+
+    const items = cartRequestValidationResult.items;
 
     const existingCartDocument = await Cart.findOne({
       userId,
@@ -193,9 +235,7 @@ router.put('/', async (request, response, nextMiddleware) => {
         continue;
       }
 
-      const requestedQuantity = normalizeRequestedQuantity(
-        requestedCartItem.qty,
-      );
+      const requestedQuantity = requestedCartItem.qty;
       const availableStock = getAvailableProductStock(productDocument);
       const existingQuantity =
         existingCartItemQuantitiesByProductId.get(
