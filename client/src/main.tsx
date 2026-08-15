@@ -11,7 +11,7 @@ import '@app/styles/normalize.css';
 import '@app/styles/global.css';
 
 import { App } from '@app/ui/app';
-import { ErrorBoundary } from '@app/ui/error-boundary';
+import { RouteAwareErrorBoundary } from '@app/ui/route-aware-error-boundary';
 
 const rootElement = document.getElementById('root');
 
@@ -23,13 +23,13 @@ createRoot(rootElement).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <ErrorBoundary>
-        <Provider store={store}>
-          <BrowserRouter>
+      <BrowserRouter>
+        <RouteAwareErrorBoundary>
+          <Provider store={store}>
             <App />
-          </BrowserRouter>
-        </Provider>
-      </ErrorBoundary>
+          </Provider>
+        </RouteAwareErrorBoundary>
+      </BrowserRouter>
     </ThemeProvider>
   </StrictMode>,
 );
