@@ -1,4 +1,9 @@
 require('dotenv').config();
+
+if (process.env.NODE_ENV === 'production') {
+  throw new Error('Database seed is disabled in production');
+}
+
 const mongoose = require('mongoose');
 const Category = require('../modules/categories/category.model');
 const Product = require('../modules/products/product.model');
