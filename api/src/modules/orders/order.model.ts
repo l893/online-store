@@ -1,4 +1,5 @@
-const { Schema, model } = require('mongoose');
+import { Schema, model } from 'mongoose';
+import type { InferSchemaType } from 'mongoose';
 
 const orderItemSchema = new Schema(
   {
@@ -10,6 +11,8 @@ const orderItemSchema = new Schema(
   },
   { _id: false },
 );
+
+export type OrderItemRecord = InferSchemaType<typeof orderItemSchema>;
 
 const orderSchema = new Schema(
   {
@@ -26,4 +29,8 @@ const orderSchema = new Schema(
   { timestamps: true },
 );
 
-module.exports = model('Order', orderSchema);
+export type OrderRecord = InferSchemaType<typeof orderSchema>;
+
+const Order = model<OrderRecord>('Order', orderSchema);
+
+export default Order;

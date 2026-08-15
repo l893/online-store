@@ -6,15 +6,11 @@ import {
   requireAuth,
 } from '../../shared/auth.middleware.js';
 import Cart from '../cart/cart.model.js';
+import type { CartItemRecord } from '../cart/cart.model.js';
 import { deleteUserCartDocument } from '../cart/cart.service.js';
 import Product from '../products/product.model.js';
 import Order from './order.model.js';
-
-interface OrderCartItem {
-  readonly productId?: unknown;
-  readonly title?: string | null;
-  readonly qty?: unknown;
-}
+import type { OrderItemRecord } from './order.model.js';
 
 interface RequestedOrderItem {
   readonly productId: string;
@@ -68,7 +64,7 @@ function getAvailableProductStock(productDocument: {
 }
 
 function createRequestedCartItems(
-  cartItems: readonly OrderCartItem[],
+  cartItems: readonly CartItemRecord[],
 ): RequestedOrderItem[] {
   const requestedCartItemsByProductId = new Map<string, RequestedOrderItem>();
 
@@ -100,9 +96,9 @@ function createRequestedCartItems(
   return Array.from(requestedCartItemsByProductId.values());
 }
 
-function normalizeOrderItemQuantity(orderItem: {
-  readonly qty?: unknown;
-}): number {
+function normalizeOrderItemQuantity(
+  orderItem: Pick<OrderItemRecord, 'qty'>,
+): number {
   return Math.max(1, Math.floor(Number(orderItem.qty) || 1));
 }
 

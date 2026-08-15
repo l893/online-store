@@ -1,4 +1,5 @@
-const { Schema, model } = require('mongoose');
+import { Schema, model } from 'mongoose';
+import type { InferSchemaType } from 'mongoose';
 
 const cartItemSchema = new Schema(
   {
@@ -8,8 +9,10 @@ const cartItemSchema = new Schema(
     image: String,
     qty: { type: Number, default: 1 },
   },
-  { _id: false }
+  { _id: false },
 );
+
+export type CartItemRecord = InferSchemaType<typeof cartItemSchema>;
 
 const cartSchema = new Schema({
   userId: {
@@ -22,4 +25,8 @@ const cartSchema = new Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
-module.exports = model('Cart', cartSchema);
+export type CartRecord = InferSchemaType<typeof cartSchema>;
+
+const Cart = model<CartRecord>('Cart', cartSchema);
+
+export default Cart;

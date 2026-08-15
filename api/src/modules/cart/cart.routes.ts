@@ -6,34 +6,29 @@ import {
   requireAuth,
 } from '../../shared/auth.middleware.js';
 import Product from '../products/product.model.js';
+import type { ProductRecord } from '../products/product.model.js';
 import Cart from './cart.model.js';
+import type { CartItemRecord } from './cart.model.js';
 import { deleteUserCartDocument } from './cart.service.js';
 
 interface CartItemReference {
   readonly productId?: unknown;
 }
 
-interface CartItemWithQuantity extends CartItemReference {
+interface RequestedCartItem extends CartItemReference {
   readonly qty?: unknown;
 }
 
-interface RequestedCartItem extends CartItemWithQuantity {}
-
-interface ProductSummaryDocument {
+type ProductSummaryDocument = Pick<
+  ProductRecord,
+  'title' | 'price' | 'images' | 'stock'
+> & {
   readonly _id: Types.ObjectId;
-  readonly title: string;
-  readonly price: number;
-  readonly images?: readonly (string | null | undefined)[] | null;
-  readonly stock?: number | null;
-}
+};
 
-interface NormalizedCartItem {
-  readonly productId: Types.ObjectId;
-  readonly title: string;
-  readonly price: number;
-  readonly image: string;
-  readonly qty: number;
-}
+type NormalizedCartItem = Required<
+  Pick<CartItemRecord, 'productId' | 'title' | 'price' | 'image' | 'qty'>
+>;
 
 const router = Router();
 
@@ -123,7 +118,7 @@ function createCartResponse<
 }
 
 function getCartItemQuantitiesByProductId<
-  TCartItem extends CartItemWithQuantity,
+  TCartItem extends Pick<CartItemRecord, 'productId' | 'qty'>,
   TCartDocument extends {
     readonly items?: readonly TCartItem[] | null;
   },
