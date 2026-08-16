@@ -7,6 +7,7 @@ import styles from './error-boundary.module.scss';
 
 interface ErrorBoundaryProps {
   readonly children: ReactNode;
+  readonly resetKey?: string;
 }
 
 interface ErrorBoundaryState {
@@ -29,6 +30,14 @@ export class ErrorBoundary extends Component<
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error('Uncaught application render error', error, errorInfo);
+  }
+
+  componentDidUpdate(previousProps: ErrorBoundaryProps): void {
+    if (this.state.hasError && previousProps.resetKey !== this.props.resetKey) {
+      this.setState({
+        hasError: false,
+      });
+    }
   }
 
   handleReloadButtonClick = (): void => {

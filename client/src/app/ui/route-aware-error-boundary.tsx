@@ -13,5 +13,5 @@ export const RouteAwareErrorBoundary = ({
   const { pathname, search } = useLocation();
   const locationKey = `${pathname}${search}`;
 
-  return <ErrorBoundary key={locationKey}>{children}</ErrorBoundary>;
+  return <ErrorBoundary resetKey={locationKey}>{children}</ErrorBoundary>;
 };
