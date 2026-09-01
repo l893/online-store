@@ -10,8 +10,8 @@ import {
 } from '@features/cart';
 import type { CartOrchestrationDispatch } from '@features/cart';
 import {
-  PRODUCT_IMAGE_PLACEHOLDER_URL,
-  replaceBrokenProductImageWithPlaceholder,
+  getProductImageSources,
+  replaceBrokenProductImageWithFallback,
 } from '@shared/lib';
 import { Button, Loader } from '@shared/ui';
 
@@ -74,7 +74,8 @@ export const ProductPage = () => {
     return <div className={styles.pageMessage}>Товар не найден</div>;
   }
 
-  const productImageUrl = product.images?.[0] || PRODUCT_IMAGE_PLACEHOLDER_URL;
+  const { primaryUrl: productImageUrl, fallbackUrl: productImageFallbackUrl } =
+    getProductImageSources(product.images?.[0]);
   const availableStock = Math.max(0, Number(product.stock) || 0);
   const currentCartItem = cartItems.find(
     (cartItem) => cartItem.productId === product._id,
@@ -97,12 +98,13 @@ export const ProductPage = () => {
         <div className={styles.imageWrapper}>
           <img
             src={productImageUrl}
+            data-fallback-src={productImageFallbackUrl}
             alt={product.title}
             className={styles.productImage}
             loading="eager"
             fetchPriority="high"
             decoding="async"
-            onError={replaceBrokenProductImageWithPlaceholder}
+            onError={replaceBrokenProductImageWithFallback}
           />
         </div>
 

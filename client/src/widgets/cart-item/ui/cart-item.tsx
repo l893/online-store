@@ -2,8 +2,8 @@ import type { ChangeEvent } from 'react';
 
 import type { CartItem as CartItemData } from '@features/cart';
 import {
-  PRODUCT_IMAGE_PLACEHOLDER_URL,
-  replaceBrokenProductImageWithPlaceholder,
+  getProductImageSources,
+  replaceBrokenProductImageWithFallback,
 } from '@shared/lib';
 import { Button, Input } from '@shared/ui';
 
@@ -25,7 +25,10 @@ export const CartItem = ({
   onCartItemRemove,
   areQuantityControlsDisabled = false,
 }: CartItemProps) => {
-  const cartItemImageUrl = cartItem.image || PRODUCT_IMAGE_PLACEHOLDER_URL;
+  const {
+    primaryUrl: cartItemImageUrl,
+    fallbackUrl: cartItemImageFallbackUrl,
+  } = getProductImageSources(cartItem.image);
   const availableStock = Math.max(0, Number(cartItem.stock) || 0);
   const isProductUnavailable = availableStock === 0;
   const isDecreaseQuantityButtonDisabled =
@@ -50,11 +53,12 @@ export const CartItem = ({
       <div className={styles.imageWrapper}>
         <img
           src={cartItemImageUrl}
+          data-fallback-src={cartItemImageFallbackUrl}
           alt={cartItem.title}
           className={styles.image}
           loading="lazy"
           decoding="async"
-          onError={replaceBrokenProductImageWithPlaceholder}
+          onError={replaceBrokenProductImageWithFallback}
         />
       </div>
 

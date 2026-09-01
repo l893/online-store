@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 
 import {
-  PRODUCT_IMAGE_PLACEHOLDER_URL,
-  replaceBrokenProductImageWithPlaceholder,
+  getProductImageSources,
+  replaceBrokenProductImageWithFallback,
 } from '@shared/lib';
 import { Button } from '@shared/ui';
 
@@ -20,7 +20,8 @@ export const ProductCard = ({
   isAddToCartDisabled = false,
   onAddToCart,
 }: ProductCardProps) => {
-  const productImageUrl = product.images?.[0] || PRODUCT_IMAGE_PLACEHOLDER_URL;
+  const { primaryUrl: productImageUrl, fallbackUrl: productImageFallbackUrl } =
+    getProductImageSources(product.images?.[0]);
 
   function handleAddToCartButtonClick(): void {
     onAddToCart(product);
@@ -35,11 +36,12 @@ export const ProductCard = ({
       >
         <img
           src={productImageUrl}
+          data-fallback-src={productImageFallbackUrl}
           alt={product.title}
           className={styles.image}
           loading="lazy"
           decoding="async"
-          onError={replaceBrokenProductImageWithPlaceholder}
+          onError={replaceBrokenProductImageWithFallback}
         />
       </Link>
 

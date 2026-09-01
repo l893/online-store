@@ -7,7 +7,8 @@ export {
 export { authenticationSessionExpired } from './api/authentication-session.events';
 export { parseApiError } from './parse-api-error';
 export {
+  getProductImageSources,
   PRODUCT_IMAGE_PLACEHOLDER_URL,
-  replaceBrokenProductImageWithPlaceholder,
+  replaceBrokenProductImageWithFallback,
 } from './product-image';
 export { PRODUCT_SEARCH_QUERY_MAX_LENGTH } from './product-search-limits';
