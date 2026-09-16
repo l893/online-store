@@ -1,4 +1,35 @@
+@use 'sass:map';
 @use 'sass:math';
+@use './variables' as variables;
+
+@mixin respond-from($breakpoint) {
+  $breakpoint-value: map.get(variables.$breakpoints, $breakpoint);
+
+  @if $breakpoint-value == null {
+    @error 'Unknown breakpoint: #{$breakpoint}';
+  }
+
+  @media (min-width: $breakpoint-value) {
+    @content;
+  }
+}
+
+@mixin respond-until($breakpoint) {
+  $breakpoint-value: map.get(variables.$breakpoints, $breakpoint);
+
+  @if $breakpoint-value == null {
+    @error 'Unknown breakpoint: #{$breakpoint}';
+  }
+
+  @media (max-width: #{$breakpoint-value - 0.001rem}) {
+    @content;
+  }
+}
+
+@mixin focus-ring {
+  outline: 0.1875rem solid variables.$color-focus-ring;
+  outline-offset: 0.125rem;
+}
 
 @mixin textFontStyles(
   $fontSize,

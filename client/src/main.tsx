@@ -8,7 +8,7 @@ import { theme } from '@app/config/theme';
 import { store } from '@app/store/store';
 
 import '@app/styles/normalize.css';
-import '@app/styles/global.css';
+import '@app/styles/global.scss';
 
 import { App } from '@app/ui/app';
 import { RouteAwareErrorBoundary } from '@app/ui/route-aware-error-boundary';

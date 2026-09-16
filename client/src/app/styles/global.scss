@@ -1,0 +1,43 @@
+@use '@shared/styles/variables' as variables;
+
+:root {
+  font-family: variables.$font-family-base;
+  line-height: 1.5;
+  font-weight: variables.$font-weight-regular;
+
+  color: variables.$color-text-primary;
+  background-color: variables.$color-background;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background-color: variables.$color-background;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  color: variables.$color-text-primary;
+  background-color: variables.$color-background;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: inherit;
+}

@@ -1,20 +1,91 @@
-// $colorWhite: rgb(255, 255, 255);
-// $colorBlack: rgb(0, 0, 0);
+$color-background: rgb(247, 248, 252);
+$color-surface: rgb(255, 255, 255);
+$color-surface-subtle: rgb(248, 250, 252);
 
-$color1: rgb(10, 201, 64);
-// $color2: rgb(187, 159, 100);
-// $color3: rgb(31, 39, 50);
-// $color4: rgb(22, 29, 39);
-// $color5: rgb(215, 215, 215);
-// $color6: rgb(78, 85, 95);
+$color-primary: rgb(109, 40, 217);
+$color-primary-hover: rgb(91, 33, 182);
+$color-accent: rgb(139, 92, 246);
 
-// $topbarHeight: 4.5rem;
+$color-text-primary: rgb(17, 24, 39);
+$color-text-muted: rgb(102, 112, 133);
+$color-text-subtle: rgb(124, 132, 152);
 
-// $fontFamily1: 'Cormorant Garamond', serif;
-// $fontFamily2: 'Outfit', sans-serif;
+$color-border: rgb(228, 231, 238);
+$color-border-strong: rgb(209, 213, 219);
 
-// $fontWeightLight: 300;
-// $fontWeightRegular: 400;
-// $fontWeightMedium: 500;
-// $fontWeightSemiBold: 600;
-// $fontWeightBold: 700;
+$color-category-active-background: rgb(241, 234, 254);
+$color-disabled-background: rgb(241, 243, 247);
+
+$color-danger: rgb(185, 28, 28);
+$color-success: rgb(21, 128, 61);
+$color-focus-ring: rgba(109, 40, 217, 0.28);
+
+$gradient-primary: linear-gradient(
+  135deg,
+  rgb(124, 58, 237) 0%,
+  rgb(91, 33, 214) 100%
+);
+$gradient-primary-hover: linear-gradient(
+  135deg,
+  rgb(109, 40, 217) 0%,
+  rgb(76, 29, 149) 100%
+);
+
+$shadow-subtle: 0 0.125rem 0.5rem rgba(17, 24, 39, 0.06);
+
+$font-family-base:
+  system-ui,
+  -apple-system,
+  BlinkMacSystemFont,
+  'Segoe UI',
+  Arial,
+  sans-serif;
+
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+$font-size-xs: 0.75rem;
+$font-size-sm: 0.875rem;
+$font-size-base: 1rem;
+$font-size-lg: 1.125rem;
+$font-size-xl: 1.25rem;
+$font-size-2xl: 1.5rem;
+$font-size-3xl: 2rem;
+
+$space-1: 0.25rem;
+$space-2: 0.5rem;
+$space-3: 0.75rem;
+$space-4: 1rem;
+$space-5: 1.5rem;
+$space-6: 2rem;
+
+$radius-sm: 0.5rem;
+$radius-md: 0.625rem;
+$radius-lg: 0.75rem;
+
+$control-height: 2.75rem;
+$input-height: 3rem;
+
+$content-max-width: 90rem;
+$page-padding-mobile: 1rem;
+$page-padding-tablet: 1.5rem;
+$page-padding-desktop: 2rem;
+$page-padding-wide: 2.5rem;
+
+$breakpoint-xs: 22.5rem;
+$breakpoint-sm: 30rem;
+$breakpoint-md: 48rem;
+$breakpoint-lg: 64rem;
+$breakpoint-xl: 80rem;
+$breakpoint-2xl: 90rem;
+
+$breakpoints: (
+  xs: $breakpoint-xs,
+  sm: $breakpoint-sm,
+  md: $breakpoint-md,
+  lg: $breakpoint-lg,
+  xl: $breakpoint-xl,
+  xxl: $breakpoint-2xl,
+);
