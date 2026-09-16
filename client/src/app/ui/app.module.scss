@@ -1,11 +1,35 @@
+@use '@shared/styles/mixins' as mixins;
+@use '@shared/styles/variables' as variables;
+
 .appShell {
-  box-sizing: border-box;
   width: 100%;
-  max-width: 72rem;
+  max-width: variables.$content-max-width;
   margin: 0 auto;
-  padding: 1.5rem 1rem 0;
+  padding: variables.$space-4 variables.$page-padding-mobile 0;
 }
 
 .mainContent {
-  padding: 1.5rem 0 0;
+  padding: variables.$space-5 0 0;
+}
+
+@include mixins.respond-from(md) {
+  .appShell {
+    padding-inline: variables.$page-padding-tablet;
+  }
+
+  .mainContent {
+    padding-top: variables.$space-6;
+  }
+}
+
+@include mixins.respond-from(lg) {
+  .appShell {
+    padding-inline: variables.$page-padding-desktop;
+  }
+}
+
+@include mixins.respond-from(xxl) {
+  .appShell {
+    padding-inline: variables.$page-padding-wide;
+  }
 }
