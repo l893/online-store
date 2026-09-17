@@ -1,42 +1,80 @@
+@use '@shared/styles/mixins' as mixins;
+@use '@shared/styles/variables' as variables;
+
 .sidebar {
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  background-color: #f9fafb;
+  padding: variables.$space-4;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  background-color: variables.$color-surface;
 }
 
 .title {
-  margin-bottom: 0.5rem;
-  font-weight: 500;
+  margin-bottom: variables.$space-3;
+
+  color: variables.$color-text-primary;
+
+  font-size: variables.$font-size-base;
+  font-weight: variables.$font-weight-semibold;
 }
 
 .loader {
-  margin-top: 0.25rem;
+  margin-bottom: variables.$space-2;
 }
 
 .categoryList {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: variables.$space-1;
+
   margin: 0;
   padding: 0;
+
   list-style: none;
 }
 
 .categoryButton {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #111827;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
+  width: 100%;
+  min-height: 2.5rem;
 
-.categoryButton:hover {
-  color: #92400e;
+  padding: variables.$space-2 variables.$space-3;
+
+  border: 0;
+  border-radius: variables.$radius-sm;
+
+  color: variables.$color-text-primary;
+  background-color: transparent;
+
+  font: inherit;
+  font-weight: variables.$font-weight-regular;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    color variables.$transition-base,
+    background-color variables.$transition-base;
+
+  &:hover {
+    color: variables.$color-primary;
+    background-color: variables.$color-category-active-background;
+  }
+
+  &:focus-visible {
+    @include mixins.focus-ring;
+  }
 }
 
 .activeCategoryButton {
-  font-weight: 600;
+  color: variables.$color-primary;
+  background-color: variables.$color-category-active-background;
+
+  font-weight: variables.$font-weight-semibold;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .categoryButton {
+    transition: none;
+  }
 }
