@@ -1,24 +1,46 @@
+@use '@shared/styles/mixins' as mixins;
+@use '@shared/styles/variables' as variables;
+
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  background-color: #f9fafb;
+  gap: variables.$space-4;
+
+  padding: variables.$space-3 variables.$space-4;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  background-color: variables.$color-surface;
 }
 
 .brandLink {
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.75rem;
+  flex-shrink: 0;
+
+  color: variables.$color-text-primary;
+
+  font-size: variables.$font-size-xl;
+  font-weight: variables.$font-weight-bold;
+  line-height: 1.2;
+  text-decoration: none;
+
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: variables.$color-primary;
+  }
+
+  &:focus-visible {
+    @include mixins.focus-ring;
+    border-radius: variables.$radius-sm;
+  }
 }
 
 .navigation {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: variables.$space-4;
 }
 
 .menuButton {
@@ -29,94 +51,139 @@
 .userName,
 .logoutButton {
   display: inline-flex;
+  min-height: variables.$control-height;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  min-height: 2rem;
+  gap: variables.$space-1;
+
+  font-size: variables.$font-size-base;
 }
 
 .navigationLink {
-  color: #111827;
-}
+  color: variables.$color-text-primary;
+  font-weight: variables.$font-weight-medium;
+  text-decoration: none;
 
-.navigationLink:hover {
-  color: #92400e;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+
+  &:hover {
+    color: variables.$color-primary;
+  }
+
+  &:focus-visible {
+    @include mixins.focus-ring;
+    border-radius: variables.$radius-sm;
+  }
 }
 
 .userName {
+  max-width: 16rem;
   margin-left: auto;
-  color: #374151;
-  font-weight: 500;
+  overflow: hidden;
+
+  color: variables.$color-text-muted;
+
+  font-weight: variables.$font-weight-medium;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .logoutButton {
   padding: 0;
+
   border: 0;
+
+  color: variables.$color-danger;
   background: transparent;
-  color: #dc2626;
+
   font: inherit;
+  font-weight: variables.$font-weight-medium;
+
   cursor: pointer;
+
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: variables.$color-text-primary;
+  }
+
+  &:focus-visible {
+    @include mixins.focus-ring;
+    border-radius: variables.$radius-sm;
+  }
 }
 
-.logoutButton:hover {
-  text-decoration: underline;
-}
-
-@media (max-width: 640px) {
+@include mixins.respond-until(md) {
   .header {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.75rem;
+    gap: variables.$space-3;
+
+    padding: variables.$space-3;
   }
 
   .userName {
     grid-column: 2;
     max-width: 100%;
     margin-left: 0;
-    overflow: hidden;
+
     justify-self: end;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .menuButton {
     display: inline-flex;
     grid-column: 3;
+
+    width: variables.$control-height;
+    height: variables.$control-height;
     align-items: center;
     justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
+
     padding: 0;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    background-color: #ffffff;
-    color: #111827;
+
+    border: 1px solid variables.$color-border;
+    border-radius: variables.$radius-sm;
+
+    color: variables.$color-text-primary;
+    background-color: variables.$color-surface;
+
     font: inherit;
-    font-size: 1.5rem;
+    font-size: variables.$font-size-xl;
     line-height: 1;
+
     cursor: pointer;
-  }
 
-  .menuButton:hover {
-    border-color: #f59e0b;
-    background-color: #fffbeb;
-  }
+    transition:
+      border-color 0.2s ease,
+      color 0.2s ease,
+      background-color 0.2s ease;
 
-  .menuButton:focus-visible {
-    outline: 3px solid rgb(245 158 11 / 25%);
-    outline-offset: 2px;
+    &:hover {
+      border-color: variables.$color-primary;
+      color: variables.$color-primary;
+      background-color: variables.$color-category-active-background;
+    }
+
+    &:focus-visible {
+      @include mixins.focus-ring;
+    }
   }
 
   .navigation {
     display: none;
     grid-column: 1 / -1;
+
     width: 100%;
     align-items: stretch;
     flex-direction: column;
-    gap: 0.25rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid #e5e7eb;
+    gap: variables.$space-1;
+
+    padding-top: variables.$space-3;
+
+    border-top: 1px solid variables.$color-border;
   }
 
   .navigationOpen {
@@ -126,7 +193,25 @@
   .navigationLink,
   .logoutButton {
     width: 100%;
-    min-height: 2.75rem;
+    min-height: variables.$control-height;
     justify-content: flex-start;
+
+    padding-inline: variables.$space-2;
+
+    border-radius: variables.$radius-sm;
+  }
+
+  .navigationLink:hover,
+  .logoutButton:hover {
+    background-color: variables.$color-category-active-background;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brandLink,
+  .navigationLink,
+  .logoutButton,
+  .menuButton {
+    transition: none;
   }
 }

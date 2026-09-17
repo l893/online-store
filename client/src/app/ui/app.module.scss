@@ -16,10 +16,6 @@
   .appShell {
     padding-inline: variables.$page-padding-tablet;
   }
-
-  .mainContent {
-    padding-top: variables.$space-6;
-  }
 }
 
 @include mixins.respond-from(lg) {

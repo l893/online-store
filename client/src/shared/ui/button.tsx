@@ -6,7 +6,7 @@ export type ButtonProps = MaterialButtonProps;
 export const Button = ({
   type = 'submit',
   variant = 'contained',
-  color = 'warning',
+  color = 'primary',
   ...props
 }: ButtonProps) => {
   return (
