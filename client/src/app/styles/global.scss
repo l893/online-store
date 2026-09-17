@@ -20,8 +20,14 @@
   box-sizing: border-box;
 }
 
+::selection {
+  color: variables.$color-category-active-background;
+  background-color: variables.$color-text-primary;
+}
+
 html {
   min-width: 320px;
+  scrollbar-gutter: stable;
   background-color: variables.$color-background;
 }
 

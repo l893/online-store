@@ -25,7 +25,7 @@
   line-height: 1.2;
   text-decoration: none;
 
-  transition: color 0.2s ease;
+  transition: color variables.$transition-base;
 
   &:hover {
     color: variables.$color-primary;
@@ -65,8 +65,8 @@
   text-decoration: none;
 
   transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
+    color variables.$transition-base,
+    background-color variables.$transition-base;
 
   &:hover {
     color: variables.$color-primary;
@@ -103,7 +103,7 @@
 
   cursor: pointer;
 
-  transition: color 0.2s ease;
+  transition: color variables.$transition-base;
 
   &:hover {
     color: variables.$color-text-primary;
@@ -157,9 +157,9 @@
     cursor: pointer;
 
     transition:
-      border-color 0.2s ease,
-      color 0.2s ease,
-      background-color 0.2s ease;
+      border-color variables.$transition-base,
+      color variables.$transition-base,
+      background-color variables.$transition-base;
 
     &:hover {
       border-color: variables.$color-primary;

@@ -52,13 +52,16 @@ const themeOptions = {
           textTransform: 'none',
           boxShadow: 'none',
           transition:
-            'background 0.2s ease, border-color 0.2s ease, color 0.2s ease',
+            'background-color 0.3s ease-in-out, border-color 0.3s ease-in-out, color 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
           '&:hover': {
             boxShadow: 'none',
           },
           '&:focus-visible': {
             outline: '0.1875rem solid rgba(109, 40, 217, 0.28)',
             outlineOffset: '0.125rem',
+          },
+          '@media (prefers-reduced-motion: reduce)': {
+            transition: 'none',
           },
         },
         contained: {

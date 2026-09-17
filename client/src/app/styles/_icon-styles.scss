@@ -5,6 +5,4 @@
   &::before {
     @include mixins.textFontStyles(1rem, 18, 16, currentColor);
   }
-
-  transition: all 0.3s ease-in-out 0s;
 }
