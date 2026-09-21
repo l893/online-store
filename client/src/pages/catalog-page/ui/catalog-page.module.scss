@@ -41,56 +41,105 @@
 
 .initialLoaderWrapper {
   display: flex;
+  min-height: 20rem;
   align-items: center;
   justify-content: center;
-  min-height: 20rem;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  color: variables.$color-text-muted;
+  background-color: variables.$color-surface;
 }
 
 .refreshIndicator {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: variables.$space-3;
+  right: variables.$space-3;
   z-index: 1;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  background-color: rgb(255 255 255 / 92%);
-  box-shadow:
-    0 1px 2px rgb(0 0 0 / 6%),
-    0 4px 12px rgb(0 0 0 / 8%);
+
+  padding: variables.$space-2 variables.$space-3;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-sm;
+
+  color: variables.$color-text-muted;
+  background-color: rgba(255, 255, 255, 0.92);
+  box-shadow: variables.$shadow-subtle;
+
   pointer-events: none;
 }
 
 .pagination {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: variables.$space-2;
+
+  padding-bottom: variables.$space-4;
 }
 
 .paginationButton {
-  padding: 0.25rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.25rem;
-  background-color: #ffffff;
-  color: #111827;
+  min-height: variables.$control-height;
+
+  padding: 0 variables.$space-4;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-sm;
+
+  color: variables.$color-text-primary;
+  background-color: variables.$color-surface;
+
   font: inherit;
+  font-weight: variables.$font-weight-medium;
+
   cursor: pointer;
+
+  transition:
+    color variables.$transition-base,
+    border-color variables.$transition-base,
+    background-color variables.$transition-base;
 }
 
 .paginationButton:hover:not(:disabled) {
-  border-color: #f59e0b;
-  background-color: #fffbeb;
+  border-color: variables.$color-primary;
+
+  color: variables.$color-primary;
+  background-color: variables.$color-category-active-background;
+}
+
+.paginationButton:last-child:not(:disabled) {
+  border-color: transparent;
+
+  color: variables.$color-surface;
+  background-image: variables.$gradient-primary;
+}
+
+.paginationButton:last-child:hover:not(:disabled) {
+  border-color: transparent;
+
+  color: variables.$color-surface;
+  background-color: transparent;
+  background-image: variables.$gradient-primary-hover;
+}
+
+.paginationButton:focus-visible {
+  @include mixins.focus-ring;
 }
 
 .paginationButton:disabled {
-  opacity: 0.5;
+  border-color: variables.$color-border;
+
+  color: variables.$color-text-subtle;
+  background-color: variables.$color-disabled-background;
+
   cursor: not-allowed;
 }
 
 .paginationText {
-  color: #4b5563;
-  font-size: 0.875rem;
+  color: variables.$color-text-muted;
+
+  font-size: variables.$font-size-sm;
   line-height: 1.25rem;
 }
 
@@ -101,5 +150,11 @@
       'search search'
       'sidebar content';
     align-items: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paginationButton {
+    transition: none;
   }
 }

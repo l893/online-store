@@ -1,14 +1,25 @@
+@use '@shared/styles/variables' as variables;
+
 .productGrid {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: variables.$space-4;
 }
 
 .emptyState {
-  padding: 2rem 1rem;
-  border: 1px dashed #d1d5db;
-  border-radius: 0.75rem;
-  background-color: #f9fafb;
-  color: #6b7280;
+  display: flex;
+  min-height: 12rem;
+  align-items: center;
+  justify-content: center;
+
+  padding: variables.$space-6 variables.$space-4;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  color: variables.$color-text-muted;
+  background-color: variables.$color-surface;
+
+  font-size: variables.$font-size-sm;
   text-align: center;
 }
