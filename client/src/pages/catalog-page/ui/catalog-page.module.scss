@@ -8,7 +8,7 @@
     'search'
     'sidebar'
     'content';
-  gap: variables.$space-5;
+  gap: variables.$space-3;
 }
 
 .searchSection {
@@ -24,7 +24,7 @@
   grid-area: content;
   min-width: 0;
   flex-direction: column;
-  gap: variables.$space-4;
+  gap: variables.$space-2;
 }
 
 .sortPanel {

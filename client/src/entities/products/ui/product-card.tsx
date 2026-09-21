@@ -58,7 +58,14 @@ export const ProductCard = ({
           disabled={isAddToCartDisabled}
           onClick={handleAddToCartButtonClick}
         >
-          {isAddToCartDisabled ? 'Максимум в корзине' : 'В корзину'}
+          {isAddToCartDisabled ? (
+            <span className={styles.maximumInCartLabel}>
+              Максимум
+              <br />в корзине
+            </span>
+          ) : (
+            'В корзину'
+          )}
         </Button>
       </div>
     </div>

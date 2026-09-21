@@ -9,7 +9,7 @@
 }
 
 .mainContent {
-  padding: variables.$space-5 0 0;
+  padding: variables.$space-3 0 0;
 }
 
 @include mixins.respond-from(md) {

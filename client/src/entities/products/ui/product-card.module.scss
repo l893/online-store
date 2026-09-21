@@ -1,74 +1,168 @@
+@use '@shared/styles/mixins' as mixins;
+@use '@shared/styles/variables' as variables;
+
 .productCard {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  background-color: #ffffff;
+  // display: grid;
+  // grid-template-columns: 5.5rem minmax(0, 1fr);
+  // grid-template-rows: 1fr auto;
+  // grid-template-areas:
+  //   'image content'
+  //   'image actions';
+  // align-items: start;
+  // gap: variables.$space-2 variables.$space-3;
+
+  // padding: variables.$space-3;
+
+  // border: 1px solid variables.$color-border;
+  // border-radius: variables.$radius-lg;
+
+  // background-color: variables.$color-surface;
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+  grid-template-areas: 'image content actions';
+  align-items: center;
+  gap: variables.$space-2;
+
+  padding: variables.$space-3;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  background-color: variables.$color-surface;
 }
 
 .imageWrapper {
   display: flex;
+  grid-area: image;
+
+  width: 5.5rem;
+  height: 5.5rem;
   align-items: center;
   justify-content: center;
-  flex: 0 0 7rem;
-  width: 7rem;
-  height: 7rem;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  background-color: #fffbeb;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-md;
+
+  background-color: variables.$color-surface-subtle;
+
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color variables.$transition-base,
+    background-color variables.$transition-base;
 }
 
 .imageWrapper:hover {
-  border-color: #92400e;
+  border-color: variables.$color-primary;
 }
 
 .imageWrapper:focus-visible {
-  outline: none;
-  border-color: #92400e;
-  box-shadow: 0 0 0 3px rgb(146 64 14 / 20%);
+  @include mixins.focus-ring;
 }
 
 .image {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+
+  object-fit: contain;
 }
 
 .content {
-  flex: 1;
+  display: flex;
+  grid-area: content;
+
   min-width: 0;
+  align-self: center;
+  flex-direction: column;
+  gap: variables.$space-1;
 }
 
 .titleLink {
-  font-weight: 600;
+  color: variables.$color-text-primary;
+
+  font-size: variables.$font-size-sm;
+  font-weight: variables.$font-weight-semibold;
+  line-height: 1.35;
+  text-decoration: none;
+
+  transition: color variables.$transition-base;
 }
 
 .titleLink:hover {
-  color: #92400e;
+  color: variables.$color-primary;
+}
+
+.titleLink:focus-visible {
+  @include mixins.focus-ring;
+
+  border-radius: variables.$radius-sm;
 }
 
 .price {
-  margin-top: 0.25rem;
-  font-weight: 500;
+  color: variables.$color-text-primary;
+
+  font-size: variables.$font-size-base;
+  font-weight: variables.$font-weight-bold;
+  line-height: 1.25;
 }
 
 .actions {
-  flex-shrink: 0;
+  display: flex;
+  grid-area: actions;
+
+  align-self: center;
+  justify-self: end;
 }
 
-@media (max-width: 640px) {
+.maximumInCartLabel {
+  display: inline-block;
+
+  white-space: nowrap;
+  line-height: 1.2;
+  text-align: center;
+}
+
+@include mixins.respond-from(md) {
   .productCard {
-    flex-direction: column;
+    grid-template-columns: 7rem minmax(0, 1fr) auto;
+    grid-template-areas: 'image content actions';
+    align-items: center;
+    gap: variables.$space-4;
+
+    padding: variables.$space-3 variables.$space-4;
+  }
+
+  .imageWrapper {
+    width: 7rem;
+    height: 5rem;
+  }
+
+  .content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: variables.$space-5;
+  }
+
+  .titleLink {
+    font-size: variables.$font-size-base;
+  }
+
+  .price {
+    min-width: 6rem;
+
+    text-align: right;
   }
 
   .actions {
-    width: 100%;
+    align-self: center;
+    justify-self: end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .imageWrapper,
+  .titleLink {
+    transition: none;
   }
 }
