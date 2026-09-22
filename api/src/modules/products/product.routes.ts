@@ -197,9 +197,6 @@ router.get('/:slug', async (request, response, nextMiddleware) => {
   try {
     const product = await Product.findOne({
       slug: request.params.slug,
-      stock: {
-        $gt: 0,
-      },
     });
 
     if (!product) {

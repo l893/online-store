@@ -48,6 +48,8 @@ export const ProductPage = () => {
     error: productError,
   } = useGetProductQuery(productSlug ?? '', {
     skip: !productSlug,
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
   });
 
   if (!productSlug) {
