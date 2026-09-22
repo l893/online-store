@@ -78,11 +78,21 @@
 }
 
 .quantityInput {
-  width: 3rem;
+  width: 3.5rem;
 }
 
 .quantityInput input {
+  padding-inline: variables.$space-2;
+
   text-align: center;
+  appearance: textfield;
+}
+
+.quantityInput input::-webkit-outer-spin-button,
+.quantityInput input::-webkit-inner-spin-button {
+  margin: 0;
+
+  appearance: none;
 }
 
 .unavailableMessage {
