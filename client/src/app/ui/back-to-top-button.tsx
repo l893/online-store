@@ -3,7 +3,7 @@ import type { ReactElement } from 'react';
 
 import styles from './back-to-top-button.module.scss';
 
-const BACK_TO_TOP_VISIBILITY_THRESHOLD = 600;
+const BACK_TO_TOP_VISIBILITY_THRESHOLD_RATIO = 0.5;
 
 export const BackToTopButton = (): ReactElement | null => {
   const [isBackToTopButtonVisible, setIsBackToTopButtonVisible] =
@@ -11,9 +11,10 @@ export const BackToTopButton = (): ReactElement | null => {
 
   useEffect(() => {
     function updateBackToTopButtonVisibility(): void {
-      setIsBackToTopButtonVisible(
-        window.scrollY > BACK_TO_TOP_VISIBILITY_THRESHOLD,
-      );
+      const visibilityThreshold =
+        window.innerHeight * BACK_TO_TOP_VISIBILITY_THRESHOLD_RATIO;
+
+      setIsBackToTopButtonVisible(window.scrollY > visibilityThreshold);
     }
 
     updateBackToTopButtonVisibility();
@@ -21,9 +22,11 @@ export const BackToTopButton = (): ReactElement | null => {
     window.addEventListener('scroll', updateBackToTopButtonVisibility, {
       passive: true,
     });
+    window.addEventListener('resize', updateBackToTopButtonVisibility);
 
     return () => {
       window.removeEventListener('scroll', updateBackToTopButtonVisibility);
+      window.removeEventListener('resize', updateBackToTopButtonVisibility);
     };
   }, []);
 
