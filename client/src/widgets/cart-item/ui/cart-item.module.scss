@@ -1,106 +1,198 @@
+@use '@shared/styles/mixins' as mixins;
+@use '@shared/styles/variables' as variables;
+
 .cartItem {
-  display: flex;
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) 2.25rem;
+  grid-template-areas:
+    'image content remove'
+    'image price remove'
+    'image quantity quantity';
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  background-color: #f9fafb;
+  gap: variables.$space-2 variables.$space-3;
+
+  padding: variables.$space-3;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  background-color: variables.$color-surface;
 }
 
 .imageWrapper {
   display: flex;
+  grid-area: image;
+
+  width: 5.5rem;
+  height: 5.5rem;
   align-items: center;
   justify-content: center;
-  flex: 0 0 7rem;
-  width: 7rem;
-  height: 7rem;
+  align-self: start;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  background-color: #fffbeb;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-md;
+
+  background-color: variables.$color-surface-subtle;
 }
 
 .image {
   display: block;
   width: 100%;
   height: 100%;
+
   object-fit: contain;
 }
 
 .content {
-  flex: 1;
+  grid-area: content;
+
   min-width: 0;
+  align-self: start;
 }
 
 .title {
-  font-weight: 500;
+  overflow-wrap: anywhere;
+
+  color: variables.$color-text-primary;
+
+  font-size: variables.$font-size-sm;
+  font-weight: variables.$font-weight-semibold;
+  line-height: 1.35;
 }
 
 .quantityControls {
   display: flex;
+  grid-area: quantity;
+
   align-items: center;
-  gap: 0.5rem;
+  justify-self: start;
+  gap: variables.$space-2;
+}
+
+.quantityControls > button {
+  width: variables.$control-height;
+  min-width: variables.$control-height;
+
+  padding: 0;
 }
 
 .quantityInput {
-  width: 4rem;
+  width: 3rem;
+}
+
+.quantityInput input {
   text-align: center;
 }
 
 .unavailableMessage {
-  min-width: 10rem;
-  color: #dc2626;
-  font-weight: 600;
-  text-align: center;
+  grid-area: quantity;
+
+  color: variables.$color-danger;
+
+  font-size: variables.$font-size-sm;
+  font-weight: variables.$font-weight-semibold;
+  line-height: 1.25rem;
 }
 
 .price {
-  width: 6rem;
-  font-weight: 600;
-  text-align: right;
+  grid-area: price;
+
+  justify-self: start;
+
+  color: variables.$color-text-primary;
+
+  font-size: variables.$font-size-base;
+  font-weight: variables.$font-weight-bold;
+  line-height: 1.25;
+
+  white-space: nowrap;
 }
 
 .removeButton {
   display: inline-flex;
+  grid-area: remove;
+
+  width: 2.25rem;
+  height: 2.25rem;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  margin-left: 0.5rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 9999px;
-  background-color: transparent;
-  color: #d97706;
+  align-self: start;
+  justify-self: end;
+
+  padding: 0;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-sm;
+
+  color: variables.$color-danger;
+  background-color: variables.$color-surface;
+
   font: inherit;
+  font-size: variables.$font-size-base;
+  line-height: 1;
+
   cursor: pointer;
+
+  transition:
+    color variables.$transition-base,
+    border-color variables.$transition-base,
+    background-color variables.$transition-base;
 }
 
 .removeButton:hover {
-  background-color: #fffbeb;
+  border-color: variables.$color-danger;
+
+  color: variables.$color-danger;
+  background-color: rgba(185, 28, 28, 0.08);
 }
 
-@media (max-width: 768px) {
+.removeButton:focus-visible {
+  @include mixins.focus-ring;
+}
+
+@include mixins.respond-from(md) {
   .cartItem {
-    align-items: flex-start;
-    flex-direction: column;
+    grid-template-columns:
+      7rem
+      minmax(0, 1fr)
+      auto
+      6rem
+      2.25rem;
+    grid-template-areas: 'image content quantity price remove';
+    gap: variables.$space-4;
+
+    padding: variables.$space-3 variables.$space-4;
   }
 
-  .quantityControls,
-  .unavailableMessage,
+  .imageWrapper {
+    width: 7rem;
+    height: 5rem;
+    align-self: center;
+  }
+
+  .content,
+  .removeButton {
+    align-self: center;
+  }
+
+  .title {
+    font-size: variables.$font-size-base;
+  }
+
   .price {
-    width: 100%;
-  }
+    justify-self: end;
 
-  .unavailableMessage {
-    text-align: left;
-  }
-
-  .price {
-    text-align: left;
+    text-align: right;
   }
 
   .removeButton {
-    margin-left: 0;
+    justify-self: end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .removeButton {
+    transition: none;
   }
 }

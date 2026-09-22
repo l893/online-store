@@ -72,6 +72,7 @@ export const CartItem = ({
         <div className={styles.quantityControls}>
           <Button
             type="button"
+            variant="outlined"
             disabled={isDecreaseQuantityButtonDisabled}
             onClick={() =>
               onCartItemQuantityChange(cartItem.productId, cartItem.qty - 1)

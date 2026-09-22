@@ -1,26 +1,38 @@
+@use '@shared/styles/mixins' as mixins;
+@use '@shared/styles/variables' as variables;
+
 .cartLayout {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'header'
+    'items'
+    'summary';
+  gap: variables.$space-3;
 }
 
 .headerSection {
-  grid-column: 1 / -1;
+  grid-area: header;
 }
 
 .title {
-  margin: 0 0 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 600;
+  margin: 0;
+
+  color: variables.$color-text-primary;
+
+  font-size: variables.$font-size-2xl;
+  font-weight: variables.$font-weight-semibold;
   line-height: 2rem;
 }
 
 .itemsSection {
   position: relative;
+
   display: flex;
-  grid-column: 1 / -1;
+  grid-area: items;
+  min-width: 0;
   flex-direction: column;
-  gap: 1rem;
+  gap: variables.$space-2;
 }
 
 .availabilityIndicator {
@@ -39,7 +51,8 @@
 }
 
 .summarySection {
-  grid-column: 1 / -1;
+  grid-area: summary;
+  min-width: 0;
 }
 
 .emptyMessage {
@@ -50,12 +63,13 @@
   margin-top: 0.75rem;
 }
 
-@media (min-width: 1024px) {
-  .itemsSection {
-    grid-column: span 8;
-  }
-
-  .summarySection {
-    grid-column: span 4;
+@include mixins.respond-from(lg) {
+  .cartLayout {
+    grid-template-columns: minmax(0, 2fr) minmax(18rem, 0.8fr);
+    grid-template-areas:
+      'header header'
+      'items summary';
+    align-items: start;
+    gap: variables.$space-4;
   }
 }
