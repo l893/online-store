@@ -1,114 +1,196 @@
+@use '@shared/styles/mixins' as mixins;
+@use '@shared/styles/variables' as variables;
+
+.pageMessage,
+.errorMessage {
+  padding: variables.$space-4;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  background-color: variables.$color-surface;
+}
+
 .pageMessage {
-  padding: 1rem;
+  color: variables.$color-text-muted;
+
+  font-size: variables.$font-size-sm;
 }
 
 .errorMessage {
-  padding: 1rem;
-  color: #dc2626;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  color: variables.$color-danger;
+
+  font-size: variables.$font-size-sm;
+  line-height: 1.4;
 }
 
 .loaderWrapper {
   display: flex;
+  min-height: 20rem;
+  align-items: center;
   justify-content: center;
-  padding: 2.5rem 0;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  background-color: variables.$color-surface;
 }
 
 .productPage {
-  margin-top: 0;
+  margin: 0;
 }
 
 .productDetailsCard {
-  display: flex;
-  align-items: flex-start;
-  gap: 2.5rem;
-  padding: 1.5rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  background-color: #f9fafb;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'image'
+    'content'
+    'actions';
+  gap: variables.$space-4;
+
+  padding: variables.$space-4;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  background-color: variables.$color-surface;
 }
 
 .imageWrapper {
   display: flex;
+  grid-area: image;
+
+  width: 100%;
+  min-height: 16rem;
+  max-height: 22rem;
   align-items: center;
   justify-content: center;
-  flex: 0 0 14rem;
-  width: 14rem;
-  height: 14rem;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  background-color: #fffbeb;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  background-color: variables.$color-surface-subtle;
 }
 
 .productImage {
   display: block;
   width: 100%;
   height: 100%;
+  max-height: 22rem;
+
   object-fit: contain;
 }
 
 .content {
   display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 1rem;
+  grid-area: content;
+
   min-width: 0;
+  flex-direction: column;
+  gap: variables.$space-4;
 }
 
 .title {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.75rem;
+
+  color: variables.$color-text-primary;
+
+  font-size: variables.$font-size-2xl;
+  font-weight: variables.$font-weight-bold;
+  line-height: 1.25;
 }
 
 .productMeta {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  gap: variables.$space-2;
+
+  color: variables.$color-text-primary;
+
+  font-size: variables.$font-size-sm;
+  line-height: 1.4;
 }
 
 .metaLabel {
-  font-weight: 500;
+  color: variables.$color-text-muted;
+
+  font-weight: variables.$font-weight-medium;
 }
 
 .description {
   margin: 0;
-  color: #374151;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+
+  color: variables.$color-text-muted;
+
+  font-size: variables.$font-size-sm;
+  line-height: 1.6;
 }
 
 .actions {
   display: flex;
-  flex-shrink: 0;
-  align-items: flex-start;
-  justify-content: flex-end;
+  grid-area: actions;
+
+  width: 100%;
+  align-items: center;
 }
 
-@media (max-width: 768px) {
+.actions > * {
+  width: 100%;
+}
+
+@include mixins.respond-from(md) {
   .productDetailsCard {
-    flex-direction: column;
-    gap: 1.5rem;
+    grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+    grid-template-areas:
+      'image content'
+      'image actions';
+    align-items: start;
+    gap: variables.$space-5;
+
+    padding: variables.$space-5;
   }
 
   .imageWrapper {
-    box-sizing: border-box;
-    flex-basis: auto;
-    width: 100%;
+    min-height: 20rem;
+    max-height: none;
+  }
+
+  .productImage {
+    max-height: 20rem;
+  }
+
+  .content {
+    align-self: start;
   }
 
   .actions {
-    width: 100%;
+    align-self: end;
+    justify-content: flex-start;
+  }
+
+  .actions > * {
+    width: auto;
+    min-width: 10rem;
   }
 }
 
-@media (max-width: 640px) {
+@include mixins.respond-from(lg) {
   .productDetailsCard {
-    padding: 1rem;
+    grid-template-columns: 22rem minmax(0, 1fr);
+    gap: variables.$space-6;
+  }
+
+  .imageWrapper {
+    min-height: 22rem;
+  }
+
+  .productImage {
+    max-height: 22rem;
+  }
+
+  .title {
+    font-size: variables.$font-size-3xl;
   }
 }
