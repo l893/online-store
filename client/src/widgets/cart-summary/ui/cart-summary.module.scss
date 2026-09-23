@@ -1,47 +1,56 @@
+@use '@shared/styles/variables' as variables;
+
 .summary {
-  box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  background-color: #f9fafb;
+
+  padding: variables.$space-4;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  background-color: variables.$color-surface;
 }
 
 .title {
-  margin-bottom: 0.5rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  line-height: 1.75rem;
+  margin-bottom: variables.$space-2;
+
+  color: variables.$color-text-primary;
+
+  font-size: variables.$font-size-lg;
+  font-weight: variables.$font-weight-semibold;
+  line-height: 1.5;
 }
 
 .availabilityMessage {
-  margin-bottom: 1rem;
-  color: #b91c1c;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  margin-bottom: variables.$space-4;
+
+  color: variables.$color-danger;
+
+  font-size: variables.$font-size-sm;
+  font-weight: variables.$font-weight-medium;
+  line-height: 1.4;
 }
 
 .quantity {
-  margin-bottom: 1rem;
-  color: #4b5563;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  margin-bottom: variables.$space-3;
+
+  color: variables.$color-text-muted;
+
+  font-size: variables.$font-size-sm;
+  line-height: 1.4;
 }
 
 .sum {
-  margin-bottom: 1rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.75rem;
+  margin-bottom: variables.$space-4;
+
+  color: variables.$color-text-primary;
+
+  font-size: variables.$font-size-xl;
+  font-weight: variables.$font-weight-bold;
+  line-height: 1.4;
 }
 
 .checkoutButton {
   width: 100%;
-}
-
-@media (min-width: 1024px) {
-  .summary {
-    min-width: 16.25rem;
-  }
 }

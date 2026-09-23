@@ -37,17 +37,35 @@
 
 .availabilityIndicator {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: variables.$space-3;
+  right: variables.$space-3;
   z-index: 1;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  background-color: rgb(255 255 255 / 92%);
-  box-shadow:
-    0 1px 2px rgb(0 0 0 / 6%),
-    0 4px 12px rgb(0 0 0 / 8%);
+
+  padding: variables.$space-2 variables.$space-3;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-sm;
+
+  color: variables.$color-text-muted;
+  background-color: rgba(255, 255, 255, 0.92);
+  box-shadow: variables.$shadow-subtle;
+
   pointer-events: none;
+}
+
+.loadingState {
+  display: flex;
+  min-height: 12rem;
+  align-items: center;
+  justify-content: center;
+
+  padding: variables.$space-4;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  color: variables.$color-text-muted;
+  background-color: variables.$color-surface;
 }
 
 .summarySection {
@@ -56,11 +74,36 @@
 }
 
 .emptyMessage {
-  color: #6b7280;
+  display: flex;
+  min-height: 12rem;
+  align-items: center;
+  justify-content: center;
+
+  padding: variables.$space-4;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  color: variables.$color-text-muted;
+  background-color: variables.$color-surface;
+
+  font-size: variables.$font-size-sm;
+  text-align: center;
 }
 
 .checkoutLoader {
-  margin-top: 0.75rem;
+  display: flex;
+  justify-content: center;
+
+  margin-top: variables.$space-3;
+
+  padding: variables.$space-3;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-md;
+
+  color: variables.$color-text-muted;
+  background-color: variables.$color-surface;
 }
 
 @include mixins.respond-from(lg) {

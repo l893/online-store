@@ -65,7 +65,9 @@ export const CartPage = () => {
         aria-busy={isCartAvailabilityChecking}
       >
         {isCartLoading ? (
-          <Loader label="Проверяем наличие товаров…" />
+          <div className={styles.loadingState}>
+            <Loader label="Проверяем наличие товаров…" />
+          </div>
         ) : cartItems.length === 0 ? (
           <div className={styles.emptyMessage}>Корзина пуста</div>
         ) : (
