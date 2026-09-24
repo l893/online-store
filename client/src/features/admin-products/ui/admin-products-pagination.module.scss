@@ -1,11 +1,21 @@
+@use '@shared/styles/variables' as variables;
+
 .pagination {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: variables.$space-2;
+}
+
+.pagination > button {
+  min-height: variables.$control-height-compact;
+
+  padding-inline: variables.$space-3;
 }
 
 .paginationText {
-  color: #4b5563;
-  font-size: 0.875rem;
+  color: variables.$color-text-muted;
+
+  font-size: variables.$font-size-sm;
   line-height: 1.25rem;
 }

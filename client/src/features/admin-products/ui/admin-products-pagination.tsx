@@ -19,6 +19,7 @@ export const AdminProductsPagination = ({
     <div className={styles.pagination}>
       <Button
         type="button"
+        variant="outlined"
         onClick={onPreviousPage}
         disabled={currentPage <= 1}
       >

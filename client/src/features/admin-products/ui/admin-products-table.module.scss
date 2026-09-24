@@ -1,28 +1,39 @@
+@use '@shared/styles/variables' as variables;
+
 .tableWrapper {
-  overflow: hidden;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  background-color: #ffffff;
+  overflow-x: auto;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  background-color: variables.$color-surface;
 }
 
 .productsTable {
   width: 100%;
+  min-width: 44rem;
+
   border-collapse: collapse;
-  font-size: 0.875rem;
+
+  color: variables.$color-text-primary;
+
+  font-size: variables.$font-size-sm;
   line-height: 1.25rem;
 }
 
 .tableHeader {
-  background-color: #f9fafb;
+  background-color: variables.$color-surface-subtle;
 }
 
 .tableHeadCell,
 .tableCell {
-  padding: 0.75rem;
+  padding: variables.$space-2 variables.$space-3;
 }
 
 .tableHeadCell {
-  font-weight: 600;
+  font-weight: variables.$font-weight-semibold;
+
+  white-space: nowrap;
 }
 
 .leftCell {
@@ -34,12 +45,13 @@
 }
 
 .tableRow {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid variables.$color-border;
 }
 
 .productSlug {
-  color: #6b7280;
-  font-size: 0.75rem;
+  color: variables.$color-text-muted;
+
+  font-size: variables.$font-size-xs;
   line-height: 1rem;
 }
 
@@ -50,20 +62,19 @@
 .actions {
   display: inline-flex;
   justify-content: center;
-  gap: 0.5rem;
+  gap: variables.$space-2;
+}
+
+.actions > button {
+  min-height: variables.$control-height-compact;
+
+  padding-inline: variables.$space-3;
 }
 
 .emptyCell {
-  padding: 1rem;
-  color: #6b7280;
-}
+  padding: variables.$space-6 variables.$space-4;
 
-@media (max-width: 640px) {
-  .tableWrapper {
-    overflow-x: auto;
-  }
+  color: variables.$color-text-muted;
 
-  .productsTable {
-    min-width: 42rem;
-  }
+  text-align: center;
 }
