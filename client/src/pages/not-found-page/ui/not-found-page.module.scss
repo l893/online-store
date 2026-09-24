@@ -1,16 +1,23 @@
+@use '@shared/styles/variables' as variables;
+
 .notFoundPage {
   padding: 5rem 0;
+
   text-align: center;
 }
 
 .title {
-  margin: 0 0 1rem;
+  margin: 0 0 variables.$space-4;
+
+  color: variables.$color-text-primary;
+
   font-size: 1.875rem;
-  font-weight: 700;
+  font-weight: variables.$font-weight-bold;
   line-height: 2.25rem;
 }
 
 .message {
   margin: 0;
-  color: #4b5563;
+
+  color: variables.$color-text-muted;
 }
