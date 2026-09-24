@@ -41,9 +41,9 @@ export const ProductGrid = ({ products = [] }: ProductGridProps) => {
         <ProductCard
           key={product._id}
           product={product}
-          isAddToCartDisabled={
-            (cartItems.find((cartItem) => cartItem.productId === product._id)
-              ?.qty || 0) >= Math.max(0, Number(product.stock) || 0)
+          currentCartQuantity={
+            cartItems.find((cartItem) => cartItem.productId === product._id)
+              ?.qty ?? 0
           }
           onAddToCart={handleAddProductToCart}
         />

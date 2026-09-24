@@ -82,8 +82,11 @@ export const ProductPage = () => {
   const currentCartItem = cartItems.find(
     (cartItem) => cartItem.productId === product._id,
   );
-  const isAddToCartButtonDisabled =
-    (currentCartItem?.qty || 0) >= availableStock;
+  const currentCartQuantity = currentCartItem?.qty ?? 0;
+  const isOutOfStock = availableStock === 0;
+  const isMaximumInCart =
+    !isOutOfStock && currentCartQuantity >= availableStock;
+  const isAddToCartButtonDisabled = isOutOfStock || isMaximumInCart;
 
   const handleAddToCartButtonClick = (): void => {
     dispatch(
@@ -135,7 +138,11 @@ export const ProductPage = () => {
             disabled={isAddToCartButtonDisabled}
             onClick={handleAddToCartButtonClick}
           >
-            {isAddToCartButtonDisabled ? 'Максимум в корзине' : 'Купить'}
+            {isOutOfStock
+              ? 'Нет в наличии'
+              : isMaximumInCart
+                ? 'Максимум в корзине'
+                : 'Купить'}
           </Button>
         </div>
       </div>

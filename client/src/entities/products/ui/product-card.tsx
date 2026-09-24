@@ -11,17 +11,22 @@ import styles from './product-card.module.scss';
 
 interface ProductCardProps {
   readonly product: Product;
-  readonly isAddToCartDisabled?: boolean;
+  readonly currentCartQuantity?: number;
   readonly onAddToCart: (product: Product) => void;
 }
 
 export const ProductCard = ({
   product,
-  isAddToCartDisabled = false,
+  currentCartQuantity = 0,
   onAddToCart,
 }: ProductCardProps) => {
   const { primaryUrl: productImageUrl, fallbackUrl: productImageFallbackUrl } =
     getProductImageSources(product.images?.[0]);
+  const availableStock = Math.max(0, Number(product.stock) || 0);
+  const isOutOfStock = availableStock === 0;
+  const isMaximumInCart =
+    !isOutOfStock && currentCartQuantity >= availableStock;
+  const isAddToCartDisabled = isOutOfStock || isMaximumInCart;
 
   function handleAddToCartButtonClick(): void {
     onAddToCart(product);
@@ -58,7 +63,9 @@ export const ProductCard = ({
           disabled={isAddToCartDisabled}
           onClick={handleAddToCartButtonClick}
         >
-          {isAddToCartDisabled ? (
+          {isOutOfStock ? (
+            'Нет в наличии'
+          ) : isMaximumInCart ? (
             <span className={styles.maximumInCartLabel}>
               Максимум
               <br />в корзине
