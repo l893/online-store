@@ -1,30 +1,47 @@
+@use '@shared/styles/variables' as variables;
+
 .card {
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  background-color: #ffffff;
+  padding: variables.$space-4;
+
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-lg;
+
+  background-color: variables.$color-surface;
 }
 
 .sectionTitle {
-  margin: 0 0 0.75rem;
-  font-weight: 600;
+  margin: 0 0 variables.$space-4;
+
+  color: variables.$color-text-primary;
+
+  font-size: variables.$font-size-xl;
+  font-weight: variables.$font-weight-semibold;
+  line-height: 1.3;
 }
 
 .formError {
-  margin-top: 0.5rem;
-  color: #dc2626;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  margin-top: variables.$space-2;
+
+  color: variables.$color-danger;
+
+  font-size: variables.$font-size-sm;
+  line-height: 1.4;
+
+  overflow-wrap: anywhere;
 }
 
 .successMessage {
-  margin-top: 0.75rem;
-  padding: 0.5rem;
-  border: 1px solid #bbf7d0;
-  border-radius: 0.25rem;
-  background-color: #f0fdf4;
-  color: #16a34a;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  margin-top: variables.$space-3;
+  padding: variables.$space-2 variables.$space-3;
+
+  border: 1px solid rgba(21, 128, 61, 0.2);
+  border-radius: variables.$radius-sm;
+
+  color: variables.$color-success;
+  background-color: rgba(21, 128, 61, 0.06);
+
+  font-size: variables.$font-size-sm;
+  font-weight: variables.$font-weight-medium;
+  line-height: 1.4;
   text-align: center;
 }

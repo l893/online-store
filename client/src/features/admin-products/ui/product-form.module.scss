@@ -1,7 +1,10 @@
+@use '@shared/styles/mixins' as mixins;
+@use '@shared/styles/variables' as variables;
+
 .productForm {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: variables.$space-3;
 }
 
 .field {
@@ -11,7 +14,7 @@
 .slugRow {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
+  gap: variables.$space-2;
 }
 
 .slugField {
@@ -21,21 +24,25 @@
 
 .generateSlugButton {
   flex-shrink: 0;
-  min-height: 2.5rem;
+  min-height: variables.$control-height;
 }
 
 .fieldError {
-  margin-top: 0.25rem;
-  color: #dc2626;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  margin-top: variables.$space-1;
+
+  color: variables.$color-danger;
+
+  font-size: variables.$font-size-sm;
+  line-height: 1.4;
+
+  overflow-wrap: anywhere;
 }
 
 .submitButton {
   width: 100%;
 }
 
-@media (max-width: 640px) {
+@include mixins.respond-until(sm) {
   .slugRow {
     flex-direction: column;
   }

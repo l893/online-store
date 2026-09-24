@@ -64,6 +64,7 @@ export const AdminProductsToolbar = ({
   return (
     <div className={styles.toolbar}>
       <Input
+        className={styles.searchInput}
         placeholder="Поиск по названию…"
         autoComplete="off"
         inputProps={{

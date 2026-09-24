@@ -122,6 +122,14 @@ const themeOptions = {
         },
       },
     },
+    MuiSelect: {
+      styleOverrides: {
+        select: {
+          display: 'flex',
+          alignItems: 'center',
+        },
+      },
+    },
   },
 } satisfies ThemeOptions;
 
