@@ -66,18 +66,48 @@ const themeOptions = {
         },
         contained: {
           '&.MuiButton-colorPrimary': {
+            position: 'relative',
+            isolation: 'isolate',
+            overflow: 'hidden',
+
             backgroundImage:
               'linear-gradient(135deg, rgb(124, 58, 237) 0%, rgb(91, 33, 214) 100%)',
 
-            '&:hover': {
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              inset: 0,
+              zIndex: -1,
+
+              borderRadius: 'inherit',
+
               backgroundImage:
                 'linear-gradient(135deg, rgb(109, 40, 217) 0%, rgb(76, 29, 149) 100%)',
+
+              opacity: 0,
+              pointerEvents: 'none',
+
+              transition: 'opacity 0.3s ease-in-out',
+            },
+
+            '&:hover::before': {
+              opacity: 1,
             },
 
             '&.Mui-disabled': {
               color: 'rgb(124, 132, 152)',
               backgroundColor: 'rgb(241, 243, 247)',
               backgroundImage: 'none',
+
+              '&::before': {
+                opacity: 0,
+              },
+            },
+
+            '@media (prefers-reduced-motion: reduce)': {
+              '&::before': {
+                transition: 'none',
+              },
             },
           },
         },

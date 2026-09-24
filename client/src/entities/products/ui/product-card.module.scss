@@ -2,21 +2,6 @@
 @use '@shared/styles/variables' as variables;
 
 .productCard {
-  // display: grid;
-  // grid-template-columns: 5.5rem minmax(0, 1fr);
-  // grid-template-rows: 1fr auto;
-  // grid-template-areas:
-  //   'image content'
-  //   'image actions';
-  // align-items: start;
-  // gap: variables.$space-2 variables.$space-3;
-
-  // padding: variables.$space-3;
-
-  // border: 1px solid variables.$color-border;
-  // border-radius: variables.$radius-lg;
-
-  // background-color: variables.$color-surface;
   display: grid;
   grid-template-columns: 5.5rem minmax(0, 1fr) auto;
   grid-template-areas: 'image content actions';
@@ -46,9 +31,7 @@
 
   background-color: variables.$color-surface-subtle;
 
-  transition:
-    border-color variables.$transition-base,
-    background-color variables.$transition-base;
+  transition: border-color variables.$transition-base;
 }
 
 .imageWrapper:hover {

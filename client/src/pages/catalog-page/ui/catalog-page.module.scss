@@ -79,63 +79,6 @@
   padding-bottom: variables.$space-4;
 }
 
-.paginationButton {
-  min-height: variables.$control-height;
-
-  padding: 0 variables.$space-4;
-
-  border: 1px solid variables.$color-border;
-  border-radius: variables.$radius-sm;
-
-  color: variables.$color-text-primary;
-  background-color: variables.$color-surface;
-
-  font: inherit;
-  font-weight: variables.$font-weight-medium;
-
-  cursor: pointer;
-
-  transition:
-    color variables.$transition-base,
-    border-color variables.$transition-base,
-    background-color variables.$transition-base;
-}
-
-.paginationButton:hover:not(:disabled) {
-  border-color: variables.$color-primary;
-
-  color: variables.$color-primary;
-  background-color: variables.$color-category-active-background;
-}
-
-.paginationButton:last-child:not(:disabled) {
-  border-color: transparent;
-
-  color: variables.$color-surface;
-  background-image: variables.$gradient-primary;
-}
-
-.paginationButton:last-child:hover:not(:disabled) {
-  border-color: transparent;
-
-  color: variables.$color-surface;
-  background-color: transparent;
-  background-image: variables.$gradient-primary-hover;
-}
-
-.paginationButton:focus-visible {
-  @include mixins.focus-ring;
-}
-
-.paginationButton:disabled {
-  border-color: variables.$color-border;
-
-  color: variables.$color-text-subtle;
-  background-color: variables.$color-disabled-background;
-
-  cursor: not-allowed;
-}
-
 .paginationText {
   color: variables.$color-text-muted;
 
@@ -150,11 +93,5 @@
       'search search'
       'sidebar content';
     align-items: start;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .paginationButton {
-    transition: none;
   }
 }

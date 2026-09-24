@@ -4,7 +4,7 @@ import { useListCategoriesQuery } from '@entities/categories';
 import { useListProductsQuery } from '@entities/products';
 import { useQueryParams } from '@shared/hooks';
 import type { QueryParameterUpdates } from '@shared/hooks';
-import { Loader } from '@shared/ui';
+import { Button, Loader } from '@shared/ui';
 import { CategorySidebar } from '@widgets/category-sidebar';
 import { ProductGrid } from '@widgets/product-grid';
 import { SearchBar } from '@widgets/search-bar';
@@ -200,23 +200,24 @@ export const CatalogPage = () => {
 
         {totalPages > 1 && (
           <div className={styles.pagination}>
-            <button
-              className={styles.paginationButton}
+            <Button
+              type="button"
+              variant="outlined"
               disabled={pageNumber <= 1}
               onClick={() => handlePageChange(pageNumber - 1)}
             >
               Назад
-            </button>
+            </Button>
             <span className={styles.paginationText}>
               Стр. {pageNumber} из {totalPages}
             </span>
-            <button
-              className={styles.paginationButton}
+            <Button
+              type="button"
               disabled={pageNumber >= totalPages}
               onClick={() => handlePageChange(pageNumber + 1)}
             >
               Вперёд
-            </button>
+            </Button>
           </div>
         )}
       </div>
