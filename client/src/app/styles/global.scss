@@ -39,6 +39,11 @@ body {
   background-color: variables.$color-background;
 }
 
+body[style*='overflow: hidden'] {
+  // scrollbar-gutter already reserves scrollbar space.
+  padding-right: 0 !important;
+}
+
 #root {
   min-height: 100vh;
 }
