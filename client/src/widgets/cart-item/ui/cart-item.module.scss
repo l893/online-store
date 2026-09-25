@@ -154,7 +154,7 @@
   border-color: variables.$color-danger;
 
   color: variables.$color-danger;
-  background-color: rgba(185, 28, 28, 0.08);
+  background-color: variables.$color-danger-surface-hover;
 }
 
 .removeButton:focus-visible {

@@ -16,8 +16,17 @@ $color-border-strong: rgb(209, 213, 219);
 $color-category-active-background: rgb(241, 234, 254);
 $color-disabled-background: rgb(241, 243, 247);
 
+$color-surface-overlay: rgba(255, 255, 255, 0.92);
+
 $color-danger: rgb(185, 28, 28);
+$color-danger-border: rgba(185, 28, 28, 0.2);
+$color-danger-surface: rgba(185, 28, 28, 0.06);
+$color-danger-surface-hover: rgba(185, 28, 28, 0.08);
+
 $color-success: rgb(21, 128, 61);
+$color-success-border: rgba(21, 128, 61, 0.2);
+$color-success-surface: rgba(21, 128, 61, 0.06);
+
 $color-focus-ring: rgba(109, 40, 217, 0.28);
 
 $gradient-primary: linear-gradient(

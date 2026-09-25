@@ -47,10 +47,10 @@
 .formError {
   padding: variables.$space-2 variables.$space-3;
 
-  border: 1px solid rgba(185, 28, 28, 0.2);
+  border: 1px solid variables.$color-danger-border;
   border-radius: variables.$radius-sm;
 
-  background-color: rgba(185, 28, 28, 0.06);
+  background-color: variables.$color-danger-surface;
 }
 
 .submitButton {
