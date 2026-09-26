@@ -470,6 +470,25 @@ client/dist/stats.html
 - `decoding="async"`;
 - повышенный fetch priority для основного изображения товара.
 
+Для product images используется fallback-стратегия:
+
+```text
+/product-images/<file>
+        ↓ error
+GitHub raw image
+        ↓ error
+local placeholder
+```
+
+Если URL товара указывает на репозиторий `online-store-assets`, frontend сначала
+пытается загрузить одноимённый файл через same-origin `/product-images/`.
+
+Это позволяет production-серверу обслуживать изображения локально, сохраняя
+исходный GitHub URL в данных товара.
+
+При ошибке локального источника используется GitHub URL, а при повторной ошибке —
+локальный placeholder.
+
 ### Source maps
 
 Production build создаёт hidden source maps.
@@ -478,22 +497,24 @@ Production build создаёт hidden source maps.
 
 ## Адаптивность
 
-Интерфейс адаптирован под:
-
-- desktop;
-- tablet portrait;
-- tablet landscape;
-- smartphone portrait.
-
-Основные layout breakpoints проекта:
+Интерфейс построен на общей responsive-системе с breakpoint tokens:
 
 ```text
-640px
-768px
-1024px
+xs   360px
+sm   480px
+md   768px
+lg   1024px
+xl   1280px
+xxl  1440px
 ```
 
-Они используются по необходимости конкретного layout, а не как обязательная универсальная сетка.
+Интерфейс оптимизирован для мобильных экранов шириной от `360px`.
+
+На ширине `320px` проверено отсутствие критических проблем вёрстки и
+горизонтальной прокрутки, однако возможны визуальные компромисы.
+
+Основные размеры, spacing, цвета, радиусы, control heights и breakpoints
+централизованы в design tokens.
 
 ### Smartphone
 
@@ -503,20 +524,38 @@ Production build создаёт hidden source maps.
 - имя авторизованного пользователя остаётся вне burger-menu;
 - catalog переходит в одну колонку;
 - ProductPage становится вертикальным;
-- cart items становятся вертикальными;
+- cart item использует компактный двухзонный layout;
 - CartSummary занимает доступную ширину;
+- admin form располагается над products area;
 - admin table использует локальный horizontal scroll;
-- формы не создают horizontal overflow.
+- формы и основной page layout не создают horizontal overflow.
 
 ### Tablet
 
-На tablet portrait admin form располагается над таблицей.
+На tablet portrait основные layouts остаются компактными и могут использовать
+одноколоночное расположение.
 
-На более широкой tablet/desktop ширине admin page переходит к layout:
+Начиная с подходящих breakpoint'ов отдельные страницы постепенно переходят к
+desktop-layout:
 
 ```text
-form | products
+catalog: sidebar | products
+cart:    items | summary
+admin:   form | products
 ```
+
+### Desktop
+
+Основной application shell ограничен максимальной шириной `1440px` и использует
+адаптивные horizontal paddings.
+
+Интерфейс также поддерживает:
+
+- `focus-visible` состояния;
+- `prefers-reduced-motion`;
+- стабильный scrollbar gutter для предотвращения layout shifts;
+- локальный horizontal scroll там, где сохранение табличной структуры важнее
+  преобразования контента в карточки.
 
 ---
 
@@ -844,11 +883,51 @@ SameSite=Strict
 /api
 ```
 
-Если frontend и API будут опубликованы на разных origins, необходимо отдельно настроить:
+### Current deployment topology
+
+Production deployment использует same-origin схему:
+
+```text
+Internet
+   ↓
+Caddy :80 / :443
+   ├── SPA static files
+   ├── /product-images/*
+   └── /api/*
+          ↓
+      Express API
+      localhost:3000
+          ↓
+      MongoDB
+      localhost only
+```
+
+Текущий production frontend доступен по HTTPS:
+
+```text
+https://vertu9tif.com
+```
+
+Caddy:
+
+- обслуживает production frontend;
+- выполняет SPA fallback;
+- проксирует `/api/*` в Express API;
+- обслуживает `/product-images/*`;
+- завершает TLS.
+
+Express API запускается как отдельный system service и слушает только
+`localhost:3000`.
+
+MongoDB запускается отдельно и не публикуется напрямую в Internet.
+
+Deployment-specific Caddy/systemd/Docker configuration в этот репозиторий не
+включена.
+
+Если frontend и API будут перенесены на разные origins, потребуется отдельно
+пересмотреть:
 
 - `VITE_API_BASE`;
 - production CORS;
 - cookie policy;
 - proxy topology / `trust proxy`.
-
-Эти настройки должны соответствовать конкретному hosting provider.
